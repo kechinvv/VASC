@@ -1,0 +1,32 @@
+class FactorialCreator is
+
+    var num: Integer(0)
+    var res: Integer(1)
+
+    this(n: Integer) is
+        if n.less(0) then return end  // EXCEPTION???
+        num := n
+        res := this.calculate(n)
+    end
+
+    this() is
+        num := 0
+        res := 1
+    end
+
+    method getNext(): Integer is
+        num := num.plus(1)
+        res := res.mult(num)
+        return res
+    end
+
+    method calculate(x: Integer): Integer is
+        var i is 2
+        var r: Integer(1)
+        while i.lessEqual(x) loop
+            r := r.mult(i)
+            i := i.plus(1)
+        end
+        return r
+    end
+end
