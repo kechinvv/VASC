@@ -1,0 +1,128 @@
+class Animal is
+
+    var satiety: Satiety(0, 3)
+    var point: Point(0, 0, 0)
+
+    this() is end
+
+    method eat(weight: Real): Real is
+        return satiety.fill(weight)
+    end
+
+    method move(dest_point: Point) is
+        point.setX(dest_point.x)
+        point.setY(dest_point.y)
+        var alive: satiety.digest(0.1)
+        if alive.less(0) then this.die()
+    end
+
+    method die is
+    end
+
+end
+
+class Cat extends Animal is
+
+    var life: Integer(9)
+
+    method meow is
+    end
+
+    method die is
+        life := life.minus(1)
+    end
+
+end
+
+
+class Dog extends Animal is
+
+    method rar is
+    end
+
+    method goodBoy is
+    end
+
+end
+
+
+class Siamese extends Cat is
+
+    method shhhh is
+    end
+
+end
+
+class Satiety is
+
+    var max: Real(0)
+    var min: Real(0)
+    var fullness: Real(0)
+
+    this(min: Real, max: Real) is   //scope test? or unique ids?
+        this.max := max
+        this.min := min
+        fullness := min
+    end
+
+    method fill(weight: Real): Real is
+        var need: max.minus(fullness)   // i think it will be problem but it is legal construction (in grammar)
+        if weight.greater(need) then
+            fullness := max
+            return weight.minus(need)
+        else
+            fullness := fullness.plus(weight)
+            return 0
+        end
+    end
+
+    method digest(weight: Real): Real is
+        if fullness.less(weight) return Real(-1.0)
+        fullness := fullness.minus(weight)
+        return fullness
+    end
+end
+
+class Point is
+    var x: Real(0)
+    var y: Real(0)
+    var z: Real(0)
+
+    this(x: Real, y: Real, z: Real) is
+        this.x := x
+        this.y := y
+        this.z := z
+    end
+
+    method setX(x: Real) is
+        this.x := x
+    end
+
+    method setY(y: Real) is
+        this.y := y
+    end
+
+    method setZ(z: Real) is
+            this.z := z
+    end
+end
+
+class Main is
+
+    method test is
+        var animal: Animal()
+        var cat: Cat()
+        var dog: Dog()
+        var siamese: Siamese()
+
+        this.giveFood(animal)
+        this.giveFood(cat)
+        this.giveFood(dog)
+        this.giveFood(siamese)
+    end
+
+    method giveFood(animal: Animal) is
+        animal.eat(1.5)
+    end
+
+end
