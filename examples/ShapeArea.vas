@@ -8,7 +8,7 @@ class Main is
         var expectedArea : 369
 
         var totalArea : Real(0)
-        while shapes.isEmpty().Not() is // TODO: add isEmpty() to List
+        while shapes.isEmpty().Not() loop // TODO: add isEmpty() to List
             totalArea.Plus(shapes.head())
             shapes := shapes.tail()
         end
