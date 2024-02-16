@@ -14,7 +14,7 @@ class FactorialCreator is
         res := 1
     end
 
-    method getNext(): Integer is
+    method next(): Integer is
         num := num.plus(1)
         res := res.mult(num)
         return res
@@ -28,5 +28,24 @@ class FactorialCreator is
             i := i.plus(1)
         end
         return r
+    end
+end
+
+class Main is
+
+    method scenario1 is
+        var f: FactorialCreator()
+        var res10: f.calculate(10)
+        var resNext1: f.next()
+        var resNext2: f.next()
+        var curNumb: f.num
+    end
+
+    method scenario2 is
+        var f: FactorialCreator(7)
+        var res3: f.calculate(3)
+        var resNext8: f.next()
+        var resNext9: f.next()
+        var curNumb: f.num
     end
 end
