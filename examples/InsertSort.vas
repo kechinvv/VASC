@@ -1,0 +1,37 @@
+class Main is
+    this() is
+        var n : Integer(10)
+        var a : Array[Integer](n)
+        a.set(0, 4)
+        a.set(1, 1)
+        a.set(2, 5)
+        a.set(3, 0)
+        a.set(4, 3)
+        a.set(5, 8)
+        a.set(6, 7)
+        a.set(7, 9)
+        a.set(8, 6)
+        a.set(9, 2)
+
+        // https://rosettacode.org/wiki/Sorting_algorithms/Insertion_sort#Java
+        var i : Integer(1)
+        while i.Less(n) loop
+            var value : a.get(i)
+            var j : i.Minus(1)
+            while j.GreaterEqual(0).And(a.get(j).Greater(value)) loop
+                a.set(j.Plus(1), a.get(j))
+                j := j.Minus(1)
+            end
+            a.set(j.Plus(1), value)
+            i := i.Plus(1)
+        end
+
+        i : Integer(0)
+        while i.LessEqual(n) loop
+            if a.get(i).Equal(i).Not() then
+                // TODO: error
+            end
+            i := i.Plus(1)
+        end
+    end
+end
