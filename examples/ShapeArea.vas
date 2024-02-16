@@ -1,0 +1,72 @@
+class Main is
+    this() is
+        var shapes : List[Shape]
+
+        shapes.append(Triangle(16, 25, 39)) // 120
+        shapes.append(Square(13))           // 169
+        shapes.append(Rectangle(5, 16))     // 80
+        var expectedArea : 369
+
+        var totalArea : Real(0)
+        while shapes.isEmpty().Not() is // TODO: add isEmpty() to List
+            totalArea.Plus(shapes.head())
+            shapes := shapes.tail()
+        end
+        if totalArea.Equal(expectedArea).Not() then // TODO: epsilon?
+            // TODO: error
+        end
+    end
+end
+
+class Shape is
+    method Area() : Real
+        return Real(-1)
+    end
+end
+
+class Triangle extends Shape is
+    var a : Real(0)
+    var b : Real(0)
+    var c : Real(0)
+
+    this(a: Real, b: Real, c: Real) is
+        this.a := a
+        this.b := b
+        this.c := c
+    end
+
+    method Area() : Real
+        s : a.Plus(b).Plus(c).Div(2)
+        return s.Mult(s.Minus(a)).Mult(s.Minus(b)).Mult(s.Minus(c)).Sqrt() // TODO: add Sqrt() to Real
+    end
+end
+
+class Square extends Shape is
+    var w : Real(0)
+
+    this(w: Real) is
+        this.w := w
+    end
+
+    method Area() : Real
+        return w.Mult(w)
+    end
+end
+
+class Rectangle extends Square is
+    var h : Real(0)
+
+    this(w: Real) is
+        this.w := w
+        this.h := w
+    end
+
+    this(w: Real, h: Real) is
+        this.w := w
+        this.h := h
+    end
+
+    method Area() : Real
+        return w.Mult(h)
+    end
+end
