@@ -1,0 +1,102 @@
+class Main is
+    this() is
+        var a : Matrix(4, 3)
+        // 00 10 20 30
+        // 01 11 21 31
+        // 02 12 22 32
+        var b : Matrix(2, 4)
+        // 00 10
+        // 01 11
+        // 02 12
+        // 03 13
+        var c : Matrix(1, 2)
+        // 00
+        // 01
+
+        // aaaa   bb   dd   c   r
+        // aaaa * bb = dd * c = r
+        // aaaa   bb   dd       r
+        //        bb
+        var d : a.Mult(b)
+        var r : d.Mult(c)
+        // 740
+        // 786
+        // 832
+
+        if r.at(0, 0).Equal(740).And(r.at(0, 1).Equal(786)).And(r.at(0, 2).Equal(832)).Not() then
+            // TODO: error
+        end
+    end
+end
+
+class Matrix is
+    var w : Integer(0)
+    var h : Integer(0)
+
+    var data : Array[Array[Integer]]
+
+    this(_w : Integer(0), _h : Integer(0)) is
+        w := _w
+        h := _h
+
+        data := Array[Array[Integer]](this.w)
+        var x : Integer(0)
+        while x.Less(this.w) loop
+            var col : Array[Integer](this.h)
+            var y : Integer(0)
+            while y.Less(this.h) loop
+                col.set(y, Integer(10).Mult(x).Plus(y)) // e.g. value of cell (4, 2) is 42
+                y := y.Plus(1)
+            end
+            x := x.Plus(1)
+        end
+    end
+
+    // TODO: test Add?
+    method Add(m : Matrix) : Matrix is
+        var res : Matrix(this.w, this.h)
+        var x : Integer(0)
+        while x.Less(this.w) loop
+            var y : Integer(0)
+            while y.Less(this.h) loop
+                res.Update(x, y, this.at(x, y).Plus(m.at(x, y)))
+                y := y.Plus(1)
+            end
+            x := x.Plus(1)
+        end
+        return res
+    end
+
+    method Mult(m : Matrix) : Matrix is
+        var newW : m.w
+        var newH : this.h
+        var res : Matrix(newW, newH)
+        var x : Integer(0)
+        while x.Less(newW) loop
+            var y : Integer(0)
+            while y.Less(newH) loop
+                res.Update(x, y, this.MultMatrixCell(m, x, y))
+                y := y.Plus(1)
+            end
+            x := x.Plus(1)
+        end
+    end
+
+    method MultMatrixCell(m : Matrix, x : Integer, y : Integer) : Integer is
+        var res : Integer(0)
+        var off : Integer(0)
+        while off.Less(this.w) loop
+            res := res.Plus(this.at(x.Plus(off), y).Mult(this.at(x, y.Plus(off))))
+            off := off.Plus(1)
+        end
+        return res
+    end
+
+    method at(x : Integer, y : Integer) : Integer is
+        return data.get(x).get(y)
+    end
+
+    method Update(x : Integer, y : Integer, v : Integer) is
+        data.get(x).set(y, v)
+    end
+end
