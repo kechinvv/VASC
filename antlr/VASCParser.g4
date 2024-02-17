@@ -4,14 +4,16 @@ options { tokenVocab = VASCLexer; }
 
 program
     :
+      NL*
       classDeclaration*
+      NL*
       EOF
     ;
 
 classDeclaration
-    : CLASS identifier
-      (EXTENDS identifier)?
-      IS memberDeclaration* END
+    : CLASS NL* identifier NL*
+      (EXTENDS NL* identifier)? NL*
+      IS NL* (memberDeclaration NL*)*  END NL*
     ;
 
 identifier
@@ -19,7 +21,7 @@ identifier
     ;
 
 type
-    : L_SQUARE_BRACKET  IDENTIFIER type? R_SQUARE_BRACKET
+    : NL* L_SQUARE_BRACKET NL* IDENTIFIER type? R_SQUARE_BRACKET NL*
     ;
 
 memberDeclaration
@@ -29,23 +31,26 @@ memberDeclaration
     ;
 
 variableDeclaration
-    : VAR IDENTIFIER COLON expression
+    : VAR IDENTIFIER COLON NL* expression
     ;
 
 methodDeclaration
-    : METHOD IDENTIFIER parameters? (COLON IDENTIFIER)?
+    : METHOD IDENTIFIER NL* parameters? NL* (COLON IDENTIFIER)? NL* IS NL* body NL* END
     ;
 
 parameters
-    : parameterDeclaration (COMMA parameterDeclaration)*
+    : L_BRACKET NL*
+      parameterDeclaration NL*
+      (NL* COMMA NL* parameterDeclaration NL*)*
+      R_BRACKET
     ;
 
 parameterDeclaration
-    : IDENTIFIER COLON identifier
+    : IDENTIFIER COLON NL* identifier
     ;
 
 body
-    : (bodyStatement)*
+    : (bodyStatement NL*)*
     ;
 
 bodyStatement
@@ -54,7 +59,7 @@ bodyStatement
     ;
 
 constructorDeclaration
-    : THIS parameters? IS body END
+    : THIS NL* parameters? NL* IS NL* body NL* END
     ;
 
 statement
@@ -65,27 +70,27 @@ statement
     ;
 
 assignment
-    : IDENTIFIER ASSIGN_OP expression
+    : IDENTIFIER ASSIGN_OP NL* expression
     ;
 
 whileLoop
-    : WHILE expression LOOP body END
+    : WHILE NL* expression NL* LOOP NL* body NL* END
     ;
 
 ifStatement
-    : IF expression THEN body (ELSE body)? END
+    : IF NL* expression NL* THEN NL* body NL* (ELSE NL* body)? NL* END
     ;
 
 returnStatement
-    : RETURN expression?
+    : RETURN NL* expression?
     ;
 
 expression
-    : primary (DOT IDENTIFIER arguments?)*
+    : primary (NL* DOT IDENTIFIER NL* arguments?)*
     ;
 
 arguments
-    : L_BRACKET expression (COMMA expression)* R_BRACKET
+    : L_BRACKET NL* expression (NL* COMMA NL* expression)* NL* R_BRACKET
     ;
 
 primary
