@@ -9,11 +9,17 @@ program
     ;
 
 classDeclaration
-    : CLASS className (EXTENDS className)? IS memberDeclaration* END
+    : CLASS identifier
+      (EXTENDS identifier)?
+      IS memberDeclaration* END
     ;
 
-className
-    : IDENTIFIER (L_SQUARE_BRACKET className R_SQUARE_BRACKET)?
+identifier
+    : IDENTIFIER type?
+    ;
+
+type
+    : L_SQUARE_BRACKET  IDENTIFIER type? R_SQUARE_BRACKET
     ;
 
 memberDeclaration
@@ -34,13 +40,12 @@ parameters
     : parameterDeclaration (COMMA parameterDeclaration)*
     ;
 
-
 parameterDeclaration
-    : IDENTIFIER COLON className
+    : IDENTIFIER COLON identifier
     ;
 
 body
-    : bodyStatement*
+    : (bodyStatement)*
     ;
 
 bodyStatement
@@ -87,7 +92,7 @@ primary
     : integerLiteral
     | realLiteral
     | THIS
-    | className
+    | identifier
     | bool=(TRUE | FALSE)
     ;
 
