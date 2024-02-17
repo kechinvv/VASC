@@ -6,6 +6,8 @@ COLON : ':' ;
 
 COMMA : ',' ;
 
+MINUS : '-' ;
+
 L_BRACKET : '(' ;
 
 R_BRACKET : ')' ;
@@ -80,6 +82,8 @@ IDENTIFIER
     :   [a-zA-Z_][a-zA-Z0-9_]*
     |   '`' .*? '`'
     ;
+
+DIGIT: ('0'..'9');
 
 MlComment
     : '/*' ( MlComment | .)*? '*/' -> channel(HIDDEN)
