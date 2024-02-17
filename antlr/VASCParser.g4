@@ -40,8 +40,9 @@ methodDeclaration
 
 parameters
     : L_BRACKET NL*
-      parameterDeclaration NL*
-      (NL* COMMA NL* parameterDeclaration NL*)*
+      ((parameterDeclaration NL*
+      (NL* COMMA NL* parameterDeclaration NL*)*)
+      | )
       R_BRACKET
     ;
 
@@ -67,6 +68,7 @@ statement
     | whileLoop
     | ifStatement
     | returnStatement
+    | expression
     ;
 
 assignment
@@ -86,11 +88,11 @@ returnStatement
     ;
 
 expression
-    : primary (NL* DOT IDENTIFIER NL* arguments?)*
+    : primary arguments? (NL* DOT IDENTIFIER NL* arguments?)*
     ;
 
 arguments
-    : L_BRACKET NL* expression (NL* COMMA NL* expression)* NL* R_BRACKET
+    : L_BRACKET NL* ((expression (NL* COMMA NL* expression)* NL*) |) R_BRACKET
     ;
 
 primary
