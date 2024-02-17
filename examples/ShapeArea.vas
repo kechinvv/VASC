@@ -29,10 +29,10 @@ class Triangle extends Shape is
     var b : Real(0)
     var c : Real(0)
 
-    this(a: Real, b: Real, c: Real) is
-        this.a := a
-        this.b := b
-        this.c := c
+    this(_a: Real, _b: Real, _c: Real) is
+        a := _a
+        b := _b
+        c := _c
     end
 
     method Area() : Real
@@ -44,8 +44,8 @@ end
 class Square extends Shape is
     var w : Real(0)
 
-    this(w: Real) is
-        this.w := w
+    this(_w: Real) is
+        w := _w
     end
 
     method Area() : Real
@@ -56,14 +56,14 @@ end
 class Rectangle extends Square is
     var h : Real(0)
 
-    this(w: Real) is
-        this.w := w
-        this.h := w
+    this(_w: Real) is
+        w := _w
+        h := _w
     end
 
-    this(w: Real, h: Real) is
-        this.w := w
-        this.h := h
+    this(_w: Real, _h: Real) is
+        w := _w
+        h := _h
     end
 
     method Area() : Real
