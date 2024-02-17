@@ -4,8 +4,8 @@ options { tokenVocab = VASCLexer; }
 
 program
     :
-        classDeclaration+
-        EOF
+      classDeclaration*
+      EOF
     ;
 
 classDeclaration
@@ -13,53 +13,62 @@ classDeclaration
     ;
 
 className
-    :   IDENTIFIER (L_SQUARE_BRACKET className R_SQUARE_BRACKET)?
+    : IDENTIFIER (L_SQUARE_BRACKET className R_SQUARE_BRACKET)?
     ;
 
 memberDeclaration
-    :   variableDeclaration
-    |   methodDeclaration
-    |   constructorDeclaration
+    : variableDeclaration
+    | methodDeclaration
+    | constructorDeclaration
     ;
 
 variableDeclaration
-    :   VAR IDENTIFIER COLON expression
+    : VAR IDENTIFIER COLON expression
     ;
 
 methodDeclaration
-    :
+    : METHOD IDENTIFIER parameters? (COLON IDENTIFIER)?
     ;
 
 parameters
-    :
+    : parameterDeclaration (COMMA parameterDeclaration)*
+    ;
+
+
+parameterDeclaration
+    : IDENTIFIER COLON className
     ;
 
 body
-    :
+    : bodyStatement*
     ;
 
-parameterDeclaration
-    :
+bodyStatement
+    : statement
+    | variableDeclaration
     ;
 
 constructorDeclaration
-    :
+    : THIS parameters? IS body END
     ;
 
 statement
-    :
+    : assignment
+    | whileLoop
+    | ifStatement
+    | returnStatement
     ;
 
 assignment
-    :
+    : IDENTIFIER ASSIGN_OP expression
     ;
 
 whileLoop
-    :
+    : WHILE expression LOOP body END
     ;
 
 ifStatement
-    :
+    : IF expression THEN body (ELSE body)? END
     ;
 
 returnStatement
@@ -67,11 +76,11 @@ returnStatement
     ;
 
 expression
-    :
+    : primary (DOT IDENTIFIER arguments?)*
     ;
 
 arguments
-    :
+    : L_BRACKET expression (COMMA expression)* R_BRACKET
     ;
 
 primary
@@ -84,7 +93,6 @@ primary
 
 integerLiteral
    :   MINUS? DIGIT+
-   |   DIGIT
    ;
 
 realLiteral
