@@ -19,7 +19,7 @@ class Main is
 end
 
 class Shape is
-    method Area() : Real
+    method Area() : Real is
         return Real(-1)
     end
 end
@@ -35,8 +35,8 @@ class Triangle extends Shape is
         c := _c
     end
 
-    method Area() : Real
-        s : a.Plus(b).Plus(c).Div(2)
+    method Area() : Real is
+        var s : a.Plus(b).Plus(c).Div(2)
         return s.Mult(s.Minus(a)).Mult(s.Minus(b)).Mult(s.Minus(c)).Sqrt() // TODO: add Sqrt() to Real
     end
 end
@@ -48,7 +48,7 @@ class Square extends Shape is
         w := _w
     end
 
-    method Area() : Real
+    method Area() : Real is
         return w.Mult(w)
     end
 end
@@ -66,7 +66,7 @@ class Rectangle extends Square is
         h := _h
     end
 
-    method Area() : Real
+    method Area() : Real is
         return w.Mult(h)
     end
 end

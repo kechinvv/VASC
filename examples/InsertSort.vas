@@ -26,7 +26,7 @@ class Main is
             i := i.Plus(1)
         end
 
-        i : Integer(0)
+        var i : Integer(0)
         while i.LessEqual(n) loop
             if a.get(i).Equal(i).Not() then
                 // TODO: error

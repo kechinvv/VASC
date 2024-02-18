@@ -10,15 +10,15 @@
 
 class Main is
     this() is
-        var rayVector : Vector3(Real(0), Real(-1), Real(-1));
-        var rayPoint : Vector3(Real(0), Real(0), Real(10));
-        var planeNormal : Vector3(Real(0), Real(0), Real(1));
-        var planePoint : Vector3(Real(0), Real(0), Real(5));
+        var rayVector : Vector3(Real(0), Real(-1), Real(-1))
+        var rayPoint : Vector3(Real(0), Real(0), Real(10))
+        var planeNormal : Vector3(Real(0), Real(0), Real(1))
+        var planePoint : Vector3(Real(0), Real(0), Real(5))
 
-        var diff : rayPoint.minus(planePoint);
-        var prod1 : diff.dot(planeNormal);
-        var prod2 : rayVector.dot(planeNormal);
-        var prod3 : prod1.Div(prod2);
+        var diff : rayPoint.minus(planePoint)
+        var prod1 : diff.dot(planeNormal)
+        var prod2 : rayVector.dot(planeNormal)
+        var prod3 : prod1.Div(prod2)
         var res :  rayPoint.minus(rayVector.times(prod3))
 
         if res.x.Equal(Real(0)).And(res.y.Equal(Real(-5))).And(res.z.Equal(Real(5))).Not() then // TODO: EPS?

@@ -35,7 +35,7 @@ class Matrix is
 
     var data : Array[Array[Integer]]
 
-    this(_w : Integer(0), _h : Integer(0)) is
+    this(_w : Integer, _h : Integer) is
         w := _w
         h := _h
 
