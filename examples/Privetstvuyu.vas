@@ -1,0 +1,228 @@
+class Main is
+    this(args: Array[String]) is
+        var config : Config
+        if args.length().equal(2) then
+           config := Config(args.get(0).toInteger(), args.get(1).toInteger())
+        else
+           config := Config(100, 10)
+        end
+
+        App(config).start()
+    end
+end
+
+class App is
+
+    var active : true
+    var globalTaskManager: GlobalTaskManager
+
+    this(config: Config) is
+        var managers : List[TaskManager]()
+        managers.append(QueueOverflowTaskManager(config.maxSize))
+        managers.append(PeriodicalTaskManager(config.ticks))
+        globalTaskManager := GlobalTaskManager(managers)
+    end
+
+    method start() is
+        while active loop
+            globalTaskManager.tick()
+        end
+    end
+
+    method stop() is
+        active := false
+    end
+end
+
+class Config is
+
+    var maxSize: Integer
+    var ticks: Integer
+
+    this(_maxSize: Integer, _ticks: Integer) is
+        maxSize := _maxSize
+        ticks := _ticks
+    end
+end
+
+class GlobalTaskManager extends TaskManager is
+
+    var managers : Array[TaskManager]
+
+    this(_managers: Array[TaskManager]) is
+        managers := _managers
+    end
+
+    this(_managers: List[TaskManager]) is
+        managers := _managers.toArray()
+    end
+
+    method tasks(): Array[Task] is
+        var globalTasks : List[Task]()
+        var i : 0
+        while i.less(managers.length()) loop
+            var manager : managers.get(i)
+            var tasks : manager.tasks()
+            var j : 0
+            while j.less(tasks.length()) loop
+                globalTasks.add(tasks.get(j))
+                j := j.plus(1)
+            end
+            i := i.plus(1)
+        end
+
+        return globalTasks.toArray()
+    end
+
+    method findById(id: Integer): Task is
+        var i : 0
+        while i.less(managers.length()) loop
+            var manager : managers.get(i)
+            var task : manager.findById(id)
+            if task /*???*/ then  // how to check if value is present?
+                return task
+            end
+            i := i.plus(1)
+        end
+        // empty task? null?
+        return Task(String())
+    end
+
+    method tick() is
+        var i : 0
+        while i.less(managers.length()) loop
+            managers.get(i).tick()
+            i := i.plus(1)
+        end
+    end
+end
+
+class PeriodicalTaskManager extends AbstractTaskManager is
+
+    var ticksPeriod: Integer
+    var ticksCounter: 0
+
+    this(_ticksPeriod: Integer) is
+        ticksPeriod := _ticksPeriod
+    end
+
+    method tick() is
+        ticksCounter := ticksCounter.plus(1)
+        if ticksCounter.equal(ticksPeriod) then
+            popEntry().task.run()
+            ticksCounter := 0
+        end
+    end
+end
+
+class QueueOverflowTaskManager extends AbstractTaskManager is
+
+    var maxSize: Integer
+
+    this(_maxSize: Integer) is
+        maxSize := _maxSize
+    end
+
+    method tick() is
+        while entries.size().greater(maxSize) loop
+            var task : popEntry().task
+            task.run()
+        end
+    end
+end
+
+class AbstarctTaskManager extends TaskManager is
+
+    var entries: List[Entry]()
+
+    // Let's not think about synchronization...
+    method tasks(): Array[Task] is
+        var array : Array[Task](entries.size())
+        var i : 0
+        while i.less(array.length()) loop
+            array.set(i, entries.get(i).task)
+            i := i.plus(1)
+        end
+        return array
+    end
+
+    method findById(id: Integer): Task is
+        var i : 0
+        while i.less(entries.size()) loop
+            var entry : entries.get(i)
+            if entry.id.equal(id) then
+                return entry.task
+            end
+            i := i.plus(1)
+        end
+        // empty task? null?
+        return Task(String())
+    end
+
+    method process(id: Integer, task: Task) is
+        entries.append(Entry(id, task))
+    end
+
+    method popEntry(): Entry is
+        var entry : entries.get(0)
+        entries.remove(0)
+        return entry
+    end
+
+    method tick() is
+    end
+end
+
+class TaskManager is
+    method tasks(): Array[Task]
+    method findById(id: Integer): Task
+    method tick()
+end
+
+class Entry is
+
+    var id: Integer
+    var task: Task
+
+    this(_id: Integer, _task: Task) is
+        id := _id
+        task := _task
+    end
+end
+
+class Task is
+
+    var name: String
+
+    this(_name: String) is
+        name := String(_name)  // copy
+    end
+
+    method run()
+end
+
+class String is
+
+    var chars: Array[Integer]
+
+    this() is
+        // empty
+        chars := Array[Integer](0)
+    end
+
+    this(other: String) is
+        this(other.chars)
+    end
+
+    this(_chars: Array[Integer]) is
+        chars := Array[Integer](_chars.length())
+        var i : 0 // ???
+        // copy
+        while i.less(_chars.length()) loop
+            chars.set(i, _chars.get(i))
+            i := i.plus(1)
+        end
+    end
+
+    method toInteger(): Integer is end
+end
