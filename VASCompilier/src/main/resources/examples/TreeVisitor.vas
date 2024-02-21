@@ -1,0 +1,73 @@
+class Main is
+    this() is
+        var E : Node[Integer]
+        var tree :
+            PlusNode[Integer](1,
+                PlusNode[Integer](2,
+                    MinusNode[Integer](3, E, E),
+                    PlusNode[Integer](4, E,
+                        PlusNode[Integer](5, E, E)
+                    )
+                ),
+                MinusNode[Integer](6,
+                    PlusNode[Integer](7, E, E),
+                    E
+                )
+            )
+        //         1
+        //       /   \
+        //      2    -6
+        //     / \   /
+        //    -3  4 7
+        //         \
+        //          5
+        var expectedRes : Integer(10)
+        var v : Visitor
+        v.visit(tree)
+        if v.res.Equal(expectedRes).Not() then
+            // TODO: error
+        end
+    end
+end
+
+class Visitor is
+    var res : Integer(0)
+
+    this() is
+    end
+
+    method visit(node : Node[Integer]) is
+    end
+
+    method visit(node : PlusNode[Integer]) is
+        res := res.Plus(node.value)
+        this.visit(node.left)
+        this.visit(node.right)
+    end
+
+    method visit(node : MinusNode[Integer]) is
+        res := res.Minus(node.value)
+        this.visit(node.left)
+        this.visit(node.right)
+    end
+end
+
+class Node[T] is // empty node
+    this() is
+    end
+end
+
+class PlusNode[T] extends Node[T] is
+    var value : T
+    var left  : Node[T]
+    var right : Node[T]
+
+    this(_value : T, _left : Node[T], _right : Node[T]) is
+        value := _value
+        left  := _left
+        right := _right
+    end
+end
+
+class MinusNode[T] extends PlusNode[T] is
+end

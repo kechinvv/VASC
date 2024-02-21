@@ -1,0 +1,56 @@
+// https://rosettacode.org/wiki/Find_the_intersection_of_a_line_with_a_plane#Java
+
+// Find the point of intersection for
+// the infinite ray with direction (0, -1, -1)
+// passing through position (0, 0, 10)
+// with the infinite plane with a normal vector of (0, 0, 1)
+// and which passes through [0, 0, 5].
+
+// The ray intersects the plane at (0, -5, 5)
+
+class Main is
+    this() is
+        var rayVector : Vector3(Real(0), Real(-1), Real(-1))
+        var rayPoint : Vector3(Real(0), Real(0), Real(10))
+        var planeNormal : Vector3(Real(0), Real(0), Real(1))
+        var planePoint : Vector3(Real(0), Real(0), Real(5))
+
+        var diff : rayPoint.minus(planePoint)
+        var prod1 : diff.dot(planeNormal)
+        var prod2 : rayVector.dot(planeNormal)
+        var prod3 : prod1.Div(prod2)
+        var res :  rayPoint.minus(rayVector.times(prod3))
+
+        if res.x.Equal(Real(0)).And(res.y.Equal(Real(-5))).And(res.z.Equal(Real(5))).Not() then // TODO: EPS?
+            // TODO: error
+        end
+    end
+end
+
+class Vector3 is
+    var x : Real(0)
+    var y : Real(0)
+    var z : Real(0)
+
+    this(_x : Real, _y : Real, _z : Real) is
+        x := _x // TODO: use this?
+        y := _y
+        z := _z
+    end
+
+    method Plus(v : Vector3) : Vector3 is
+        return Vector3(this.x.Plus(v.x), this.y.Plus(v.y), this.z.Plus(v.z))
+    end
+
+    method Minus(v : Vector3) : Vector3 is
+        return Vector3(this.x.Minus(v.x), this.y.Minus(v.y), this.z.Minus(v.z))
+    end
+
+    method Times(s : Real) : Vector3 is
+        return Vector3(s.Mult(this.x), s.Mult(this.y), s.Mult(this.z))
+    end
+
+    method Dot(v : Vector3D) : Real is
+        return this.x.Mult(v.x).Plus(this.y.Mult(v.y)).Plus(z.Mult(v.z))
+    end
+end
