@@ -1,4 +1,6 @@
-package com.vas.gen;// Generated from C:/Users/valer/IdeaProjects/VASC/antlr/VASCParser.g4 by ANTLR 4.13.1
+package com.vas.gen;
+
+// Generated from C:/Users/valer/IdeaProjects/VASC/antlr/VASCParser.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -22,17 +24,29 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitClassDeclaration(VASCParser.ClassDeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VASCParser#identifier}.
+	 * Visit a parse tree produced by {@link VASCParser#classBody}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIdentifier(VASCParser.IdentifierContext ctx);
+	T visitClassBody(VASCParser.ClassBodyContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VASCParser#type}.
+	 * Visit a parse tree produced by {@link VASCParser#listType}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitType(VASCParser.TypeContext ctx);
+	T visitListType(VASCParser.ListTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#arrayType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArrayType(VASCParser.ArrayTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#genericType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGenericType(VASCParser.GenericTypeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VASCParser#memberDeclaration}.
 	 * @param ctx the parse tree
@@ -46,11 +60,17 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVariableDeclaration(VASCParser.VariableDeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VASCParser#methodDeclaration}.
+	 * Visit a parse tree produced by {@link VASCParser#initializedVariable}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitMethodDeclaration(VASCParser.MethodDeclarationContext ctx);
+	T visitInitializedVariable(VASCParser.InitializedVariableContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#uninitializedVariable}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUninitializedVariable(VASCParser.UninitializedVariableContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VASCParser#parameters}.
 	 * @param ctx the parse tree
@@ -58,11 +78,11 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParameters(VASCParser.ParametersContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VASCParser#parameterDeclaration}.
+	 * Visit a parse tree produced by {@link VASCParser#parameter}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParameterDeclaration(VASCParser.ParameterDeclarationContext ctx);
+	T visitParameter(VASCParser.ParameterContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VASCParser#body}.
 	 * @param ctx the parse tree
@@ -76,6 +96,12 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBodyStatement(VASCParser.BodyStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link VASCParser#methodDeclaration}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMethodDeclaration(VASCParser.MethodDeclarationContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link VASCParser#constructorDeclaration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -87,6 +113,12 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStatement(VASCParser.StatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#print}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrint(VASCParser.PrintContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VASCParser#assignment}.
 	 * @param ctx the parse tree
@@ -118,17 +150,41 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpression(VASCParser.ExpressionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link VASCParser#callableExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallableExpression(VASCParser.CallableExpressionContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link VASCParser#arguments}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitArguments(VASCParser.ArgumentsContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link VASCParser#callable}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallable(VASCParser.CallableContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link VASCParser#primary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPrimary(VASCParser.PrimaryContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitType(VASCParser.TypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#className}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClassName(VASCParser.ClassNameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VASCParser#integerLiteral}.
 	 * @param ctx the parse tree
@@ -141,4 +197,16 @@ public interface VASCParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRealLiteral(VASCParser.RealLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#identifier}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIdentifier(VASCParser.IdentifierContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VASCParser#semi}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSemi(VASCParser.SemiContext ctx);
 }
