@@ -1,16 +1,16 @@
 class Main is
     this() is
-        var E : Node[Integer]
+        var E : Node
         var tree :
-            PlusNode[Integer](1,
-                PlusNode[Integer](2,
-                    MinusNode[Integer](3, E, E),
-                    PlusNode[Integer](4, E,
-                        PlusNode[Integer](5, E, E)
+            PlusNode(1,
+                PlusNode(2,
+                    MinusNode(3, E, E),
+                    PlusNode(4, E,
+                        PlusNode(5, E, E)
                     )
                 ),
-                MinusNode[Integer](6,
-                    PlusNode[Integer](7, E, E),
+                MinusNode(6,
+                    PlusNode(7, E, E),
                     E
                 )
             )
@@ -36,38 +36,38 @@ class Visitor is
     this() is
     end
 
-    method visit(node : Node[Integer]) is
+    method visit(node : Node) is
     end
 
-    method visit(node : PlusNode[Integer]) is
+    method visit(node : PlusNode) is
         res := res.Plus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end
 
-    method visit(node : MinusNode[Integer]) is
+    method visit(node : MinusNode) is
         res := res.Minus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end
 end
 
-class Node[T] is // empty node
+class Node is // empty node
     this() is
     end
 end
 
-class PlusNode[T] extends Node[T] is
-    var value : T
-    var left  : Node[T]
-    var right : Node[T]
+class PlusNode extends Node is
+    var value : Integer
+    var left  : Node
+    var right : Node
 
-    this(_value : T, _left : Node[T], _right : Node[T]) is
+    this(_value : T, _left : Node, _right : Node) is
         value := _value
         left  := _left
         right := _right
     end
 end
 
-class MinusNode[T] extends PlusNode[T] is
+class MinusNode extends PlusNode is
 end
