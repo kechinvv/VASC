@@ -32,7 +32,7 @@ public class Main {
                 var ruleId = node.getRuleContext().getRuleIndex();
                 if (ruleId >= 0 && ruleId < VASCParser.ruleNames.length) {
                     var rule = VASCParser.ruleNames[ruleId];
-                    int endIndex = Math.min(node.getText().length(), 50);
+                    int endIndex = Math.min(node.getText().length(), 100);
                     System.out.println(rule + " ".repeat(30 - rule.length()) + node.getText().substring(0, endIndex));
                 }
                 return super.visitChildren(node);
