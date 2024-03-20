@@ -13,7 +13,9 @@ class Animal is
         point.setX(dest_point.x)
         point.setY(dest_point.y)
         var alive: satiety.digest(0.1)
-        if alive.less(0) then this.die()
+        if alive.less(0) then
+            this.die()
+        end
     end
 
     method die is
@@ -59,9 +61,9 @@ class Satiety is
     var min: Real(0)
     var fullness: Real(0)
 
-    this(min: Real, max: Real) is   //scope test? or unique ids?
-        this.max := max
-        this.min := min
+    this(min_in: Real, max_in: Real) is   //scope test? or unique ids?
+        max := max_in
+        min := min_in
         fullness := min
     end
 
@@ -77,7 +79,7 @@ class Satiety is
     end
 
     method digest(weight: Real): Real is
-        if fullness.less(weight) return Real(-1.0)
+        if fullness.less(weight) then return Real(-1.0)
         fullness := fullness.minus(weight)
         return fullness
     end
@@ -88,22 +90,22 @@ class Point is
     var y: Real(0)
     var z: Real(0)
 
-    this(x: Real, y: Real, z: Real) is
-        this.x := x
-        this.y := y
-        this.z := z
+    this(_x: Real, _y: Real, _z: Real) is
+        x := _x
+        y := _y
+        z := _z
     end
 
-    method setX(x: Real) is
-        this.x := x
+    method setX(_x: Real) is
+        x := _x
     end
 
-    method setY(y: Real) is
-        this.y := y
+    method setY(_y: Real) is
+        y := _y
     end
 
-    method setZ(z: Real) is
-            this.z := z
+    method setZ(_z: Real) is
+        z := _z
     end
 end
 
