@@ -18,11 +18,11 @@ class Main is
     end
 end
 
-class Option[T] is
-    var value : T
+class Option is
+    var value : Point
     var ok : Boolean
 
-    this(_value : T, _ok : Boolean) is
+    this(_value : Point, _ok : Boolean) is
         value := _value
         ok := _ok
     end
@@ -47,7 +47,7 @@ class Line is
         e := _e
     end
 
-    method findIntersection(other : Line) : Option is // TODO: generic parameter?
+    method findIntersection(other : Line) : Option is
         var a1 : this.e.y.Minus(other.s.y)
         var b1 : this.s.x.Minus(other.e.x)
         var c1 : a1.Mult(this.s.x).Plus(b1.Mult(other.s.y))
@@ -58,9 +58,9 @@ class Line is
 
         var delta : a1.Mult(b2).Minus(a2.Mult(b1))
         if delta.Equal(0) then
-            return Option[Point](Point(0.0, 0.0), false)
+            return Option(Point(0.0, 0.0), false)
         else
-            return Option[Point](Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true)
+            return Option(Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true)
         end
     end
 end
