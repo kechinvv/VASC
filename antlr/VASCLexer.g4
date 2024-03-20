@@ -50,6 +50,26 @@ RETURN
     : 'return'
     ;
 
+LIST
+    : 'List'
+    ;
+
+THIS
+    : 'this'
+    ;
+
+ARRAY
+    : 'Array'
+    ;
+
+PRINT
+    : 'println'
+    ;
+
+SUPER
+    : 'super'
+    ;
+
 IF
     : 'if'
     ;
@@ -66,10 +86,6 @@ VAR
     : 'var'
     ;
 
-THIS
-    : 'this'
-    ;
-
 TRUE
     : 'true'
     ;
@@ -78,12 +94,28 @@ FALSE
     : 'false'
     ;
 
+NULL
+    : 'null'
+    ;
+
+fragment ESCAPED_QUOTE
+   : '\\"'
+   ;
+
+STRING
+    : '"' ( ESCAPED_QUOTE | ~('\n'|'\r') )*? '"'
+    ;
+
 IDENTIFIER
-    :   [a-zA-Z_][a-zA-Z0-9_]*
-    |   '`' .*? '`'
+    :   [a-zA-Z_$][a-zA-Z0-9_$]*
     ;
 
 DIGIT: ('0'..'9');
+
+NL
+    : '\n'
+    | '\r' '\n'?
+    ;
 
 MlComment
     : '/*' ( MlComment | .)*? '*/' -> channel(HIDDEN)
@@ -94,13 +126,9 @@ COMMENT
     ;
 
 WS
-    : [\u0020\u0009\u000C] -> channel(HIDDEN)
+    : [ \t]+ -> channel(HIDDEN)
     ;
 
-NL
-    : '\n'
-    | '\r' '\n'?
-    ;
 
 BAD_CHARACTER
    :   .

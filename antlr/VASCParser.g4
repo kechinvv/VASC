@@ -5,23 +5,30 @@ options { tokenVocab = VASCLexer; }
 program
     :
       NL*
-      classDeclaration*
-      NL*
+      (classDeclaration semi?)*
       EOF
     ;
 
 classDeclaration
-    : CLASS NL* identifier NL*
-      (EXTENDS NL* identifier)? NL*
-      IS NL* (memberDeclaration NL*)*  END NL*
+    : CLASS NL* identifier
+      NL* (EXTENDS NL* identifier)?
+      NL* IS NL* classBody NL* END
     ;
 
-identifier
-    : IDENTIFIER type?
+classBody
+    : (memberDeclaration semi)*
     ;
 
-type
-    : NL* L_SQUARE_BRACKET NL* IDENTIFIER type? R_SQUARE_BRACKET NL*
+listType
+    : LIST genericType
+    ;
+
+arrayType
+    : ARRAY genericType
+    ;
+
+genericType
+    : L_SQUARE_BRACKET NL* className NL* R_SQUARE_BRACKET
     ;
 
 memberDeclaration
@@ -31,32 +38,39 @@ memberDeclaration
     ;
 
 variableDeclaration
-    : VAR IDENTIFIER COLON NL* expression
+    : uninitializedVariable
+    | initializedVariable
     ;
 
-methodDeclaration
-    : METHOD IDENTIFIER NL* parameters? NL* (COLON IDENTIFIER)? NL* IS NL* body NL* END
+initializedVariable
+    : VAR identifier COLON NL* expression
+    ;
+
+uninitializedVariable
+    : VAR identifier COLON NL* type
     ;
 
 parameters
     : L_BRACKET NL*
-      ((parameterDeclaration NL*
-      (NL* COMMA NL* parameterDeclaration NL*)*)
-      | )
-      R_BRACKET
+      (parameter (NL* COMMA NL* parameter)*)?
+      NL* R_BRACKET
     ;
 
-parameterDeclaration
-    : IDENTIFIER COLON NL* identifier
+parameter
+    : identifier  NL* COLON NL* type
     ;
 
 body
-    : (bodyStatement NL*)*
+    : (bodyStatement semi)*
     ;
 
 bodyStatement
     : statement
     | variableDeclaration
+    ;
+
+methodDeclaration
+    : METHOD NL* identifier NL* parameters? NL* (COLON NL* type NL*)? IS NL* body NL* END
     ;
 
 constructorDeclaration
@@ -69,10 +83,15 @@ statement
     | ifStatement
     | returnStatement
     | expression
+    | print
+    ;
+
+print
+    : PRINT L_BRACKET STRING R_BRACKET
     ;
 
 assignment
-    : IDENTIFIER ASSIGN_OP NL* expression
+    : identifier ASSIGN_OP NL* expression
     ;
 
 whileLoop
@@ -88,19 +107,39 @@ returnStatement
     ;
 
 expression
-    : primary arguments? (NL* DOT IDENTIFIER NL* arguments?)*
+    : callableExpression
+    | primary
+    ;
+
+callableExpression
+    : callable arguments? (NL* DOT callableExpression)?
     ;
 
 arguments
-    : L_BRACKET NL* ((expression (NL* COMMA NL* expression)* NL*) |) R_BRACKET
+    : L_BRACKET NL* (expression (NL* COMMA NL* expression)* NL*)? R_BRACKET
+    ;
+
+callable
+    : THIS
+    | SUPER
+    | className
     ;
 
 primary
     : integerLiteral
     | realLiteral
-    | THIS
-    | identifier
     | bool=(TRUE | FALSE)
+    | NULL
+    ;
+
+type
+    : className
+    ;
+
+className
+    : identifier
+    | arrayType
+    | listType
     ;
 
 integerLiteral
@@ -110,3 +149,11 @@ integerLiteral
 realLiteral
    :   MINUS? DIGIT+ DOT DIGIT+
    ;
+
+identifier
+   : IDENTIFIER
+   ;
+
+semi
+    : NL+
+    ;
