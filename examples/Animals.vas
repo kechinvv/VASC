@@ -117,10 +117,10 @@ class Main is
         var dog: Dog()
         var siamese: Siamese()
 
-        this.giveFood(animal)
-        this.giveFood(cat)
-        this.giveFood(dog)
-        this.giveFood(siamese)
+        giveFood(animal)
+        giveFood(cat)
+        giveFood(dog)
+        giveFood(siamese)
     end
 
     method giveFood(animal: Animal) is
