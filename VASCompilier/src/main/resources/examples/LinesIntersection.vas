@@ -1,0 +1,66 @@
+// https://rosettacode.org/wiki/Find_the_intersection_of_two_lines#Java
+
+class Main is
+    this() is
+        var l1 : Line(Point(4, 0), Point(6, 10))
+        var l2 : Line(Point(0, 3), Point(10, 7))
+        var o : l1.findIntersection(l2)
+        if o.ok.And(o.value.x.Equal(5).And(o.value.y.Equal(5))).Not() then // TODO: epsilon?
+            // TODO: error
+        end
+
+        l1 := Line(Point(0, 0), Point(1, 1))
+        l2 := Line(Point(1, 2), Point(4, 5))
+        o := l1.findIntersection(l2)
+        if o.ok then
+            // TODO: error
+        end
+    end
+end
+
+class Option is
+    var value : Point
+    var ok : Boolean
+
+    this(_value : Point, _ok : Boolean) is
+        value := _value
+        ok := _ok
+    end
+end
+
+class Point is
+    var x : Real
+    var y : Real
+
+    this(_x : Real, _y : Real) is
+        x := _x
+        y := _y
+    end
+end
+
+class Line is
+    var s : Point
+    var e : Point
+
+    this(_s : Point, _e : Point) is
+        s := _s
+        e := _e
+    end
+
+    method findIntersection(other : Line) : Option is
+        var a1 : this.e.y.Minus(other.s.y)
+        var b1 : this.s.x.Minus(other.e.x)
+        var c1 : a1.Mult(this.s.x).Plus(b1.Mult(other.s.y))
+
+        var a2 : other.e.y.Minus(other.s.y)
+        var b2 : other.s.x.Minus(other.e.x)
+        var c2 : a2.Mult(other.s.x).Plus(b2.Mult(other.s.y))
+
+        var delta : a1.Mult(b2).Minus(a2.Mult(b1))
+        if delta.Equal(0) then
+            return Option(Point(0.0, 0.0), false)
+        else
+            return Option(Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true)
+        end
+    end
+end
