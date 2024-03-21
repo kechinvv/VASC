@@ -1,6 +1,4 @@
 .idea
-VASCompilier/.gradle
-VASCompilier/build
-VASCompilier/gradlew
-VASCompilier/gradlew.bat
-/VASCompilier/.gradle/
+**/.gradle
+**/build
+**/out
