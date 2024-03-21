@@ -19,3 +19,19 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks {
+    generateGrammarSource {
+        val packageName = "${project.group}.antlr"
+        outputDirectory = File(outputDirectory, packageName.replace('.', '/'))
+        arguments = arguments + listOf("-visitor", "-package", packageName)
+    }
+
+    compileJava {
+        dependsOn("generateGrammarSource")
+    }
+
+    compileTestJava {
+        dependsOn("generateTestGrammarSource")
+    }
+}

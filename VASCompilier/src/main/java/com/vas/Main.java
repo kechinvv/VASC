@@ -1,6 +1,6 @@
 package com.vas;
 
-import com.vas.gen.*;
+import com.vas.antlr.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.RuleNode;
 
