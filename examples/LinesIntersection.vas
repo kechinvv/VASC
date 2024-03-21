@@ -60,7 +60,7 @@ class Line is
         if delta.Equal(0) then
             return Option(Point(0.0, 0.0), false)
         else
-            return Option(Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true)
+            return Option(Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true))
         end
     end
 end
