@@ -26,10 +26,23 @@ public class Main {
             @Override
             public Void visitChildren(RuleNode node) {
                 var ruleId = node.getRuleContext().getRuleIndex();
-                if (ruleId >= 0 && ruleId < VASCParser.ruleNames.length) {
-                    var rule = VASCParser.ruleNames[ruleId];
-                    int endIndex = Math.min(node.getText().length(), 100);
-                    System.out.println(rule + " ".repeat(30 - rule.length()) + node.getText().substring(0, endIndex));
+                if (ruleId >= 0 && ruleId < VASCParser.ruleNames.length && node instanceof ParserRuleContext ctx) {
+                    try {
+                        String text;
+                        if (ctx.start == null || ctx.stop == null || ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0)
+                            text = ctx.getText();
+                        else
+                            text = ctx.start.getInputStream().getText(Interval.of(ctx.start.getStartIndex(), ctx.stop.getStopIndex()));
+                        var rule = VASCParser.ruleNames[((ParserRuleContext) node).getRuleIndex()];
+                        var lines = text.split("\n");
+                        var maxIndent = 30;
+                        lines[0] = ("|" + lines[0].indent(ctx.start.getCharPositionInLine())).indent(maxIndent - rule.length());
+                        for (int i = 1; i < lines.length; i++) {
+                            lines[i] = ("|" + lines[i]).indent(maxIndent);
+                        }
+                        System.out.println(rule + String.join("", lines));
+                    } catch (Exception ignored) {
+                    }
                 }
                 return super.visitChildren(node);
             }
