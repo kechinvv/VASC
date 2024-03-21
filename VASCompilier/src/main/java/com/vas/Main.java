@@ -2,6 +2,7 @@ package com.vas;
 
 import com.vas.antlr.*;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.RuleNode;
 
 import java.io.*;
