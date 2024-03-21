@@ -1,21 +1,17 @@
 package com.vas;
 
-import com.vas.gen.VASCLexer;
-import com.vas.gen.VASCParser;
-import com.vas.gen.VASCParserBaseVisitor;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
+import com.vas.gen.*;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.RuleNode;
 
-import java.io.IOException;
+import java.io.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var localPath = "examples/FourBitAdder.vas";
+        var example = new File("examples/FourBitAdder.vas");
 
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        var lexer = new VASCLexer(CharStreams.fromStream(classloader.getResourceAsStream(localPath)));
+        var stream = CharStreams.fromStream(new FileInputStream(example));
+        var lexer = new VASCLexer(stream);
         var tokens = new CommonTokenStream(lexer);
         tokens.fill();
         for (Token token : tokens.getTokens()) {
