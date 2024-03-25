@@ -14,15 +14,18 @@ class TestValid {
         fun provideSources(): Stream<Arguments> {
             val dirPath = this::class.java.classLoader.resources("valid").iterator().next()
             val dir = File(dirPath.path)
-            return dir.listFiles()!!.map { Arguments.of(it.path) }.stream()
+            return dir.listFiles()!!.map {
+                Arguments.of(object : File(it.path) {
+                    override fun toString() = nameWithoutExtension
+                })
+            }.stream()
         }
     }
 
     @ParameterizedTest
     @MethodSource("provideSources")
-    fun `test valid code`(path: String) {
-        val text = File(path).readText()
-        val lexer = VASCLexer(CharStreams.fromString(text))
+    fun `test valid code`(file: File) {
+        val lexer = VASCLexer(CharStreams.fromString(file.readText()))
         val parser = VASCParser(CommonTokenStream(lexer))
         val errorListener = object : BaseErrorListener() {
             val errors = mutableListOf<String>()
