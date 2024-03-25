@@ -22,7 +22,7 @@ class TestValid {
         }
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{argumentsWithNames}")
     @MethodSource("provideSources")
     fun `test valid code`(file: File) {
         val lexer = VASCLexer(CharStreams.fromString(file.readText()))
