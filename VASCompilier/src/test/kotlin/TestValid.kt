@@ -48,15 +48,8 @@ class TestValid {
         parser.addErrorListener(errorListener)
         parser.program()
         if (errorListener.errors.isNotEmpty()) {
-            fail {
-                """
-                    |
-                    |unexpected parser errors:
-                    |
-                    |${errorListener.errors.joinToString("\n\n")}
-                    |
-                """.trimMargin()
-            }
+            System.err.println(errorListener.errors.joinToString("\n\n"))
+            fail("unexpected parser errors in (${file.name}:1)")
         }
     }
 }
