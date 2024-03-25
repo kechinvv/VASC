@@ -9,7 +9,7 @@ class Main is
         a.set(4, 3)
         a.set(5, 8)
         a.set(6, 7)
-        a.set(7, 9))
+        a.set(7, 9)
         a.set(8, 6)
         a.set(9, 2)
 
