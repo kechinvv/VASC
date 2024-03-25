@@ -9,7 +9,7 @@ import java.io.File
 class TestValid {
     @TestFactory
     fun `test valid code`(): Collection<DynamicTest> {
-        val dirPath = this::class.java.classLoader.resources("valid").iterator().next()
+        val dirPath = this::class.java.classLoader.resources("valid").toList().first()
         val dir = File(dirPath.path)
         return dir.listFiles()!!.map { file ->
             DynamicTest.dynamicTest(file.nameWithoutExtension) {
