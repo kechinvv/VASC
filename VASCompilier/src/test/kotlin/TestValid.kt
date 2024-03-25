@@ -26,9 +26,9 @@ class TestValid {
                         e: RecognitionException?
                     ) {
                         val detailedMsg = """
-                    |parser error at $line:$charPositionInLine
-                    |$msg
-                """.trimMargin()
+                            |parser error at $line:$charPositionInLine
+                            |$msg
+                        """.trimMargin()
                         errors.add(detailedMsg)
                     }
                 }
