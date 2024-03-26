@@ -1,5 +1,7 @@
-import com.vas.antlr.VASCLexer
-import com.vas.antlr.VASCParser
+package com.vasc
+
+import com.vasc.antlr.VascLexer
+import com.vasc.antlr.VascParser
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -13,8 +15,8 @@ class TestValid {
         val dir = File(dirPath.path)
         return dir.listFiles()!!.map { file ->
             DynamicTest.dynamicTest(file.nameWithoutExtension) {
-                val lexer = VASCLexer(CharStreams.fromString(file.readText()))
-                val parser = VASCParser(CommonTokenStream(lexer))
+                val lexer = VascLexer(CharStreams.fromString(file.readText()))
+                val parser = VascParser(CommonTokenStream(lexer))
                 val errorListener = object : BaseErrorListener() {
                     val errors = mutableListOf<String>()
                     override fun syntaxError(

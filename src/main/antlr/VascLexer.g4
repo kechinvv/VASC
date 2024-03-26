@@ -1,4 +1,4 @@
-lexer grammar VASCLexer;
+lexer grammar VascLexer;
 
 DOT : '.' ;
 

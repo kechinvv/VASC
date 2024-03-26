@@ -1,6 +1,6 @@
-parser grammar VASCParser;
+parser grammar VascParser;
 
-options { tokenVocab = VASCLexer; }
+options { tokenVocab = VascLexer; }
 
 program
     :

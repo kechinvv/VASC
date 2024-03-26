@@ -1,6 +1,6 @@
-package com.vas;
+package com.vasc;
 
-import com.vas.antlr.*;
+import com.vasc.antlr.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.RuleNode;
@@ -12,29 +12,29 @@ public class Main {
         var example = new File("examples/FourBitAdder.vas");
 
         var stream = CharStreams.fromStream(new FileInputStream(example));
-        var lexer = new VASCLexer(stream);
+        var lexer = new VascLexer(stream);
         var tokens = new CommonTokenStream(lexer);
         tokens.fill();
         for (Token token : tokens.getTokens()) {
-            var tokenName = VASCLexer.VOCABULARY.getDisplayName(token.getType());
+            var tokenName = VascLexer.VOCABULARY.getDisplayName(token.getType());
             System.out.println(tokenName + " ".repeat(15 - tokenName.length()) + token.getText());
         }
 
-        var parser = new VASCParser(tokens);
+        var parser = new VascParser(tokens);
         var tree = parser.program();
-        var visitor = new VASCParserBaseVisitor<Void>() {
+        var visitor = new VascParserBaseVisitor<Void>() {
 
             @Override
             public Void visitChildren(RuleNode node) {
                 var ruleId = node.getRuleContext().getRuleIndex();
-                if (ruleId >= 0 && ruleId < VASCParser.ruleNames.length && node instanceof ParserRuleContext ctx) {
+                if (ruleId >= 0 && ruleId < VascParser.ruleNames.length && node instanceof ParserRuleContext ctx) {
                     try {
                         String text;
                         if (ctx.start == null || ctx.stop == null || ctx.start.getStartIndex() < 0 || ctx.stop.getStopIndex() < 0)
                             text = ctx.getText();
                         else
                             text = ctx.start.getInputStream().getText(Interval.of(ctx.start.getStartIndex(), ctx.stop.getStopIndex()));
-                        var rule = VASCParser.ruleNames[((ParserRuleContext) node).getRuleIndex()];
+                        var rule = VascParser.ruleNames[((ParserRuleContext) node).getRuleIndex()];
                         var lines = text.split("\n");
                         var maxIndent = 30;
                         lines[0] = ("|" + lines[0].indent(ctx.start.getCharPositionInLine())).indent(maxIndent - rule.length());
