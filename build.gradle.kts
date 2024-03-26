@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    java
     antlr
     kotlin("jvm") version "1.9.23"
 }
@@ -12,10 +12,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
     antlr("org.antlr:antlr4:4.13.1")
-    implementation(kotlin("stdlib-jdk8"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 tasks.test {
@@ -36,8 +38,4 @@ tasks {
     compileTestJava {
         dependsOn("generateTestGrammarSource")
     }
-}
-
-kotlin {
-    jvmToolchain(17)
 }
