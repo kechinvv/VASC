@@ -50,20 +50,8 @@ RETURN
     : 'return'
     ;
 
-LIST
-    : 'List'
-    ;
-
 THIS
     : 'this'
-    ;
-
-ARRAY
-    : 'Array'
-    ;
-
-PRINT
-    : 'println'
     ;
 
 SUPER
@@ -86,6 +74,26 @@ VAR
     : 'var'
     ;
 
+ARRAY
+    : 'Array'
+    ;
+
+LIST
+    : 'List'
+    ;
+
+BOOL
+    : 'Boolean'
+    ;
+
+REAL
+    : 'Real'
+    ;
+
+INT
+    : 'Integer'
+    ;
+
 TRUE
     : 'true'
     ;
@@ -96,6 +104,10 @@ FALSE
 
 NULL
     : 'null'
+    ;
+
+PRINT
+    : 'println'
     ;
 
 fragment ESCAPED_QUOTE
