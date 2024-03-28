@@ -19,18 +19,6 @@ classBody
     : (memberDeclaration semi)*
     ;
 
-listType
-    : LIST genericType
-    ;
-
-arrayType
-    : ARRAY genericType
-    ;
-
-genericType
-    : L_SQUARE_BRACKET NL* className NL* R_SQUARE_BRACKET
-    ;
-
 memberDeclaration
     : variableDeclaration
     | methodDeclaration
@@ -42,12 +30,20 @@ variableDeclaration
     | initializedVariable
     ;
 
+methodDeclaration
+    : METHOD NL* identifier NL* parameters? NL* (COLON NL* className NL*)? IS NL* body NL* END
+    ;
+
+constructorDeclaration
+    : THIS NL* parameters? NL* IS NL* body NL* END
+    ;
+
 initializedVariable
-    : VAR identifier COLON NL* expression
+    : VAR identifier COLON NL* className NL* ASSIGN_OP NL* expression
     ;
 
 uninitializedVariable
-    : VAR identifier COLON NL* type
+    : VAR identifier COLON NL* className
     ;
 
 parameters
@@ -57,7 +53,7 @@ parameters
     ;
 
 parameter
-    : identifier  NL* COLON NL* type
+    : identifier  NL* COLON NL* className
     ;
 
 body
@@ -69,14 +65,6 @@ bodyStatement
     | variableDeclaration
     ;
 
-methodDeclaration
-    : METHOD NL* identifier NL* parameters? NL* (COLON NL* type NL*)? IS NL* body NL* END
-    ;
-
-constructorDeclaration
-    : THIS NL* parameters? NL* IS NL* body NL* END
-    ;
-
 statement
     : assignment
     | whileLoop
@@ -84,10 +72,6 @@ statement
     | returnStatement
     | expression
     | print
-    ;
-
-print
-    : PRINT L_BRACKET STRING R_BRACKET
     ;
 
 assignment
@@ -111,48 +95,72 @@ expression
     | primary
     ;
 
+print
+    : PRINT L_BRACKET STRING R_BRACKET
+    ;
+
 callableExpression
     : callable arguments? (NL* DOT callableExpression)?
+    ;
+
+callable
+    : THIS
+    | SUPER
+    | builtInType
+    | identifier
     ;
 
 arguments
     : L_BRACKET NL* (expression (NL* COMMA NL* expression)* NL*)? R_BRACKET
     ;
 
-callable
-    : THIS
-    | SUPER
-    | className
-    ;
-
 primary
     : integerLiteral
     | realLiteral
-    | bool=(TRUE | FALSE)
+    | boolLiteral
     | NULL
     ;
 
-type
-    : className
+listType
+    : LIST genericType
+    ;
+
+arrayType
+    : ARRAY genericType
+    ;
+
+genericType
+    : L_SQUARE_BRACKET NL* className NL* R_SQUARE_BRACKET
     ;
 
 className
-    : identifier
-    | arrayType
+    : builtInType
+    | identifier
+    ;
+
+builtInType
+    : arrayType
     | listType
+    | INT
+    | BOOL
+    | REAL
     ;
 
 integerLiteral
-   :   MINUS? DIGIT+
-   ;
+    :   MINUS? DIGIT+
+    ;
 
 realLiteral
-   :   MINUS? DIGIT+ DOT DIGIT+
-   ;
+    :   MINUS? DIGIT+ DOT DIGIT+
+    ;
 
+boolLiteral
+    : TRUE
+    | FALSE
+    ;
 identifier
-   : IDENTIFIER
-   ;
+    : IDENTIFIER
+    ;
 
 semi
     : NL+
