@@ -16,7 +16,7 @@ L_SQUARE_BRACKET : '[' ;
 
 R_SQUARE_BRACKET : ']' ;
 
-ASSIGN_OP : ':=' ;
+ASSIGN_OP : '=' ;
 
 CLASS
     : 'class'
