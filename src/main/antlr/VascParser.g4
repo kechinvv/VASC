@@ -11,7 +11,7 @@ program
 
 classDeclaration
     : CLASS NL* identifier
-      NL* (EXTENDS NL* identifier)?
+      NL* (EXTENDS NL* parentClass=identifier)?
       NL* IS NL* classBody NL* END
     ;
 
@@ -20,13 +20,13 @@ classBody
     ;
 
 memberDeclaration
-    : variableDeclaration                                                                       # InstanceVariableDeclaration
-    | METHOD NL* identifier NL* parameters? NL* (COLON NL* className NL*)? IS NL* body NL* END  # MethodDeclaration
-    | THIS NL* parameters? NL* IS NL* body NL* END                                              # ConstructorDeclaration
+    : variableDeclaration                                                                                  # InstanceVariableDeclaration
+    | METHOD NL* identifier NL* parameters? NL* (COLON NL* returnType=className NL*)? IS NL* body NL* END  # MethodDeclaration
+    | THIS NL* parameters? NL* IS NL* body NL* END                                                         # ConstructorDeclaration
     ;
 
 variableDeclaration
-    : VAR identifier COLON NL* className (NL* ASSIGN_OP NL* expression)?
+    : VAR identifier COLON NL* className (NL* ASSIGN_OP NL* initExpression=expression)?
     ;
 
 parameters
@@ -49,12 +49,12 @@ bodyStatement
     ;
 
 statement
-    : identifier ASSIGN_OP NL* expression                                   # AssignStatement
-    | WHILE NL* expression NL* LOOP NL* body NL* END                        # WhileStatement
-    | IF NL* expression NL* THEN NL* body NL* (ELSE NL* body)? NL* END      # IfStatement
-    | RETURN NL* expression?                                                # ReturnStatement
-    | expression                                                            # ExpressionStatement
-    | PRINT L_BRACKET STRING R_BRACKET                                      # PrintStatement
+    : identifier ASSIGN_OP NL* expression                                                               # AssignStatement
+    | WHILE NL* condition=expression NL* LOOP NL* body NL* END                                          # WhileStatement
+    | IF NL* condition=expression NL* THEN NL* thenBody=body NL* (ELSE NL* elseBody=body)? NL* END      # IfStatement
+    | RETURN NL* expression?                                                                            # ReturnStatement
+    | expression                                                                                        # ExpressionStatement
+    | PRINT L_BRACKET STRING R_BRACKET                                                                  # PrintStatement
     ;
 
 expression
