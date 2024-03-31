@@ -26,8 +26,7 @@ memberDeclaration
     ;
 
 variableDeclaration
-    : VAR identifier COLON NL* className                                # UninitializedVariable
-    | VAR identifier COLON NL* className NL* ASSIGN_OP NL* expression   # InitializedVariable
+    : VAR identifier COLON NL* className (NL* ASSIGN_OP NL* expression)?
     ;
 
 parameters
