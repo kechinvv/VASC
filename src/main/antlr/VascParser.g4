@@ -40,7 +40,12 @@ parameter
     ;
 
 body
-    : (statement semi)*
+    : (bodyStatement semi)*
+    ;
+
+bodyStatement
+    : statement
+    | variableDeclaration
     ;
 
 statement
@@ -50,7 +55,6 @@ statement
     | RETURN NL* expression?                                                                            # ReturnStatement
     | expression                                                                                        # ExpressionStatement
     | PRINT L_BRACKET STRING R_BRACKET                                                                  # PrintStatement
-    | variableDeclaration                                                                               # VariableDeclarationStatement
     ;
 
 expression
