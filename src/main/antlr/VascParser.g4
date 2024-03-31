@@ -54,15 +54,16 @@ statement
     ;
 
 expression
-    : THIS arguments? (NL* DOT call)*            # ThisExpression
-    | SUPER arguments? (NL* DOT call)*           # SuperExpression
-    | className arguments? (NL* DOT call)*       # ClassExpression
-    | call (NL* DOT call)*                       # CallExpression
-    | primary                                    # PrimaryExpression
+    : THIS arguments? dotCall*          # ThisExpression
+    | SUPER arguments? dotCall*         # SuperExpression
+    | identifier dotCall*               # VariableExpression
+    | className arguments? dotCall*     # CallableExpression
+    | primary                           # PrimaryExpression
     ;
 
-call
-    : identifier arguments?
+dotCall
+    : NL* DOT identifier            # FieldAccess
+    | NL* DOT identifier arguments  # MethodCall
     ;
 
 arguments
