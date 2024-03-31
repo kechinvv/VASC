@@ -20,30 +20,14 @@ classBody
     ;
 
 memberDeclaration
-    : variableDeclaration
-    | methodDeclaration
-    | constructorDeclaration
+    : variableDeclaration                                                                       # InstanceVariableDeclaration
+    | METHOD NL* identifier NL* parameters? NL* (COLON NL* className NL*)? IS NL* body NL* END  # MethodDeclaration
+    | THIS NL* parameters? NL* IS NL* body NL* END                                              # ConstructorDeclaration
     ;
 
 variableDeclaration
-    : uninitializedVariable
-    | initializedVariable
-    ;
-
-methodDeclaration
-    : METHOD NL* identifier NL* parameters? NL* (COLON NL* className NL*)? IS NL* body NL* END
-    ;
-
-constructorDeclaration
-    : THIS NL* parameters? NL* IS NL* body NL* END
-    ;
-
-initializedVariable
-    : VAR identifier COLON NL* className NL* ASSIGN_OP NL* expression
-    ;
-
-uninitializedVariable
-    : VAR identifier COLON NL* className
+    : VAR identifier COLON NL* className                                # UninitializedVariable
+    | VAR identifier COLON NL* className NL* ASSIGN_OP NL* expression   # InitializedVariable
     ;
 
 parameters
@@ -66,48 +50,24 @@ bodyStatement
     ;
 
 statement
-    : assignment
-    | whileLoop
-    | ifStatement
-    | returnStatement
-    | expression
-    | print
-    ;
-
-assignment
-    : identifier ASSIGN_OP NL* expression
-    ;
-
-whileLoop
-    : WHILE NL* expression NL* LOOP NL* body NL* END
-    ;
-
-ifStatement
-    : IF NL* expression NL* THEN NL* body NL* (ELSE NL* body)? NL* END
-    ;
-
-returnStatement
-    : RETURN NL* expression?
+    : identifier ASSIGN_OP NL* expression                                   # AssignStatement
+    | WHILE NL* expression NL* LOOP NL* body NL* END                        # WhileStatement
+    | IF NL* expression NL* THEN NL* body NL* (ELSE NL* body)? NL* END      # IfStatement
+    | RETURN NL* expression?                                                # ReturnStatement
+    | expression                                                            # ExpressionStatement
+    | PRINT L_BRACKET STRING R_BRACKET                                      # PrintStatement
     ;
 
 expression
-    : callableExpression
-    | primary
-    ;
-
-print
-    : PRINT L_BRACKET STRING R_BRACKET
-    ;
-
-callableExpression
-    : callable arguments? (NL* DOT callableExpression)?
+    : callable arguments? (NL* DOT CallableExpression)?     # CallableExpression
+    | primary                                               # PrimaryExpression
     ;
 
 callable
-    : THIS
-    | SUPER
-    | builtInType
-    | identifier
+    : THIS          # ThisCallable
+    | SUPER         # SuperCallable
+    | builtInType   # BuiltInCallable
+    | identifier    # IdentifierCallable
     ;
 
 arguments
@@ -115,18 +75,11 @@ arguments
     ;
 
 primary
-    : integerLiteral
-    | realLiteral
-    | boolLiteral
-    | NULL
-    ;
-
-listType
-    : LIST genericType
-    ;
-
-arrayType
-    : ARRAY genericType
+    : MINUS? DIGIT+             # IntegerLiteral
+    | MINUS? DIGIT+ DOT DIGIT+  # RealLiteral
+    | TRUE                      # TrueLiteral
+    | FALSE                     # FalseLiteral
+    | NULL                      # NullLiteral
     ;
 
 genericType
@@ -139,25 +92,13 @@ className
     ;
 
 builtInType
-    : arrayType
-    | listType
-    | INT
-    | BOOL
-    | REAL
+    : ARRAY genericType     # ArrayType
+    | LIST genericType      # ListType
+    | INT                   # IntegerType
+    | BOOL                  # BooleanType
+    | REAL                  # RealType
     ;
 
-integerLiteral
-    :   MINUS? DIGIT+
-    ;
-
-realLiteral
-    :   MINUS? DIGIT+ DOT DIGIT+
-    ;
-
-boolLiteral
-    : TRUE
-    | FALSE
-    ;
 identifier
     : IDENTIFIER
     ;
