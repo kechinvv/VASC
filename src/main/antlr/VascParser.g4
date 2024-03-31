@@ -56,8 +56,8 @@ statement
 expression
     : THIS arguments? (NL* DOT call)*            # ThisExpression
     | SUPER arguments? (NL* DOT call)*           # SuperExpression
-    | builtInType arguments? (NL* DOT call)*     # BuiltInExpression
-    | call (NL* DOT call)*                       # CallableExpression
+    | className arguments? (NL* DOT call)*       # ClassExpression
+    | call (NL* DOT call)*                       # CallExpression
     | primary                                    # PrimaryExpression
     ;
 
@@ -82,16 +82,12 @@ genericType
     ;
 
 className
-    : builtInType
-    | identifier
-    ;
-
-builtInType
     : ARRAY genericType     # ArrayType
     | LIST genericType      # ListType
     | INT                   # IntegerType
     | BOOL                  # BooleanType
     | REAL                  # RealType
+    | identifier            # UserType
     ;
 
 identifier
