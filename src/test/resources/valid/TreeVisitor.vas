@@ -1,7 +1,7 @@
 class Main is
     this() is
         var E : Node
-        var tree :
+        var tree : PlusNode =
             PlusNode(1,
                 PlusNode(2,
                     MinusNode(3, E, E),
@@ -21,7 +21,7 @@ class Main is
         //    -3  4 7
         //         \
         //          5
-        var expectedRes : Integer(10)
+        var expectedRes : Integer = 10
         var v : Visitor
         v.visit(tree)
         if v.res.Equal(expectedRes).Not() then
@@ -31,7 +31,7 @@ class Main is
 end
 
 class Visitor is
-    var res : Integer(0)
+    var res : Integer = 0
 
     this() is
     end
@@ -40,13 +40,13 @@ class Visitor is
     end
 
     method visit(node : PlusNode) is
-        res := res.Plus(node.value)
+        res = res.Plus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end
 
     method visit(node : MinusNode) is
-        res := res.Minus(node.value)
+        res = res.Minus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end
@@ -63,9 +63,9 @@ class PlusNode extends Node is
     var right : Node
 
     this(_value : T, _left : Node, _right : Node) is
-        value := _value
-        left  := _left
-        right := _right
+        value = _value
+        left  = _left
+        right = _right
     end
 end
 

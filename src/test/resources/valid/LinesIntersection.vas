@@ -2,16 +2,16 @@
 
 class Main is
     this() is
-        var l1 : Line(Point(4, 0), Point(6, 10))
-        var l2 : Line(Point(0, 3), Point(10, 7))
-        var o : l1.findIntersection(l2)
+        var l1 : Line = Line(Point(4, 0), Point(6, 10))
+        var l2 : Line = Line(Point(0, 3), Point(10, 7))
+        var o : Option = l1.findIntersection(l2)
         if o.ok.And(o.value.x.Equal(5).And(o.value.y.Equal(5))).Not() then // TODO: epsilon?
             // TODO: error
         end
 
-        l1 := Line(Point(0, 0), Point(1, 1))
-        l2 := Line(Point(1, 2), Point(4, 5))
-        o := l1.findIntersection(l2)
+        l1 = Line(Point(0, 0), Point(1, 1))
+        l2 = Line(Point(1, 2), Point(4, 5))
+        o = l1.findIntersection(l2)
         if o.ok then
             // TODO: error
         end
@@ -23,8 +23,8 @@ class Option is
     var ok : Boolean
 
     this(_value : Point, _ok : Boolean) is
-        value := _value
-        ok := _ok
+        value = _value
+        ok = _ok
     end
 end
 
@@ -33,8 +33,8 @@ class Point is
     var y : Real
 
     this(_x : Real, _y : Real) is
-        x := _x
-        y := _y
+        x = _x
+        y = _y
     end
 end
 
@@ -43,20 +43,20 @@ class Line is
     var e : Point
 
     this(_s : Point, _e : Point) is
-        s := _s
-        e := _e
+        s = _s
+        e = _e
     end
 
     method findIntersection(other : Line) : Option is
-        var a1 : this.e.y.Minus(other.s.y)
-        var b1 : this.s.x.Minus(other.e.x)
-        var c1 : a1.Mult(this.s.x).Plus(b1.Mult(other.s.y))
+        var a1 : Real = e.y.Minus(other.s.y)
+        var b1 : Real = s.x.Minus(other.e.x)
+        var c1 : Real = a1.Mult(s.x).Plus(b1.Mult(other.s.y))
 
-        var a2 : other.e.y.Minus(other.s.y)
-        var b2 : other.s.x.Minus(other.e.x)
-        var c2 : a2.Mult(other.s.x).Plus(b2.Mult(other.s.y))
+        var a2 : Real = other.e.y.Minus(other.s.y)
+        var b2 : Real = other.s.x.Minus(other.e.x)
+        var c2 : Real = a2.Mult(other.s.x).Plus(b2.Mult(other.s.y))
 
-        var delta : a1.Mult(b2).Minus(a2.Mult(b1))
+        var delta : Real = a1.Mult(b2).Minus(a2.Mult(b1))
         if delta.Equal(0) then
             return Option(Point(0.0, 0.0), false)
         else

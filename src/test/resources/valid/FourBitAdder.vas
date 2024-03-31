@@ -2,19 +2,19 @@
 
 class Main is
     this() is
-         var i : 0
-         var max : 16
+         var i : Integer = 0
+         var max : Integer = 16
          while i.Less(max) loop
-             var j : 0
-             var ni : Nybble(i)
+             var j : Integer = 0
+             var ni : Nybble = Nybble(i)
              if i.Equal(ni.toInt()).Not() then
                 // TODO: error
              end
              while j.Less(max) loop
-                var nj : Nybble(j)
-                var added : FourBitAdder(ni, nj)
-                var actual : added.n.toInt()
-                var expected : i.Plus(j)
+                var nj : Nybble = Nybble(j)
+                var added : FourBitAdder = FourBitAdder(ni, nj)
+                var actual : Integer = added.n.toInt()
+                var expected : Integer = i.Plus(j)
                 if added.c then
                     if expected.GreaterEqual(max).And(expected.Rem(max).Equal(actual)).Not() then
                         // TODO: error
@@ -24,16 +24,16 @@ class Main is
                         // TODO: error
                     end
                 end
-                j := j.Plus(1)
+                j = j.Plus(1)
              end
-             i := i.Plus(1)
+             i = i.Plus(1)
          end
 
     end
 end
 
 class Nybble is
-    var digits : Array[Boolean](4)
+    var digits : Array[Boolean] = Array[Boolean](4)
 
     this(d3 : Boolean, d2 : Boolean, d1 : Boolean, d0 : Boolean) is
         digits.set(0, d0)
@@ -43,25 +43,25 @@ class Nybble is
     end
 
     this(from : Integer) is
-        var rem : Integer(from)
-        var i : 0
+        var rem : Integer = from
+        var i : Integer = 0
         while rem.Greater(0) loop
             digits.set(i, rem.Rem(2).Equal(1))
-            rem := rem.Div(2)
-            i := i.Plus(1)
+            rem = rem.Div(2)
+            i = i.Plus(1)
         end
     end
 
     method toInt() : Integer is
-        var res : 0
-        var i : 0
-        var k : 1
+        var res : Integer = 0
+        var i : Integer = 0
+        var k : Integer = 1
         while i.Less(digits.Length()) loop
             if digits.get(i) then
-                res := res.Plus(k)
+                res = res.Plus(k)
             end
-            i := i.Plus(1)
-            k := k.Mult(2)
+            i = i.Plus(1)
+            k = k.Mult(2)
         end
         return res
     end
@@ -74,17 +74,17 @@ end
 
 class HalfAdder extends Adder is
     this(a : Boolean, b : Boolean) is
-        s := a.Xor(b)
-        c := a.And(b)
+        s = a.Xor(b)
+        c = a.And(b)
     end
 end
 
 class FullAdder extends Adder is
     this(a : Boolean, b : Boolean, c : Boolean) is
-        var h1 : HalfAdder(a, c)
-        var h2 : HalfAdder(h1.s, b)
-        s := h2.s
-        c := h1.c.Or(h2.c)
+        var h1 : HalfAdder = HalfAdder(a, c)
+        var h2 : HalfAdder = HalfAdder(h1.s, b)
+        s = h2.s
+        c = h1.c.Or(h2.c)
     end
 end
 
@@ -93,11 +93,11 @@ class FourBitAdder is
     var c : Boolean
 
     this(a : Nybble, b : Nybble) is
-        var a0 : fullAdder(a.digits.get(0), b.digits.get(0), false)
-        var a1 : fullAdder(a.digits.get(1), b.digits.get(1), a0.c)
-        var a2 : fullAdder(a.digits.get(2), b.digits.get(2), a1.c)
-        var a3 : fullAdder(a.digits.get(3), b.digits.get(3), a2.c)
-        n := Nybble(a3.s, a2.s, a1.s, a0.s)
-        c := a3.c
+        var a0 : FullAdder = FullAdder(a.digits.get(0), b.digits.get(0), false)
+        var a1 : FullAdder = FullAdder(a.digits.get(1), b.digits.get(1), a0.c)
+        var a2 : FullAdder = FullAdder(a.digits.get(2), b.digits.get(2), a1.c)
+        var a3 : FullAdder = FullAdder(a.digits.get(3), b.digits.get(3), a2.c)
+        n = Nybble(a3.s, a2.s, a1.s, a0.s)
+        c = a3.c
     end
 end
