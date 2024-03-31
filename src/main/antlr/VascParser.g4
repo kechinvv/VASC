@@ -58,15 +58,15 @@ statement
     ;
 
 expression
-    : callable arguments? (NL* DOT CallableExpression)?     # CallableExpression
-    | primary                                               # PrimaryExpression
+    : THIS arguments? (NL* DOT call)*            # ThisExpression
+    | SUPER arguments? (NL* DOT call)*           # SuperExpression
+    | builtInType arguments? (NL* DOT call)*     # BuiltInExpression
+    | call (NL* DOT call)*                       # CallableExpression
+    | primary                                    # PrimaryExpression
     ;
 
-callable
-    : THIS          # ThisCallable
-    | SUPER         # SuperCallable
-    | builtInType   # BuiltInCallable
-    | identifier    # IdentifierCallable
+call
+    : identifier arguments?
     ;
 
 arguments
