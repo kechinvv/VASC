@@ -5,45 +5,28 @@ options { tokenVocab = VascLexer; }
 program
     :
       NL*
-      (classDeclaration semi?)*
+      (classDeclarations += classDeclaration semi?)*
       EOF
     ;
 
 classDeclaration
     : CLASS NL* identifier
-      NL* (EXTENDS NL* identifier)?
+      NL* (EXTENDS NL* parentClass=identifier)?
       NL* IS NL* classBody NL* END
     ;
 
 classBody
-    : (memberDeclaration semi)*
+    : (memberDeclarations += memberDeclaration semi)*
     ;
 
 memberDeclaration
-    : variableDeclaration
-    | methodDeclaration
-    | constructorDeclaration
+    : variableDeclaration                                                                                  # FieldDeclaration
+    | METHOD NL* identifier NL* parameters NL* (COLON NL* returnType=className NL*)? IS NL* body NL* END  # MethodDeclaration
+    | THIS NL* parameters? NL* IS NL* body NL* END                                                         # ConstructorDeclaration
     ;
 
 variableDeclaration
-    : uninitializedVariable
-    | initializedVariable
-    ;
-
-methodDeclaration
-    : METHOD NL* identifier NL* parameters? NL* (COLON NL* className NL*)? IS NL* body NL* END
-    ;
-
-constructorDeclaration
-    : THIS NL* parameters? NL* IS NL* body NL* END
-    ;
-
-initializedVariable
-    : VAR identifier COLON NL* className NL* ASSIGN_OP NL* expression
-    ;
-
-uninitializedVariable
-    : VAR identifier COLON NL* className
+    : VAR identifier COLON NL* className (NL* ASSIGN_OP NL* initExpression=expression)?
     ;
 
 parameters
@@ -57,57 +40,30 @@ parameter
     ;
 
 body
-    : (bodyStatement semi)*
-    ;
-
-bodyStatement
-    : statement
-    | variableDeclaration
+    : (statement semi)*
     ;
 
 statement
-    : assignment
-    | whileLoop
-    | ifStatement
-    | returnStatement
-    | expression
-    | print
-    ;
-
-assignment
-    : identifier ASSIGN_OP NL* expression
-    ;
-
-whileLoop
-    : WHILE NL* expression NL* LOOP NL* body NL* END
-    ;
-
-ifStatement
-    : IF NL* expression NL* THEN NL* body NL* (ELSE NL* body)? NL* END
-    ;
-
-returnStatement
-    : RETURN NL* expression?
+    : identifier ASSIGN_OP NL* expression                                                               # AssignStatement
+    | WHILE NL* condition=expression NL* LOOP NL* body NL* END                                          # WhileStatement
+    | IF NL* condition=expression NL* THEN NL* thenBody=body NL* (ELSE NL* elseBody=body)? NL* END      # IfStatement
+    | RETURN NL* expression?                                                                            # ReturnStatement
+    | expression                                                                                        # ExpressionStatement
+    | PRINT L_BRACKET STRING R_BRACKET                                                                  # PrintStatement
+    | variableDeclaration                                                                               # VariableStatement
     ;
 
 expression
-    : callableExpression
-    | primary
+    : THIS arguments? dotCall*          # ThisExpression
+    | SUPER arguments? dotCall*         # SuperExpression
+    | identifier dotCall*               # VariableExpression
+    | className arguments? dotCall*     # CallableExpression
+    | primary                           # PrimaryExpression
     ;
 
-print
-    : PRINT L_BRACKET STRING R_BRACKET
-    ;
-
-callableExpression
-    : callable arguments? (NL* DOT callableExpression)?
-    ;
-
-callable
-    : THIS
-    | SUPER
-    | builtInType
-    | identifier
+dotCall
+    : NL* DOT identifier            # FieldAccess
+    | NL* DOT identifier arguments  # MethodCall
     ;
 
 arguments
@@ -115,18 +71,11 @@ arguments
     ;
 
 primary
-    : integerLiteral
-    | realLiteral
-    | boolLiteral
-    | NULL
-    ;
-
-listType
-    : LIST genericType
-    ;
-
-arrayType
-    : ARRAY genericType
+    : MINUS? DIGIT+             # IntegerLiteral
+    | MINUS? DIGIT+ DOT DIGIT+  # RealLiteral
+    | TRUE                      # TrueLiteral
+    | FALSE                     # FalseLiteral
+    | NULL                      # NullLiteral
     ;
 
 genericType
@@ -134,30 +83,14 @@ genericType
     ;
 
 className
-    : builtInType
-    | identifier
+    : ARRAY genericType     # ArrayType
+    | LIST genericType      # ListType
+    | INT                   # IntegerType
+    | BOOL                  # BooleanType
+    | REAL                  # RealType
+    | identifier            # UserType
     ;
 
-builtInType
-    : arrayType
-    | listType
-    | INT
-    | BOOL
-    | REAL
-    ;
-
-integerLiteral
-    :   MINUS? DIGIT+
-    ;
-
-realLiteral
-    :   MINUS? DIGIT+ DOT DIGIT+
-    ;
-
-boolLiteral
-    : TRUE
-    | FALSE
-    ;
 identifier
     : IDENTIFIER
     ;
