@@ -5,12 +5,12 @@ class Main is
         shapes.append(Triangle(16, 25, 39)) // 120
         shapes.append(Square(13))           // 169
         shapes.append(Rectangle(5, 16))     // 80
-        var expectedArea : 369
+        var expectedArea : Real = 369.0
 
-        var totalArea : Real(0)
+        var totalArea : Real = 0.0
         while shapes.isEmpty().Not() loop // TODO: add isEmpty() to List
             totalArea.Plus(shapes.head())
-            shapes := shapes.tail()
+            shapes = shapes.tail()
         end
         if totalArea.Equal(expectedArea).Not() then // TODO: epsilon?
             // TODO: error
@@ -20,32 +20,32 @@ end
 
 class Shape is
     method Area() : Real is
-        return Real(-1)
+        return -1.0
     end
 end
 
 class Triangle extends Shape is
-    var a : Real(0)
-    var b : Real(0)
-    var c : Real(0)
+    var a : Real
+    var b : Real
+    var c : Real
 
     this(_a: Real, _b: Real, _c: Real) is
-        a := _a
-        b := _b
-        c := _c
+        a = _a
+        b = _b
+        c = _c
     end
 
     method Area() : Real is
-        var s : a.Plus(b).Plus(c).Div(2)
+        var s : Real = a.Plus(b).Plus(c).Div(2)
         return s.Mult(s.Minus(a)).Mult(s.Minus(b)).Mult(s.Minus(c)).Sqrt() // TODO: add Sqrt() to Real
     end
 end
 
 class Square extends Shape is
-    var w : Real(0)
+    var w : Real
 
     this(_w: Real) is
-        w := _w
+        w = _w
     end
 
     method Area() : Real is
@@ -54,16 +54,16 @@ class Square extends Shape is
 end
 
 class Rectangle extends Square is
-    var h : Real(0)
+    var h : Real
 
     this(_w: Real) is
-        w := _w
-        h := _w
+        w = _w
+        h = _w
     end
 
     this(_w: Real, _h: Real) is
-        w := _w
-        h := _h
+        w = _w
+        h = _h
     end
 
     method Area() : Real is
