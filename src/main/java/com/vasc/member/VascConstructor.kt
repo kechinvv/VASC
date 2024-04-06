@@ -1,11 +1,8 @@
 package com.vasc.member
 
-data class VascConstructor(
-    val parameters: List<VascVariable>
-) {
-    companion object {
-        fun empty() = VascConstructor(emptyList())
-    }
+class VascConstructor(
+    parameters: List<VascVariable>
+) : VascParametrized(parameters) {
 
-    override fun toString() = "this${parameters.joinToString(", ", "(", ")")}"
+    override fun toString() = "this${super.toString()}"
 }

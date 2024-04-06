@@ -6,6 +6,7 @@ import com.vasc.error.VascException
 import com.vasc.member.*
 import com.vasc.type.VascClass
 import com.vasc.type.VascType
+import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
 
 class DeclarationCollector : VascParserBaseVisitor<Any>() {
@@ -50,15 +51,17 @@ private class ClassBuilder(
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
-        val parameters = ctx.parameters().parameter().map { it.toVascVariable(typeResolver) }
-        vascClass.addConstructor(VascConstructor(parameters))
+        val constructor = VascConstructor(
+            parameters = ctx.parameters().toUniqueVariables(typeResolver)
+        )
+        vascClass.addConstructor(constructor)
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
         val method = VascMethod(
             name = ctx.identifier().text,
-            parameters = ctx.parameters().parameter().map { it.toVascVariable(typeResolver) },
-            returnType = ctx.className().accept(typeResolver)
+            parameters = ctx.parameters().toUniqueVariables(typeResolver),
+            returnType = ctx.returnType?.accept(typeResolver)
         )
         vascClass.addMethod(method)
     }
@@ -67,22 +70,23 @@ private class ClassBuilder(
 private class MutableVascClass(name: String) : VascClass(name) {
 
     override var parent: VascType? = null
-    override val fields = LinkedHashSet<VascVariable>()
-    override val methods = LinkedHashSet<VascMethod>()
-    override val constructors = LinkedHashSet<VascConstructor>()
 
-    fun addField(field: VascVariable) {
-        if (getField(field.name) != null) throw VascException()
-        else fields += field
+    override var declaredFields: MutableList<VascVariable> = mutableListOf()
+    override var declaredConstructors: MutableList<VascConstructor> = mutableListOf()
+    override var declaredMethods: MutableList<VascMethod> = mutableListOf()
+
+    fun addField(variable: VascVariable) {
+        if (getDeclaredField(variable.name) != null) throw VascException()
+        declaredFields += variable
     }
 
     fun addConstructor(constructor: VascConstructor) {
-        if (constructors.contains(constructor)) throw VascException()
-        else constructors += constructor
+        if (getDeclaredConstructor(constructor.parameterTypes) != null) throw VascException()
+        declaredConstructors += constructor
     }
 
     fun addMethod(method: VascMethod) {
-        if (methods.contains(method)) throw VascException()
-        else methods += method
+        if (getDeclaredMethod(method.name, method.parameterTypes) != null) throw VascException()
+        declaredMethods += method
     }
 }

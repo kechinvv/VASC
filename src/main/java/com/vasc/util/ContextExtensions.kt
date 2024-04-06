@@ -2,7 +2,9 @@ package com.vasc.util
 
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.ParameterContext
+import com.vasc.antlr.VascParser.ParametersContext
 import com.vasc.antlr.VascParser.VariableDeclarationContext
+import com.vasc.error.VascException
 import com.vasc.member.VascVariable
 
 fun VariableDeclarationContext.toVascVariable(typeResolver: VascTypeResolver): VascVariable {
@@ -21,4 +23,14 @@ fun ParameterContext.toVascVariable(typeResolver: VascTypeResolver): VascVariabl
         type = className().accept(typeResolver),
         isInitialized = true
     )
+}
+
+fun ParametersContext.toUniqueVariables(typeResolver: VascTypeResolver): List<VascVariable> {
+    val variableMap = mutableMapOf<String, VascVariable>()
+    for (param in parameter()) {
+        val variable = param.toVascVariable(typeResolver)
+        val prevValue = variableMap.put(variable.name, variable)
+        if (prevValue != null) throw VascException()
+    }
+    return variableMap.values.toList()
 }

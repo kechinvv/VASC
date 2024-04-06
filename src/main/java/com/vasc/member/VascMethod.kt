@@ -2,10 +2,11 @@ package com.vasc.member
 
 import com.vasc.type.VascType
 
-data class VascMethod(
+class VascMethod(
     val name: String,
-    val parameters: List<VascVariable>,
-    val returnType: VascType
-){
-    override fun toString() = "$name${parameters.joinToString(", ", "(", ")")}"
+    parameters: List<VascVariable>,
+    val returnType: VascType?
+) : VascParametrized(parameters) {
+
+    override fun toString() = "$name${super.toString()}${returnType?.let { ": $it" } ?: ""}"
 }

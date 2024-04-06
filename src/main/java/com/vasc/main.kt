@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 
 fun main() {
-    val src = "src/test/resources/valid/LinesIntersection.vas"
+    val src = "src/test/resources/valid/FourBitAdder.vas"
     val chars = CharStreams.fromFileName(src)
     val lexer = VascLexer(chars)
     val tokens = CommonTokenStream(lexer)

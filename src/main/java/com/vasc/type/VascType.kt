@@ -5,10 +5,18 @@ import com.vasc.member.*
 interface VascType {
     val name: String
     val parent: VascType?
-    val fields: Set<VascVariable>
-    val methods: Set<VascMethod>
-    val constructors: Set<VascConstructor>
+
+    val declaredFields: List<VascVariable>
+    val declaredConstructors: List<VascConstructor>
+    val declaredMethods: List<VascMethod>
+
+    val fields: List<VascVariable>
+    val methods: List<VascMethod>
+
+    fun getDeclaredField(name: String): VascVariable?
+    fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor?
+    fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod?
 
     fun getField(name: String): VascVariable?
-    fun getMethods(name: String): Set<VascMethod>
+    fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod?
 }

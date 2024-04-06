@@ -31,6 +31,10 @@ class VascTypeResolver(
     }
 
     override fun visitUserType(ctx: UserTypeContext): VascType {
+        return ctx.identifier().accept(this)
+    }
+
+    override fun visitIdentifier(ctx: IdentifierContext): VascType {
         return userTypeProvider(ctx.text)
     }
 }
