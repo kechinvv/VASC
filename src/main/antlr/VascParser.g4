@@ -16,7 +16,7 @@ classDeclaration
     ;
 
 classBody
-    : (memberDeclaration semi)*
+    : (memberDeclarations += memberDeclaration semi)*
     ;
 
 memberDeclaration
