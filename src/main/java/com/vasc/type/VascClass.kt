@@ -36,5 +36,14 @@ open class VascClass(override val name: String) : VascType {
         return getDeclaredMethod(name, parameterTypes) ?: parent?.getMethod(name, parameterTypes)
     }
 
+    override fun isAssignableFrom(subtype: VascType): Boolean {
+        var current: VascType? = subtype
+        while (current != null) {
+            if (this.name == current.name) return true
+            current = current.parent
+        }
+        return false
+    }
+
     override fun toString() = name
 }

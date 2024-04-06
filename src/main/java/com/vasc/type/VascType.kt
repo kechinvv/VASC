@@ -19,4 +19,9 @@ interface VascType {
 
     fun getField(name: String): VascVariable?
     fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod?
+
+    /**
+     * @see java.lang.Class.isAssignableFrom
+     */
+    fun isAssignableFrom(subtype: VascType): Boolean
 }
