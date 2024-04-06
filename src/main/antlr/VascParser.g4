@@ -5,7 +5,7 @@ options { tokenVocab = VascLexer; }
 program
     :
       NL*
-      (classDeclaration semi?)*
+      (classDeclarations += classDeclaration semi?)*
       EOF
     ;
 
