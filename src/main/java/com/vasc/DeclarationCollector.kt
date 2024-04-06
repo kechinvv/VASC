@@ -6,6 +6,7 @@ import com.vasc.error.VascException
 import com.vasc.member.*
 import com.vasc.type.VascClass
 import com.vasc.type.VascType
+import com.vasc.util.toVascVariable
 
 class DeclarationCollector : VascParserBaseVisitor<Any>() {
 
@@ -17,7 +18,7 @@ class DeclarationCollector : VascParserBaseVisitor<Any>() {
     }
 
     override fun visitProgram(ctx: ProgramContext): VascTypeResolver {
-        ctx.classDeclaration().map {
+        ctx.classDeclarations.map {
             val name = it.identifier().first().text
             if (!declaredClassNames.add(name)) throw VascException()
             val klass = MutableVascClass(name)
@@ -33,52 +34,55 @@ class DeclarationCollector : VascParserBaseVisitor<Any>() {
 
 private class ClassBuilder(
     val vascClass: MutableVascClass,
-    val typeResolver: VascTypeResolver
+    val typeResolver: VascTypeResolver,
 ) : VascParserBaseVisitor<Unit>() {
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        // TODO: parent
-        ctx.classBody().memberDeclaration().forEach {
+        vascClass.parent = ctx.parentClass?.accept(typeResolver)
+        ctx.classBody().memberDeclarations.forEach {
             it.accept(this)
         }
     }
 
-    override fun visitInitializedVariable(ctx: InitializedVariableContext) {
-        val name = ctx.identifier().text
-        if (vascClass.getField(name) != null) throw VascException()
-        vascClass.fields += VascVariable(name, ctx.className().accept(typeResolver), true)
-    }
-
-    override fun visitUninitializedVariable(ctx: UninitializedVariableContext) {
-        val name = ctx.identifier().text
-        if (vascClass.getField(name) != null) throw VascException()
-        vascClass.fields += VascVariable(name, ctx.className().accept(typeResolver), false)
+    override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
+        val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
+        vascClass.addField(variable)
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
-        val parameters = ctx.parameters().parameter().map {
-            VascVariable(it.identifier().text, it.className().accept(typeResolver), true)
-        }
-        val constructor = VascConstructor(parameters)
-        if (vascClass.constructors.contains(constructor)) throw VascException()
-        vascClass.constructors += constructor
+        val parameters = ctx.parameters().parameter().map { it.toVascVariable(typeResolver) }
+        vascClass.addConstructor(VascConstructor(parameters))
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
-        val name = ctx.identifier().text
-        val parameters = ctx.parameters().parameter().map {
-            VascVariable(it.identifier().text, it.className().accept(typeResolver), true)
-        }
-        val returnType = ctx.className().accept(typeResolver)
-        val method = VascMethod(name, parameters, returnType)
-        if (vascClass.methods.contains(method)) throw VascException()
-        vascClass.methods += method
+        val method = VascMethod(
+            name = ctx.identifier().text,
+            parameters = ctx.parameters().parameter().map { it.toVascVariable(typeResolver) },
+            returnType = ctx.className().accept(typeResolver)
+        )
+        vascClass.addMethod(method)
     }
 }
 
 private class MutableVascClass(name: String) : VascClass(name) {
+
     override var parent: VascType? = null
     override val fields = LinkedHashSet<VascVariable>()
     override val methods = LinkedHashSet<VascMethod>()
     override val constructors = LinkedHashSet<VascConstructor>()
+
+    fun addField(field: VascVariable) {
+        if (getField(field.name) != null) throw VascException()
+        else fields += field
+    }
+
+    fun addConstructor(constructor: VascConstructor) {
+        if (constructors.contains(constructor)) throw VascException()
+        else constructors += constructor
+    }
+
+    fun addMethod(method: VascMethod) {
+        if (methods.contains(method)) throw VascException()
+        else methods += method
+    }
 }
