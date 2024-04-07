@@ -9,24 +9,23 @@ import com.vasc.type.VascType
 import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
 
-class DeclarationCollector : VascParserBaseVisitor<Any>() {
-
-    private val declaredClassNames = mutableSetOf("Integer", "Boolean", "Real", "List", "Array")
-
-    private val typeMap = mutableMapOf<String, VascType>()
-    private val typeResolver = VascTypeResolver {
-        typeMap[it] ?: throw VascException()
-    }
+object DeclarationCollector : VascParserBaseVisitor<Any>() {
 
     override fun visitProgram(ctx: ProgramContext): VascTypeResolver {
-        ctx.classDeclarations.map {
-            val name = it.identifier().first().text
-            if (!declaredClassNames.add(name)) throw VascException()
-            val klass = MutableVascClass(name)
-            typeMap[name] = klass
-            it to klass
-        }.forEach { (decl, klass) ->
-            decl.accept(ClassBuilder(klass, typeResolver))
+        val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
+        ctx.classDeclarations.forEach {
+            val name = it.name.text
+            if (namedDeclarations.contains(name)) throw VascException()
+            namedDeclarations[name] = it
+        }
+
+        val classMap = namedDeclarations.mapValues { (name, _) -> MutableVascClass(name) }
+        val typeResolver = VascTypeResolver {
+            classMap[it] ?: throw VascException()
+        }
+
+        namedDeclarations.forEach { (name, decl) ->
+            decl.accept(ClassBuilder(classMap[name]!!, typeResolver))
         }
 
         return typeResolver
@@ -35,11 +34,11 @@ class DeclarationCollector : VascParserBaseVisitor<Any>() {
 
 private class ClassBuilder(
     val vascClass: MutableVascClass,
-    val typeResolver: VascTypeResolver,
+    val typeResolver: VascTypeResolver
 ) : VascParserBaseVisitor<Unit>() {
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        vascClass.parent = ctx.parentClass?.accept(typeResolver)
+        vascClass.parent = ctx.parentName?.accept(typeResolver)
         ctx.classBody().memberDeclarations.forEach {
             it.accept(this)
         }

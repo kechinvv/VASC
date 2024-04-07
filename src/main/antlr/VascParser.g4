@@ -10,8 +10,8 @@ program
     ;
 
 classDeclaration
-    : CLASS NL* identifier
-      NL* (EXTENDS NL* parentClass=identifier)?
+    : CLASS NL* name=identifier
+      NL* (EXTENDS NL* parentName=identifier)?
       NL* IS NL* classBody NL* END
     ;
 

@@ -13,5 +13,5 @@ fun main() {
     val parser = VascParser(tokens)
     val program = parser.program()
 
-    val typeResolver = DeclarationCollector().visitProgram(program)
+    val typeResolver = DeclarationCollector.visitProgram(program)
 }
