@@ -21,7 +21,7 @@ classBody
 
 memberDeclaration
     : variableDeclaration                                                                                  # FieldDeclaration
-    | METHOD NL* identifier NL* parameters NL* (COLON NL* returnType=className NL*)? IS NL* body NL* END  # MethodDeclaration
+    | METHOD NL* identifier NL* parameters NL* (COLON NL* returnType=className NL*)? IS NL* body NL* END   # MethodDeclaration
     | THIS NL* parameters? NL* IS NL* body NL* END                                                         # ConstructorDeclaration
     ;
 
@@ -57,7 +57,7 @@ expression
     : THIS arguments? dotCall*          # ThisExpression
     | SUPER arguments? dotCall*         # SuperExpression
     | identifier dotCall*               # VariableExpression
-    | className arguments? dotCall*     # CallableExpression
+    | className arguments dotCall*      # CallableExpression
     | primary                           # PrimaryExpression
     ;
 
