@@ -8,5 +8,9 @@ class VascVariable(
     var isInitialized: Boolean
 ) {
 
+    companion object {
+        infix fun String.colon(type: VascType): VascVariable = VascVariable(this, type, true)
+    }
+
     override fun toString() = "$name: $type"
 }
