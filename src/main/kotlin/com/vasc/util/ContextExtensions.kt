@@ -10,8 +10,7 @@ import com.vasc.member.VascVariable
 fun VariableDeclarationContext.toVascVariable(typeResolver: VascTypeResolver): VascVariable {
     return VascVariable(
         name = identifier().text,
-        type = className().accept(typeResolver),
-        isInitialized = initExpression != null
+        type = className().accept(typeResolver)
     )
 }
 
@@ -20,8 +19,7 @@ fun VariableDeclarationContext.toVascVariable(typeResolver: VascTypeResolver): V
 fun ParameterContext.toVascVariable(typeResolver: VascTypeResolver): VascVariable {
     return VascVariable(
         name = identifier().text,
-        type = className().accept(typeResolver),
-        isInitialized = true
+        type = className().accept(typeResolver)
     )
 }
 
