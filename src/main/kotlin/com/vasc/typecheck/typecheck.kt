@@ -4,6 +4,7 @@ import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.type.*
+import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
 
 class TypeChecker(
@@ -81,23 +82,21 @@ class TypeChecker(
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
-        val enclosed = copy(currentScope.enclosed(params(ctx.parameters())))
+        val params = ctx.parameters().toUniqueVariables(typeResolver)
+        val enclosed = copy(currentScope.enclosed(params.associate { it.name to it.type }.toMutableMap()))
         ctx.body().accept(enclosed)
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
-        val params = params(ctx.parameters())
+        val params = ctx.parameters().toUniqueVariables(typeResolver)
         val enclosed = copy(
             currentScope.enclosed(
-                vars = params,
-                returnT = currentScope.classT()!!.getDeclaredMethod(ctx.identifier().text, params.toList().map { it.second })!!.returnType
+                vars = params.associate { it.name to it.type }.toMutableMap(),
+                returnT = currentScope.classT()!!.getDeclaredMethod(ctx.identifier().text, params.map { it.type })!!.returnType
             )
         )
         ctx.body().accept(enclosed)
     }
-
-    private fun params(ctx: ParametersContext) =
-        ctx.parameter().associate { it.identifier().text to typeResolver.visit(it.className())!! }.toMutableMap()
 
     override fun visitVariableStatement(ctx: VariableStatementContext) {
         val v = ctx.variableDeclaration()
@@ -113,6 +112,30 @@ class TypeChecker(
         if (expectedT != actualT) {
             throw TypeCheckException(actualT, expectedT, ctx)
         }
+    }
+
+    override fun visitCallableExpression(ctx: CallableExpressionContext) {
+        ctx.arguments().expression().forEach { it.accept(this) }
+        val name = ctx.className().text
+        val params = ctx.arguments().expression().map { typeTable[it]!! }
+        val initT = currentScope.classT()!!.getMethod(name, params)?.returnType ?: typeResolver.visit(ctx.className())!!
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+    }
+
+    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType {
+        var nextT = initT
+        for (nextCall in calls) {
+            when(nextCall) {
+                is FieldAccessContext -> {
+                    nextT = nextT.getField(nextCall.identifier().text)!!.type
+                }
+                is MethodCallContext -> {
+                    val args = nextCall.arguments().expression().map { typeTable[it]!! }
+                    nextT = nextT.getMethod(nextCall.identifier().text, args)!!.returnType!!
+                }
+            }
+        }
+        return nextT
     }
 
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
