@@ -77,5 +77,24 @@ class TypeChecker(
         }
     }
 
+    override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
+        val enclosed = copy(currentScope.enclosed(params(ctx.parameters())))
+        ctx.body().accept(enclosed)
+    }
+
+    override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
+        val enclosed = copy(currentScope.enclosed(params(ctx.parameters())))
+        ctx.body().accept(enclosed)
+    }
+
+    private fun params(ctx: ParametersContext) =
+        ctx.parameter().associate { it.identifier().text to typeResolver.visit(it.className())!! }.toMutableMap()
+
+    override fun visitVariableStatement(ctx: VariableStatementContext) {
+        val v = ctx.variableDeclaration()
+        v.accept(this)
+        currentScope.add(v.identifier().text, typeTable[v]!!)
+    }
+
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
 }
