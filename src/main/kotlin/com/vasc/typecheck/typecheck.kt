@@ -53,11 +53,14 @@ class TypeChecker(
         fields.forEach {
             it.accept(this)
         }
-        val enclosed = copy(currentScope.enclosed(
-            fields.associate {
-                val varDeclaration = (it as FieldDeclarationContext).variableDeclaration()
-                varDeclaration.identifier().text to typeTable[varDeclaration]!!
-            }.toMutableMap())
+        val enclosed = copy(
+            currentScope.enclosed(
+                vars = fields.associate {
+                    val varDeclaration = (it as FieldDeclarationContext).variableDeclaration()
+                    varDeclaration.identifier().text to typeTable[varDeclaration]!!
+                }.toMutableMap(),
+                classT = classT
+            )
         )
         enclosed.currentScope.add("this", classT)
         classT.parent?.let {
@@ -83,7 +86,13 @@ class TypeChecker(
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
-        val enclosed = copy(currentScope.enclosed(params(ctx.parameters())))
+        val params = params(ctx.parameters())
+        val enclosed = copy(
+            currentScope.enclosed(
+                vars = params,
+                returnT = currentScope.classT()!!.getDeclaredMethod(ctx.identifier().text, params.toList().map { it.second })!!.returnType
+            )
+        )
         ctx.body().accept(enclosed)
     }
 
@@ -94,6 +103,16 @@ class TypeChecker(
         val v = ctx.variableDeclaration()
         v.accept(this)
         currentScope.add(v.identifier().text, typeTable[v]!!)
+    }
+
+    override fun visitReturnStatement(ctx: ReturnStatementContext) {
+        val expectedT = currentScope.returnT()!!
+        val expr = ctx.expression()
+        expr.accept(this)
+        val actualT = typeTable[expr]!!
+        if (expectedT != actualT) {
+            throw TypeCheckException(actualT, expectedT, ctx)
+        }
     }
 
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
