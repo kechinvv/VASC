@@ -1,0 +1,3 @@
+class Main is
+    var i : Integer = 4.2
+end

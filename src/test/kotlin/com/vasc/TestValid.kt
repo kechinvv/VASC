@@ -2,6 +2,7 @@ package com.vasc
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
+import com.vasc.typecheck.TypeChecker
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -36,11 +37,14 @@ class TestValid {
                 }
                 parser.removeErrorListeners()
                 parser.addErrorListener(errorListener)
-                parser.program()
+                val program = parser.program()
                 if (errorListener.errors.isNotEmpty()) {
                     System.err.println(errorListener.errors.joinToString("\n\n"))
                     fail("unexpected parser errors in (${file.name}:1)")
                 }
+                val typeResolver = DeclarationCollector.visitProgram(program)
+                val tc = TypeChecker(typeResolver)
+                tc.visitProgram(program)
             }
         }
     }
