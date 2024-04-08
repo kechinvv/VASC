@@ -3,6 +3,7 @@ package com.vasc.typecheck
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
+import com.vasc.error.VascException
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
@@ -133,8 +134,14 @@ class TypeChecker(
                     nextT = nextT.getField(nextCall.identifier().text)!!.type
                 }
                 is MethodCallContext -> {
-                    val args = nextCall.arguments().expression().map { typeTable[it]!! }
-                    nextT = nextT.getMethod(nextCall.identifier().text, args)!!.returnType!!
+                    val args = nextCall.arguments().expression().map {
+                        it.accept(this)
+                        typeTable[it]!!
+                    }
+                    val name = nextCall.identifier().text
+                    val method = nextT.getMethod(name, args) ?: throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist")
+                    val result = method.returnType ?: throw VascException("method '$nextT.$method' does not return a value")
+                    nextT = result
                 }
             }
         }
