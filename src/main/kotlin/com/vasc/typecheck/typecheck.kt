@@ -123,15 +123,17 @@ class TypeChecker(
         val name = ctx.className().text
         val params = ctx.arguments().expression().map { typeTable[it]!! }
         val initT = currentScope.classT()?.getMethod(name, params)?.returnType ?: typeResolver.visit(ctx.className())!!
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        dotCall(initT, ctx.dotCall())?.let {
+            typeTable[ctx] = it
+        }
     }
 
-    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType {
-        var nextT = initT
+    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType? {
+        var nextT: VascType? = initT
         for (nextCall in calls) {
             when(nextCall) {
                 is FieldAccessContext -> {
-                    nextT = nextT.getField(nextCall.identifier().text)!!.type
+                    nextT = nextT!!.getField(nextCall.identifier().text)!!.type
                 }
                 is MethodCallContext -> {
                     val args = nextCall.arguments().expression().map {
@@ -139,8 +141,11 @@ class TypeChecker(
                         typeTable[it]!!
                     }
                     val name = nextCall.identifier().text
-                    val method = nextT.getMethod(name, args) ?: throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist")
-                    val result = method.returnType ?: throw VascException("method '$nextT.$method' does not return a value")
+                    val method = nextT!!.getMethod(name, args) ?: throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist")
+                    val result = method.returnType
+                    if (result == null && nextCall != calls.last()) {
+                        throw VascException("method '$nextT.$method' does not return a value")
+                    }
                     nextT = result
                 }
             }
@@ -163,17 +168,23 @@ class TypeChecker(
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         val initT = currentScope.classT()!!.parent!!
         // TODO: check constructor
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        dotCall(initT, ctx.dotCall())?.let {
+            typeTable[ctx] = it
+        }
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         val initT = currentScope.classT()!!
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        dotCall(initT, ctx.dotCall())?.let {
+            typeTable[ctx] = it
+        }
     }
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
         val initT = currentScope.find(ctx.identifier().text)!!
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        dotCall(initT, ctx.dotCall())?.let {
+            typeTable[ctx] = it
+        }
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
