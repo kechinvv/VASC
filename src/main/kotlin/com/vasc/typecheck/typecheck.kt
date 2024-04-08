@@ -36,6 +36,7 @@ class TypeChecker(
         if (expectedT != actualT) {
             throw TypeCheckException(expectedT, actualT, ctx)
         }
+        ctx.body().accept(copy(currentScope.enclosed()))
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
@@ -136,6 +137,34 @@ class TypeChecker(
             }
         }
         return nextT
+    }
+
+    override fun visitIfStatement(ctx: IfStatementContext) {
+        val expectT = VascBoolean
+        val expr = ctx.expression()
+        expr.accept(this)
+        val actualT = typeTable[expr]!!
+        if (expectT != actualT) {
+            throw TypeCheckException(expectT, actualT, ctx)
+        }
+        ctx.thenBody.accept(copy(currentScope.enclosed()))
+        ctx.elseBody.accept(copy(currentScope.enclosed()))
+    }
+
+    override fun visitSuperExpression(ctx: SuperExpressionContext) {
+        val initT = currentScope.classT()!!.parent!!
+        // TODO: check constructor
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+    }
+
+    override fun visitThisExpression(ctx: ThisExpressionContext) {
+        val initT = currentScope.classT()!!
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+    }
+
+    override fun visitVariableExpression(ctx: VariableExpressionContext) {
+        val initT = currentScope.find(ctx.identifier().text)!!
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
