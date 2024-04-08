@@ -32,8 +32,10 @@ class TypeChecker(
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
         val expectedT = VascBoolean
-        ctx.expression().accept(this)
-        val actualT = typeTable[ctx]!!
+        val actualT = ctx.expression().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
         if (expectedT != actualT) {
             throw TypeCheckException(expectedT, actualT, ctx)
         }
@@ -42,8 +44,10 @@ class TypeChecker(
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         val expectedT = currentScope.find(ctx.identifier().text)!!
-        ctx.expression().accept(this)
-        val actualT = typeTable[ctx]!!
+        val actualT = ctx.expression().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw TypeCheckException(expectedT, actualT, ctx)
         }
@@ -155,9 +159,10 @@ class TypeChecker(
 
     override fun visitIfStatement(ctx: IfStatementContext) {
         val expectT = VascBoolean
-        val expr = ctx.expression()
-        expr.accept(this)
-        val actualT = typeTable[expr]!!
+        val actualT = ctx.expression().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
         if (expectT != actualT) {
             throw TypeCheckException(expectT, actualT, ctx)
         }
@@ -188,8 +193,10 @@ class TypeChecker(
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
-        ctx.primary().accept(this)
-        typeTable[ctx] = typeTable[ctx.primary()]!!
+        typeTable[ctx] = ctx.primary().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
     }
 
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
