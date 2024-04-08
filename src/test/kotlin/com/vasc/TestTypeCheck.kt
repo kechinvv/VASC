@@ -5,6 +5,7 @@ import org.junit.jupiter.api.assertThrows
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
+import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.DynamicTest
@@ -22,7 +23,7 @@ class TestTypeCheck {
                 val parser = VascParser(CommonTokenStream(lexer))
                 val program = parser.program()
                 val typeResolver = DeclarationCollector.visitProgram(program)
-                val tc = TypeChecker(typeResolver)
+                val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), mutableMapOf())
                 assertThrows<TypeCheckException> {
                     tc.visitProgram(program)
                 }
