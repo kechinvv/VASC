@@ -17,4 +17,11 @@ class VascArray(val genericType: VascType) : VascClass("Array[${genericType.name
         VascMethod("get", listOf("i" colon VascInteger), genericType),
         VascMethod("set", listOf("i" colon VascInteger, "v" colon genericType), null)
     )
+
+    override fun isAssignableFrom(subtype: VascType): Boolean {
+        return when(subtype) {
+            is VascArray -> true
+            else -> false
+        }
+    }
 }

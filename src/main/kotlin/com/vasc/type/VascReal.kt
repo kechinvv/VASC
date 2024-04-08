@@ -38,4 +38,11 @@ object VascReal : VascClass("Real") {
         VascMethod("equal", listOf("p" colon VascReal), VascBoolean),
         VascMethod("equal", listOf("p" colon VascInteger), VascBoolean),
     )
+
+    override fun isAssignableFrom(subtype: VascType): Boolean {
+        return when(subtype) {
+            is VascReal -> true
+            else -> false
+        }
+    }
 }

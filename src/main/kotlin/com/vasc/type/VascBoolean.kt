@@ -19,4 +19,11 @@ object VascBoolean : VascClass("Boolean") {
         VascMethod("xor", listOf("p" colon VascBoolean), VascBoolean),
         VascMethod("not", emptyList(), VascBoolean),
     )
+
+    override fun isAssignableFrom(subtype: VascType): Boolean {
+        return when(subtype) {
+            is VascBoolean -> true
+            else -> false
+        }
+    }
 }
