@@ -20,10 +20,4 @@ class VascList(val genericType: VascType) : VascClass("List[${genericType.name}]
         VascMethod("tail", emptyList(), this)
     )
 
-    override fun isAssignableFrom(subtype: VascType): Boolean {
-        return when(subtype) {
-            is VascList -> true
-            else -> false
-        }
-    }
 }
