@@ -50,7 +50,7 @@ class Vector3 is
         return Vector3(s.Mult(x), s.Mult(y), s.Mult(z))
     end
 
-    method Dot(v : Vector3D) : Real is
+    method Dot(v : Vector3) : Real is
         return x.Mult(v.x).Plus(y.Mult(v.y)).Plus(z.Mult(v.z))
     end
 end

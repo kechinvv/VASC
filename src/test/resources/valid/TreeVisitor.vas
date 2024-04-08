@@ -62,7 +62,7 @@ class PlusNode extends Node is
     var left  : Node
     var right : Node
 
-    this(_value : T, _left : Node, _right : Node) is
+    this(_value : Integer, _left : Node, _right : Node) is
         value = _value
         left  = _left
         right = _right
