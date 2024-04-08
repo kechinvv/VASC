@@ -22,7 +22,7 @@ class Scope(
         returnT: VascType? = null,
         classT: VascType? = null
     )
-        = Scope(vars, parent, returnT, classT)
+        = Scope(vars, this, returnT, classT)
 
     fun returnT(): VascType? {
         return returnT ?: parent?.returnT()
