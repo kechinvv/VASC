@@ -17,7 +17,7 @@ open class VascClass(override val name: String) : VascType {
         get() = declaredMethods + (parent?.methods ?: emptyList())
 
     override fun getDeclaredField(name: String): VascVariable? {
-        return fields.find { it.name == name }
+        return declaredFields.find { it.name == name }
     }
 
     override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
@@ -25,7 +25,7 @@ open class VascClass(override val name: String) : VascType {
     }
 
     override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return methods.find { it.name == name && it.parameterTypes == parameterTypes }
+        return declaredMethods.find { it.name == name && it.parameterTypes == parameterTypes }
     }
 
     override fun getField(name: String): VascVariable? {
