@@ -43,7 +43,7 @@ class TypeChecker(
         val expectedT = currentScope.find(ctx.identifier().text)!!
         ctx.expression().accept(this)
         val actualT = typeTable[ctx]!!
-        if (expectedT != actualT) {
+        if (expectedT.isAssignableFrom(actualT)) {
             throw TypeCheckException(expectedT, actualT, ctx)
         }
     }
@@ -78,7 +78,7 @@ class TypeChecker(
         ctx.expression()?.let {
             it.accept(this)
             val actualT = typeTable[it]!!
-            if (expectedT != actualT) {
+            if (expectedT.isAssignableFrom(actualT)) {
                 throw TypeCheckException(expectedT, actualT, ctx)
             }
         }
@@ -104,7 +104,7 @@ class TypeChecker(
     override fun visitVariableStatement(ctx: VariableStatementContext) {
         val v = ctx.variableDeclaration()
         v.accept(this)
-        currentScope.add(v.identifier().text, typeTable[v]!!)
+        currentScope.add(v.identifier().text, typeTable[v.expression()]!!)
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
@@ -112,7 +112,7 @@ class TypeChecker(
         val expr = ctx.expression()
         expr.accept(this)
         val actualT = typeTable[expr]!!
-        if (expectedT != actualT) {
+        if (expectedT.isAssignableFrom(actualT)) {
             throw TypeCheckException(actualT, expectedT, ctx)
         }
     }

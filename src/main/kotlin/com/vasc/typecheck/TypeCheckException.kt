@@ -7,8 +7,8 @@ import org.antlr.v4.runtime.ParserRuleContext
 class TypeCheckException(expected: VascType, actual: VascType, ctx: ParserRuleContext) :
     VascException("""
         |expected type:
-        |$expected
+        |  $expected
         |but got:
-        |$actual
+        |  $actual
         |at [${ctx.start.line}:${ctx.start.charPositionInLine}]
     """.trimMargin())
