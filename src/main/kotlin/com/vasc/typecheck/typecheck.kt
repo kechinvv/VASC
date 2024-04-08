@@ -167,5 +167,10 @@ class TypeChecker(
         typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
+    override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
+        ctx.primary().accept(this)
+        typeTable[ctx] = typeTable[ctx.primary()]!!
+    }
+
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
 }
