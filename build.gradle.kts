@@ -31,6 +31,14 @@ tasks {
         arguments = arguments + listOf("-visitor", "-package", packageName)
     }
 
+    compileKotlin {
+        dependsOn("generateGrammarSource")
+    }
+
+    compileTestKotlin {
+        dependsOn("generateTestGrammarSource")
+    }
+
     compileJava {
         dependsOn("generateGrammarSource")
     }
