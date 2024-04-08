@@ -167,7 +167,7 @@ class TypeChecker(
             throw TypeCheckException(expectT, actualT, ctx)
         }
         ctx.thenBody.accept(copy(currentScope.enclosed()))
-        ctx.elseBody.accept(copy(currentScope.enclosed()))
+        ctx.elseBody?.accept(copy(currentScope.enclosed()))
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
