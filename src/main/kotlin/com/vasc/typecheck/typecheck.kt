@@ -75,10 +75,12 @@ class TypeChecker(
 
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
         val expectedT = typeResolver.visit(ctx.className())
-        ctx.expression().accept(this)
-        val actualT = typeTable[ctx.expression()]!!
-        if (expectedT != actualT) {
-            throw TypeCheckException(expectedT, actualT, ctx)
+        ctx.expression()?.let {
+            it.accept(this)
+            val actualT = typeTable[it]!!
+            if (expectedT != actualT) {
+                throw TypeCheckException(expectedT, actualT, ctx)
+            }
         }
     }
 
@@ -119,7 +121,7 @@ class TypeChecker(
         ctx.arguments().expression().forEach { it.accept(this) }
         val name = ctx.className().text
         val params = ctx.arguments().expression().map { typeTable[it]!! }
-        val initT = currentScope.classT()!!.getMethod(name, params)?.returnType ?: typeResolver.visit(ctx.className())!!
+        val initT = currentScope.classT()?.getMethod(name, params)?.returnType ?: typeResolver.visit(ctx.className())!!
         typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
