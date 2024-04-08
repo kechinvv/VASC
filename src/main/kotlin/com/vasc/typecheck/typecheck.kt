@@ -64,7 +64,7 @@ class TypeChecker(
             currentScope.enclosed(
                 vars = fields.associate {
                     val varDeclaration = (it as FieldDeclarationContext).variableDeclaration()
-                    varDeclaration.identifier().text to typeTable[varDeclaration]!!
+                    varDeclaration.identifier().text to typeResolver.visit(varDeclaration.className())
                 }.toMutableMap(),
                 classT = classT
             )
