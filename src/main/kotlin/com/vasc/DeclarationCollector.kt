@@ -15,13 +15,13 @@ object DeclarationCollector : VascParserBaseVisitor<Any>() {
         val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
         ctx.classDeclarations.forEach {
             val name = it.name.text
-            if (namedDeclarations.contains(name)) throw VascException()
+            if (namedDeclarations.contains(name)) throw VascException("")
             namedDeclarations[name] = it
         }
 
         val classMap = namedDeclarations.mapValues { (name, _) -> MutableVascClass(name) }
         val typeResolver = VascTypeResolver {
-            classMap[it] ?: throw VascException()
+            classMap[it] ?: throw VascException("")
         }
 
         namedDeclarations.forEach { (name, decl) ->
@@ -75,17 +75,17 @@ private class MutableVascClass(name: String) : VascClass(name) {
     override var declaredMethods: MutableList<VascMethod> = mutableListOf()
 
     fun addField(variable: VascVariable) {
-        if (getDeclaredField(variable.name) != null) throw VascException()
+        if (getDeclaredField(variable.name) != null) throw VascException("")
         declaredFields += variable
     }
 
     fun addConstructor(constructor: VascConstructor) {
-        if (getDeclaredConstructor(constructor.parameterTypes) != null) throw VascException()
+        if (getDeclaredConstructor(constructor.parameterTypes) != null) throw VascException("")
         declaredConstructors += constructor
     }
 
     fun addMethod(method: VascMethod) {
-        if (getDeclaredMethod(method.name, method.parameterTypes) != null) throw VascException()
+        if (getDeclaredMethod(method.name, method.parameterTypes) != null) throw VascException("")
         declaredMethods += method
     }
 }

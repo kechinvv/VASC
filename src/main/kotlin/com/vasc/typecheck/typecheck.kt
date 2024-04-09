@@ -43,7 +43,9 @@ class TypeChecker(
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
-        val expectedT = currentScope.find(ctx.identifier().text)!!
+        val expectedT = ctx.identifier().let {
+            currentScope.find(it.text) ?: throw VascException("unknown variable '${it.text}'", ctx)
+        }
         val actualT = ctx.expression().let {
             it.accept(this)
             typeTable[it]!!
@@ -62,10 +64,7 @@ class TypeChecker(
         }
         val enclosed = copy(
             currentScope.enclosed(
-                vars = fields.associate {
-                    val varDeclaration = (it as FieldDeclarationContext).variableDeclaration()
-                    varDeclaration.identifier().text to typeResolver.visit(varDeclaration.className())
-                }.toMutableMap(),
+                vars = classT.fields.associate { it.name to it.type }.toMutableMap(),
                 classT = classT
             )
         )
@@ -113,10 +112,12 @@ class TypeChecker(
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
-        val expectedT = currentScope.returnT()!!
-        val expr = ctx.expression()
-        expr.accept(this)
-        val actualT = typeTable[expr]!!
+        val expectedT = currentScope.returnT() ?:
+            throw VascException("return statement for method without return type", ctx)
+        val actualT = ctx.expression().let {
+            it.accept(this)
+             typeTable[it]!!
+        }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw TypeCheckException(actualT, expectedT, ctx)
         }
@@ -145,10 +146,11 @@ class TypeChecker(
                         typeTable[it]!!
                     }
                     val name = nextCall.identifier().text
-                    val method = nextT!!.getMethod(name, args) ?: throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist")
+                    val method = nextT!!.getMethod(name, args) ?:
+                        throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist", nextCall)
                     val result = method.returnType
                     if (result == null && nextCall != calls.last()) {
-                        throw VascException("method '$nextT.$method' does not return a value")
+                        throw VascException("method '$nextT.$method' does not return a value", nextCall)
                     }
                     nextT = result
                 }

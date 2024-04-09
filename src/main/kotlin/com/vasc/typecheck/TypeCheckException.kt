@@ -10,5 +10,4 @@ class TypeCheckException(expected: VascType, actual: VascType, ctx: ParserRuleCo
         |  $expected
         |but got:
         |  $actual
-        |at [${ctx.start.line}:${ctx.start.charPositionInLine}]
-    """.trimMargin())
+    """.trimMargin(), ctx)

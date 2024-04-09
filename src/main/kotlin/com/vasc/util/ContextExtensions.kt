@@ -28,7 +28,7 @@ fun ParametersContext.toUniqueVariables(typeResolver: VascTypeResolver): List<Va
     for (param in parameter()) {
         val variable = param.toVascVariable(typeResolver)
         val prevValue = variableMap.put(variable.name, variable)
-        if (prevValue != null) throw VascException()
+        if (prevValue != null) throw VascException("")
     }
     return variableMap.values.toList()
 }
