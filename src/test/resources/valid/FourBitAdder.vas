@@ -4,29 +4,29 @@ class Main is
     this() is
          var i : Integer = 0
          var max : Integer = 16
-         while i.Less(max) loop
+         while i.less(max) loop
              var j : Integer = 0
              var ni : Nybble = Nybble(i)
-             if i.Equal(ni.toInt()).Not() then
+             if i.equal(ni.toInt()).not() then
                 // TODO: error
              end
-             while j.Less(max) loop
+             while j.less(max) loop
                 var nj : Nybble = Nybble(j)
                 var added : FourBitAdder = FourBitAdder(ni, nj)
                 var actual : Integer = added.n.toInt()
-                var expected : Integer = i.Plus(j)
+                var expected : Integer = i.plus(j)
                 if added.c then
-                    if expected.GreaterEqual(max).And(expected.Rem(max).Equal(actual)).Not() then
+                    if expected.greaterEqual(max).and(expected.rem(max).equal(actual)).not() then
                         // TODO: error
                     end
                 else
-                    if expected.Equal(added.n.toInt()).Not() then
+                    if expected.equal(added.n.toInt()).not() then
                         // TODO: error
                     end
                 end
-                j = j.Plus(1)
+                j = j.plus(1)
              end
-             i = i.Plus(1)
+             i = i.plus(1)
          end
 
     end
@@ -45,10 +45,10 @@ class Nybble is
     this(from : Integer) is
         var rem : Integer = from
         var i : Integer = 0
-        while rem.Greater(0) loop
-            digits.set(i, rem.Rem(2).Equal(1))
-            rem = rem.Div(2)
-            i = i.Plus(1)
+        while rem.greater(0) loop
+            digits.set(i, rem.rem(2).equal(1))
+            rem = rem.div(2)
+            i = i.plus(1)
         end
     end
 
@@ -56,12 +56,12 @@ class Nybble is
         var res : Integer = 0
         var i : Integer = 0
         var k : Integer = 1
-        while i.Less(digits.Length()) loop
+        while i.less(digits.length()) loop
             if digits.get(i) then
-                res = res.Plus(k)
+                res = res.plus(k)
             end
-            i = i.Plus(1)
-            k = k.Mult(2)
+            i = i.plus(1)
+            k = k.mul(2)
         end
         return res
     end
@@ -74,8 +74,8 @@ end
 
 class HalfAdder extends Adder is
     this(a : Boolean, b : Boolean) is
-        s = a.Xor(b)
-        c = a.And(b)
+        s = a.xor(b)
+        c = a.and(b)
     end
 end
 
@@ -84,7 +84,7 @@ class FullAdder extends Adder is
         var h1 : HalfAdder = HalfAdder(a, c)
         var h2 : HalfAdder = HalfAdder(h1.s, b)
         s = h2.s
-        c = h1.c.Or(h2.c)
+        c = h1.c.or(h2.c)
     end
 end
 

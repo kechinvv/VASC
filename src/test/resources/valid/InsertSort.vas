@@ -15,23 +15,23 @@ class Main is
 
         // https://rosettacode.org/wiki/Sorting_algorithms/Insertion_sort#Java
         var i : Integer = 1
-        while i.Less(n) loop
+        while i.less(n) loop
             var value : Integer = a.get(i)
-            var j : Integer = i.Minus(1)
-            while j.GreaterEqual(0).And(a.get(j).Greater(value)) loop
-                a.set(j.Plus(1), a.get(j))
-                j = j.Minus(1)
+            var j : Integer = i.minus(1)
+            while j.greaterEqual(0).and(a.get(j).greater(value)) loop
+                a.set(j.plus(1), a.get(j))
+                j = j.minus(1)
             end
-            a.set(j.Plus(1), value)
-            i = i.Plus(1)
+            a.set(j.plus(1), value)
+            i = i.plus(1)
         end
 
         var i : Integer = 0
-        while i.LessEqual(n) loop
-            if a.get(i).Equal(i).Not() then
+        while i.lessEqual(n) loop
+            if a.get(i).equal(i).not() then
                 // TODO: error
             end
-            i = i.Plus(1)
+            i = i.plus(1)
         end
     end
 end

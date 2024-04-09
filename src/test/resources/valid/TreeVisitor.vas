@@ -24,7 +24,7 @@ class Main is
         var expectedRes : Integer = 10
         var v : Visitor
         v.visit(tree)
-        if v.res.Equal(expectedRes).Not() then
+        if v.res.equal(expectedRes).not() then
             // TODO: error
         end
     end
@@ -40,13 +40,13 @@ class Visitor is
     end
 
     method visit(node : PlusNode) is
-        res = res.Plus(node.value)
+        res = res.plus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end
 
     method visit(node : MinusNode) is
-        res = res.Minus(node.value)
+        res = res.minus(node.value)
         this.visit(node.left)
         this.visit(node.right)
     end

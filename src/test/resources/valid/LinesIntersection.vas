@@ -5,7 +5,7 @@ class Main is
         var l1 : Line = Line(Point(4, 0), Point(6, 10))
         var l2 : Line = Line(Point(0, 3), Point(10, 7))
         var o : Option = l1.findIntersection(l2)
-        if o.ok.And(o.value.x.Equal(5).And(o.value.y.Equal(5))).Not() then // TODO: epsilon?
+        if o.ok.and(o.value.x.equal(5).and(o.value.y.equal(5))).not() then // TODO: epsilon?
             // TODO: error
         end
 
@@ -48,19 +48,19 @@ class Line is
     end
 
     method findIntersection(other : Line) : Option is
-        var a1 : Real = e.y.Minus(other.s.y)
-        var b1 : Real = s.x.Minus(other.e.x)
-        var c1 : Real = a1.Mult(s.x).Plus(b1.Mult(other.s.y))
+        var a1 : Real = e.y.minus(other.s.y)
+        var b1 : Real = s.x.minus(other.e.x)
+        var c1 : Real = a1.mul(s.x).plus(b1.mul(other.s.y))
 
-        var a2 : Real = other.e.y.Minus(other.s.y)
-        var b2 : Real = other.s.x.Minus(other.e.x)
-        var c2 : Real = a2.Mult(other.s.x).Plus(b2.Mult(other.s.y))
+        var a2 : Real = other.e.y.minus(other.s.y)
+        var b2 : Real = other.s.x.minus(other.e.x)
+        var c2 : Real = a2.mul(other.s.x).plus(b2.mul(other.s.y))
 
-        var delta : Real = a1.Mult(b2).Minus(a2.Mult(b1))
-        if delta.Equal(0) then
+        var delta : Real = a1.mul(b2).minus(a2.mul(b1))
+        if delta.equal(0) then
             return Option(Point(0.0, 0.0), false)
         else
-            return Option(Point(b2.Mult(c1).Minus(b1.Mult(c2)).Div(delta), a1.Mult(c2).Minus(a2.Mult(c1)).Div(delta), true))
+            return Option(Point(b2.mul(c1).minus(b1.mul(c2)).div(delta), a1.mul(c2).minus(a2.mul(c1)).div(delta), true))
         end
     end
 end

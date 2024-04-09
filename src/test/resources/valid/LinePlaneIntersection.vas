@@ -18,10 +18,10 @@ class Main is
         var diff : Vector3 = rayPoint.minus(planePoint)
         var prod1 : Real = diff.dot(planeNormal)
         var prod2 : Real = rayVector.dot(planeNormal)
-        var prod3 : Real = prod1.Div(prod2)
-        var res : Real = rayPoint.minus(rayVector.times(prod3))
+        var prod3 : Real = prod1.div(prod2)
+        var res : Vector3 = rayPoint.minus(rayVector.times(prod3))
 
-        if res.x.Equal(0.0).And(res.y.Equal(-5.0)).And(res.z.Equal(5.0)).Not() then // TODO: EPS?
+        if res.x.equal(0.0).and(res.y.equal(-5.0)).and(res.z.equal(5.0)).not() then // TODO: EPS?
             // TODO: error
         end
     end
@@ -38,19 +38,19 @@ class Vector3 is
         z = _z
     end
 
-    method Plus(v : Vector3) : Vector3 is
-        return Vector3(x.Plus(v.x), y.Plus(v.y), z.Plus(v.z))
+    method plus(v : Vector3) : Vector3 is
+        return Vector3(x.plus(v.x), y.plus(v.y), z.plus(v.z))
     end
 
-    method Minus(v : Vector3) : Vector3 is
-        return Vector3(x.Minus(v.x), y.Minus(v.y), z.Minus(v.z))
+    method minus(v : Vector3) : Vector3 is
+        return Vector3(x.minus(v.x), y.minus(v.y), z.minus(v.z))
     end
 
-    method Times(s : Real) : Vector3 is
-        return Vector3(s.Mult(x), s.Mult(y), s.Mult(z))
+    method times(s : Real) : Vector3 is
+        return Vector3(s.mul(x), s.mul(y), s.mul(z))
     end
 
-    method Dot(v : Vector3) : Real is
-        return x.Mult(v.x).Plus(y.Mult(v.y)).Plus(z.Mult(v.z))
+    method dot(v : Vector3) : Real is
+        return x.mul(v.x).plus(y.mul(v.y)).plus(z.mul(v.z))
     end
 end
