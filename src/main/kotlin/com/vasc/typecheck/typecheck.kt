@@ -3,7 +3,6 @@ package com.vasc.typecheck
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
-import com.vasc.error.VascException
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
@@ -13,6 +12,8 @@ class TypeChecker(
     private val currentScope: Scope,
     private val typeTable: MutableMap<ParserRuleContext, VascType>
 ) : VascParserBaseVisitor<Unit>() {
+
+// LITERALS
 
     override fun visitRealLiteral(ctx: RealLiteralContext) {
         typeTable[ctx] = VascReal
@@ -29,6 +30,8 @@ class TypeChecker(
     override fun visitIntegerLiteral(ctx: IntegerLiteralContext) {
         typeTable[ctx] = VascInteger
     }
+
+// STATEMENTS
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
         val expectedT = VascBoolean
@@ -54,6 +57,38 @@ class TypeChecker(
             throw UnexpectedTypeException(expectedT, actualT, ctx)
         }
     }
+
+    override fun visitIfStatement(ctx: IfStatementContext) {
+        val expectT = VascBoolean
+        val actualT = ctx.expression().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
+        if (expectT != actualT) {
+            throw UnexpectedTypeException(expectT, actualT, ctx.expression())
+        }
+        ctx.thenBody.accept(copy(currentScope.enclosed()))
+        ctx.elseBody?.accept(copy(currentScope.enclosed()))
+    }
+
+    override fun visitVariableStatement(ctx: VariableStatementContext) {
+        val v = ctx.variableDeclaration()
+        v.accept(this)
+        currentScope.add(v.identifier().text, typeResolver.visit(ctx.variableDeclaration().className()))
+    }
+
+    override fun visitReturnStatement(ctx: ReturnStatementContext) {
+        val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
+        val actualT = ctx.expression().let {
+            it.accept(this)
+            typeTable[it]!!
+        }
+        if (!expectedT.isAssignableFrom(actualT)) {
+            throw UnexpectedTypeException(actualT, expectedT, ctx)
+        }
+    }
+
+// DECLARATIONS
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         val classT = typeResolver.visit(ctx.name)!!
@@ -105,22 +140,7 @@ class TypeChecker(
         ctx.body().accept(enclosed)
     }
 
-    override fun visitVariableStatement(ctx: VariableStatementContext) {
-        val v = ctx.variableDeclaration()
-        v.accept(this)
-        currentScope.add(v.identifier().text, typeResolver.visit(ctx.variableDeclaration().className()))
-    }
-
-    override fun visitReturnStatement(ctx: ReturnStatementContext) {
-        val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
-        val actualT = ctx.expression().let {
-            it.accept(this)
-             typeTable[it]!!
-        }
-        if (!expectedT.isAssignableFrom(actualT)) {
-            throw UnexpectedTypeException(actualT, expectedT, ctx)
-        }
-    }
+// EXPRESSIONS
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
         ctx.arguments().expression().forEach { it.accept(this) }
@@ -130,44 +150,6 @@ class TypeChecker(
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
-    }
-
-    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType? {
-        var nextT: VascType? = initT
-        for (nextCall in calls) {
-            when(nextCall) {
-                is FieldAccessContext -> {
-                    nextT = nextT!!.getField(nextCall.identifier().text)!!.type
-                }
-                is MethodCallContext -> {
-                    val args = nextCall.arguments().expression().map {
-                        it.accept(this)
-                        typeTable[it]!!
-                    }
-                    val name = nextCall.identifier().text
-                    val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
-                    val result = method.returnType
-                    if (result == null && nextCall != calls.last()) {
-                        throw throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
-                    }
-                    nextT = result
-                }
-            }
-        }
-        return nextT
-    }
-
-    override fun visitIfStatement(ctx: IfStatementContext) {
-        val expectT = VascBoolean
-        val actualT = ctx.expression().let {
-            it.accept(this)
-            typeTable[it]!!
-        }
-        if (expectT != actualT) {
-            throw UnexpectedTypeException(expectT, actualT, ctx.expression())
-        }
-        ctx.thenBody.accept(copy(currentScope.enclosed()))
-        ctx.elseBody?.accept(copy(currentScope.enclosed()))
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
@@ -215,6 +197,32 @@ class TypeChecker(
             typeTable[it]!!
         }
     }
+
+    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType? {
+        var nextT: VascType? = initT
+        for (nextCall in calls) {
+            when(nextCall) {
+                is FieldAccessContext -> {
+                    nextT = nextT!!.getField(nextCall.identifier().text)!!.type
+                }
+                is MethodCallContext -> {
+                    val args = nextCall.arguments().expression().map {
+                        it.accept(this)
+                        typeTable[it]!!
+                    }
+                    val name = nextCall.identifier().text
+                    val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
+                    val result = method.returnType
+                    if (result == null && nextCall != calls.last()) {
+                        throw throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
+                    }
+                    nextT = result
+                }
+            }
+        }
+        return nextT
+    }
+
 
     private fun copy(enclosedScope: Scope) = TypeChecker(this.typeResolver, enclosedScope, this.typeTable)
 }
