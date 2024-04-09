@@ -1,0 +1,9 @@
+class Main is
+    this() is
+        if true then
+            var a : Integer
+        else
+            a
+        end
+    end
+end

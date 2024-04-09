@@ -1,0 +1,10 @@
+class Parent is
+    this(b: Boolean) is
+    end
+end
+
+class Derived extends Parent is
+    this() is
+        super(42)
+    end
+end

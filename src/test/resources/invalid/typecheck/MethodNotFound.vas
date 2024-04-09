@@ -1,0 +1,6 @@
+class Main is
+    this() is
+        var i : Integer = 0
+        i.foobar(2)
+    end
+end

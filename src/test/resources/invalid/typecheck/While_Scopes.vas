@@ -1,0 +1,8 @@
+class Main is
+    this() is
+        while true loop
+            var a : Integer
+        end
+        a
+    end
+end

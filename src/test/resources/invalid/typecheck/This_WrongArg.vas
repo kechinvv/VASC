@@ -1,0 +1,8 @@
+class Main is
+    this(a: Array[Integer]) is
+    end
+
+    method test() is
+        this(false)
+    end
+end

@@ -1,0 +1,10 @@
+class Main is
+    this() is
+        A(42)
+    end
+end
+
+class A is
+    this(b: Boolean) is
+    end
+end

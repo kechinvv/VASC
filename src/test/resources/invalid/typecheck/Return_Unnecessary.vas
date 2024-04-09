@@ -1,0 +1,5 @@
+class Main is
+    method noreturn() is
+        return false
+    end
+end
