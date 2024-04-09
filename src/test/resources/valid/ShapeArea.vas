@@ -8,8 +8,8 @@ class Main is
         var expectedArea : Real = 369.0
 
         var totalArea : Real = 0.0
-        while shapes.isEmpty().not() loop // TODO: add isEmpty() to List
-            totalArea.plus(shapes.head())
+        while shapes.isEmpty().not() loop
+            totalArea.plus(shapes.head().Area())
             shapes = shapes.tail()
         end
         if totalArea.equal(expectedArea).not() then // TODO: epsilon?
@@ -37,7 +37,7 @@ class Triangle extends Shape is
 
     method Area() : Real is
         var s : Real = a.plus(b).plus(c).div(2)
-        return s.Mult(s.minus(a)).mul(s.minus(b)).mul(s.minus(c)).sqrt() // TODO: add Sqrt() to Real
+        return s.mul(s.minus(a)).mul(s.minus(b)).mul(s.minus(c)).sqrt()
     end
 end
 

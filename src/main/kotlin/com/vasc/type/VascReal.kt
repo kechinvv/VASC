@@ -16,6 +16,7 @@ object VascReal : VascClass("Real") {
         VascMethod("toInteger", emptyList(), VascInteger),
 
         VascMethod("unaryMinus", emptyList(), VascInteger),
+        VascMethod("sqrt", emptyList(), VascReal),
 
         VascMethod("plus", listOf("p" colon VascReal), VascReal),
         VascMethod("plus", listOf("p" colon VascInteger), VascReal),

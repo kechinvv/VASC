@@ -17,7 +17,8 @@ class VascList(val genericType: VascType) : VascClass("List[${genericType.name}]
         VascMethod("append", listOf("v" colon genericType), this),
         VascMethod("append", listOf("v" colon genericType), this),
         VascMethod("head", emptyList(), genericType),
-        VascMethod("tail", emptyList(), this)
+        VascMethod("tail", emptyList(), this),
+        VascMethod("isEmpty", emptyList(), VascBoolean)
     )
 
 }
