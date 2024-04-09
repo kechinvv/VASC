@@ -14,7 +14,7 @@ class ExhaustiveChecker : VascParserBaseVisitor<Boolean>() {
     override fun visitBody(ctx: VascParser.BodyContext): Boolean {
         var wasAbsoluteReturn = false
 
-        val statements = ctx.children.filterIsInstance<VascParser.StatementContext>().toList()
+        val statements = ctx.children?.filterIsInstance<VascParser.StatementContext>()?.toList() ?: emptyList()
         val n: Int = statements.size
 
         val parentIsMethod = ctx.parent is VascParser.MethodDeclarationContext
