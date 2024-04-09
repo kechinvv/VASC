@@ -21,11 +21,11 @@ open class VascClass(override val name: String) : VascType {
     }
 
     override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
-        return declaredConstructors.find { it.parameterTypes == parameterTypes }
+        return declaredConstructors.find { it.isApplicableTo(parameterTypes) }
     }
 
     override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return declaredMethods.find { it.name == name && it.parameterTypes == parameterTypes }
+        return declaredMethods.find { it.name == name && it.isApplicableTo(parameterTypes) }
     }
 
     override fun getField(name: String): VascVariable? {
