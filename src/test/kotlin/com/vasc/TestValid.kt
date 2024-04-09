@@ -15,7 +15,7 @@ class TestValid {
     fun `test valid code`(): Collection<DynamicTest> {
         val dirPath = this::class.java.classLoader.resources("valid").toList().first()
         val dir = File(dirPath.path)
-        return dir.listFiles()!!.map { file ->
+        return dir.listFiles()!!.filter { it.isFile }.map { file ->
             DynamicTest.dynamicTest(file.nameWithoutExtension) {
                 val lexer = VascLexer(CharStreams.fromString(file.readText()))
                 val parser = VascParser(CommonTokenStream(lexer))

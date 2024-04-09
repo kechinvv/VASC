@@ -1,0 +1,18 @@
+class Parent is
+    this(i: Integer) is
+    end
+end
+
+class Derived extends Parent is
+
+    var i : Integer = null
+
+    this(i: Integer) is
+        i = null
+    end
+
+    method returnNull() : Integer is
+        return null
+    end
+
+end

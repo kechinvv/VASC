@@ -31,3 +31,6 @@ class MethodReturnsNoValueException(className: String, methodName: String, ctx: 
 
 class UnknownVariableException(name: String, ctx: ParserRuleContext) : // TODO: move from type check?
     TypeCheckException("unknown variable '$name'", ctx)
+
+class UnexpectedNullException(ctx: ParserRuleContext) :
+    TypeCheckException("unexpected null", ctx)
