@@ -145,8 +145,13 @@ class TypeChecker(
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
         ctx.arguments().expression().forEach { it.accept(this) }
         val name = ctx.className().text
-        val params = ctx.arguments().expression().map { typeTable[it]!! }
-        val initT = currentScope.classT()?.getMethod(name, params)?.returnType ?: typeResolver.visit(ctx.className())!!
+        val args = ctx.arguments().expression().map { typeTable[it]!! }
+        val initT =
+            currentScope.classT()?.getMethod(name, args)?.returnType ?:
+            typeResolver.visit(ctx.className())!!.let {
+                it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
+                it
+            }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
