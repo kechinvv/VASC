@@ -1,5 +1,6 @@
 package com.vasc.typecheck
 
+import com.vasc.antlr.VascParser.ExpressionContext
 import com.vasc.error.VascException
 import com.vasc.type.VascType
 import org.antlr.v4.runtime.ParserRuleContext
@@ -35,5 +36,5 @@ class UnknownVariableException(name: String, ctx: ParserRuleContext) : // TODO: 
 class UnexpectedNullException(ctx: ParserRuleContext) :
     TypeCheckException("unexpected null", ctx)
 
-class ExpressionHasNoValueException(ctx: ParserRuleContext) :
+class ExpressionHasNoValueException(ctx: ExpressionContext) :
     TypeCheckException("expression has no value", ctx)

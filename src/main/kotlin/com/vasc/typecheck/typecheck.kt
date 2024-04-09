@@ -42,7 +42,7 @@ class TypeChecker(
         val expectedT = VascBoolean
         val actualT = ctx.expression().let {
             it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (expectedT != actualT) {
             throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
@@ -56,7 +56,7 @@ class TypeChecker(
         }
         val actualT = ctx.expression().let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw UnexpectedTypeException(expectedT, actualT, ctx)
@@ -67,7 +67,7 @@ class TypeChecker(
         val expectT = VascBoolean
         val actualT = ctx.expression().let {
             it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (expectT != actualT) {
             throw UnexpectedTypeException(expectT, actualT, ctx.expression())
@@ -86,7 +86,7 @@ class TypeChecker(
         val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
         val actualT = ctx.expression().let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw UnexpectedTypeException(actualT, expectedT, ctx)
@@ -121,7 +121,7 @@ class TypeChecker(
         val expectedT = typeResolver.visit(ctx.className())
         ctx.expression()?.let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            val actualT = typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            val actualT = typeTable[it] ?: throw ExpressionHasNoValueException(it)
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
@@ -151,7 +151,7 @@ class TypeChecker(
         ctx.arguments().expression().forEach { it.accept(this) }
         val name = ctx.className().text
         val args = ctx.arguments().expression().map {
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         val methodCandidate = currentScope.classT()?.getMethod(name, args)
         val initT = if (methodCandidate != null) {
@@ -174,7 +174,7 @@ class TypeChecker(
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
-                typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+                typeTable[it] ?: throw ExpressionHasNoValueException(it)
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
@@ -188,7 +188,7 @@ class TypeChecker(
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
-                typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+                typeTable[it] ?: throw ExpressionHasNoValueException(it)
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
@@ -223,7 +223,7 @@ class TypeChecker(
                 is MethodCallContext -> {
                     val args = nextCall.arguments().expression().map {
                         it.accept(this)
-                        typeTable[it] ?: throw ExpressionHasNoValueException(nextCall)
+                        typeTable[it] ?: throw ExpressionHasNoValueException(it)
                     }
                     val name = nextCall.identifier().text
                     val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
