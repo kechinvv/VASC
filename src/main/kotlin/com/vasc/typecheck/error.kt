@@ -1,6 +1,6 @@
 package com.vasc.typecheck
 
-import com.vasc.antlr.VascParser.ExpressionContext
+import com.vasc.antlr.VascParser.*
 import com.vasc.error.VascException
 import com.vasc.type.VascType
 import org.antlr.v4.runtime.ParserRuleContext
@@ -15,10 +15,10 @@ class UnexpectedTypeException(expected: VascType, actual: VascType, ctx: ParserR
         |  $actual
     """.trimMargin(), ctx)
 
-class UnnecessaryReturnException(ctx: ParserRuleContext) :
+class UnnecessaryReturnException(ctx: ReturnStatementContext) :
     TypeCheckException("unnecessary return inside method without return type", ctx)
 
-class ParentNotFoundException(className: String, ctx: ParserRuleContext) :
+class ParentNotFoundException(className: String, ctx: SuperExpressionContext) :
     TypeCheckException("class '$className' does not have a parent", ctx)
 
 class ConstructorNotFoundException(className: String, args: List<VascType>, ctx: ParserRuleContext) :
@@ -30,10 +30,10 @@ class MethodNotFoundException(className: String, methodName: String, args: List<
 class MethodReturnsNoValueException(className: String, methodName: String, ctx: ParserRuleContext) :
     TypeCheckException("method '$className.$methodName' does not return a value", ctx)
 
-class UnknownVariableException(name: String, ctx: ParserRuleContext) : // TODO: move from type check?
+class UnknownVariableException(name: String, ctx: IdentifierContext) : // TODO: move from type check?
     TypeCheckException("unknown variable '$name'", ctx)
 
-class UnexpectedNullException(ctx: ParserRuleContext) :
+class UnexpectedNullException(ctx: NullLiteralContext) :
     TypeCheckException("unexpected null", ctx)
 
 class ExpressionHasNoValueException(ctx: ExpressionContext) :

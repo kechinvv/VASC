@@ -52,7 +52,7 @@ class TypeChecker(
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         val expectedT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, ctx)
+            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
         val actualT = ctx.expression().let {
             it.accept(copy(newExpectedExpressionT = expectedT))
@@ -199,7 +199,7 @@ class TypeChecker(
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
         val initT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, ctx)
+            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
