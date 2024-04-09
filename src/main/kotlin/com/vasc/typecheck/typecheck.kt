@@ -173,8 +173,16 @@ class TypeChecker(
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
-        val initT = currentScope.classT()!!.parent!!
-        // TODO: check constructor
+        val initT = currentScope.classT()!!.let {
+            it.parent ?: throw VascException("class '${it.name}' does not have a parent", ctx)
+        }
+        ctx.arguments()?.let { argsCtx ->
+            val args = argsCtx.expression().map {
+                it.accept(this)
+                typeTable[it]!!
+            }
+            initT.getDeclaredConstructor(args) ?: throw VascException("no constructor found for ${initT.name} with arguments $args", ctx)
+        }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
@@ -182,13 +190,22 @@ class TypeChecker(
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         val initT = currentScope.classT()!!
+        ctx.arguments()?.let { argsCtx ->
+            val args = argsCtx.expression().map {
+                it.accept(this)
+                typeTable[it]!!
+            }
+            initT.getDeclaredConstructor(args) ?: throw VascException("no constructor found for ${initT.name} with arguments $args", ctx)
+        }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
     }
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
-        val initT = currentScope.find(ctx.identifier().text)!!
+        val initT = ctx.identifier().let {
+            currentScope.find(it.text) ?: throw VascException("unknown variable '${it.text}'", ctx)
+        }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
