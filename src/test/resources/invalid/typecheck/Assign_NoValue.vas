@@ -1,0 +1,11 @@
+class Main is
+    this() is
+    end
+
+    method a() is
+        var a: Integer = b()
+    end
+
+    method b() is
+    end
+end

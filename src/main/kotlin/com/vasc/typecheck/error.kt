@@ -34,3 +34,6 @@ class UnknownVariableException(name: String, ctx: ParserRuleContext) : // TODO: 
 
 class UnexpectedNullException(ctx: ParserRuleContext) :
     TypeCheckException("unexpected null", ctx)
+
+class ExpressionHasNoValueException(ctx: ParserRuleContext) :
+    TypeCheckException("expression has no value", ctx)

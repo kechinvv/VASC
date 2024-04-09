@@ -42,7 +42,7 @@ class TypeChecker(
         val expectedT = VascBoolean
         val actualT = ctx.expression().let {
             it.accept(this)
-            typeTable[it]!!
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
         }
         if (expectedT != actualT) {
             throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
@@ -56,7 +56,7 @@ class TypeChecker(
         }
         val actualT = ctx.expression().let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            typeTable[it]!!
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw UnexpectedTypeException(expectedT, actualT, ctx)
@@ -67,7 +67,7 @@ class TypeChecker(
         val expectT = VascBoolean
         val actualT = ctx.expression().let {
             it.accept(this)
-            typeTable[it]!!
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
         }
         if (expectT != actualT) {
             throw UnexpectedTypeException(expectT, actualT, ctx.expression())
@@ -86,7 +86,7 @@ class TypeChecker(
         val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
         val actualT = ctx.expression().let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            typeTable[it]!!
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
             throw UnexpectedTypeException(actualT, expectedT, ctx)
@@ -121,7 +121,7 @@ class TypeChecker(
         val expectedT = typeResolver.visit(ctx.className())
         ctx.expression()?.let {
             it.accept(copy(newExpectedExpressionT = expectedT))
-            val actualT = typeTable[it]!!
+            val actualT = typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
@@ -150,13 +150,18 @@ class TypeChecker(
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
         ctx.arguments().expression().forEach { it.accept(this) }
         val name = ctx.className().text
-        val args = ctx.arguments().expression().map { typeTable[it]!! }
-        val initT =
-            currentScope.classT()?.getMethod(name, args)?.returnType ?:
+        val args = ctx.arguments().expression().map {
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+        }
+        val methodCandidate = currentScope.classT()?.getMethod(name, args)
+        val initT = if (methodCandidate != null) {
+            methodCandidate.returnType
+        } else {
             typeResolver.visit(ctx.className())!!.let {
                 it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
                 it
             }
+        }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
@@ -169,7 +174,7 @@ class TypeChecker(
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
-                typeTable[it]!!
+                typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
@@ -183,7 +188,7 @@ class TypeChecker(
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
-                typeTable[it]!!
+                typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
@@ -204,11 +209,11 @@ class TypeChecker(
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
         typeTable[ctx] = ctx.primary().let {
             it.accept(this)
-            typeTable[it]!!
+            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
         }
     }
 
-    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType? {
+    private fun dotCall(initT: VascType?, calls: List<DotCallContext>): VascType? {
         var nextT: VascType? = initT
         for (nextCall in calls) {
             when(nextCall) {
@@ -218,13 +223,13 @@ class TypeChecker(
                 is MethodCallContext -> {
                     val args = nextCall.arguments().expression().map {
                         it.accept(this)
-                        typeTable[it]!!
+                        typeTable[it] ?: throw ExpressionHasNoValueException(nextCall)
                     }
                     val name = nextCall.identifier().text
                     val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
                     val result = method.returnType
                     if (result == null && nextCall != calls.last()) {
-                        throw throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
+                        throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
                     }
                     nextT = result
                 }
