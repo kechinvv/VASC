@@ -1,0 +1,6 @@
+class Main is
+    this() is
+        if 42 then
+        end
+    end
+end

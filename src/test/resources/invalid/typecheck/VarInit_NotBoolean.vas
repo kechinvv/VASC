@@ -1,0 +1,3 @@
+class Main is
+    var b : Boolean = 42
+end

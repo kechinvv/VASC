@@ -1,0 +1,8 @@
+class Main is
+    this() is
+    end
+
+    method test() : Integer is
+        return false
+    end
+end

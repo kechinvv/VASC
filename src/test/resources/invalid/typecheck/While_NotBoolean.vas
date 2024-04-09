@@ -1,0 +1,6 @@
+class Main is
+    this() is
+        while 4.2 loop
+        end
+    end
+end
