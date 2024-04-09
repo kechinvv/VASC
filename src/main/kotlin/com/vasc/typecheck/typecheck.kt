@@ -37,21 +37,21 @@ class TypeChecker(
             typeTable[it]!!
         }
         if (expectedT != actualT) {
-            throw TypeCheckException(expectedT, actualT, ctx)
+            throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
         }
         ctx.body().accept(copy(currentScope.enclosed()))
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         val expectedT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw VascException("unknown variable '${it.text}'", ctx)
+            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, ctx)
         }
         val actualT = ctx.expression().let {
             it.accept(this)
             typeTable[it]!!
         }
         if (!expectedT.isAssignableFrom(actualT)) {
-            throw TypeCheckException(expectedT, actualT, ctx)
+            throw UnexpectedTypeException(expectedT, actualT, ctx)
         }
     }
 
@@ -83,7 +83,7 @@ class TypeChecker(
             it.accept(this)
             val actualT = typeTable[it]!!
             if (!expectedT.isAssignableFrom(actualT)) {
-                throw TypeCheckException(expectedT, actualT, ctx)
+                throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
         }
     }
@@ -112,14 +112,13 @@ class TypeChecker(
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
-        val expectedT = currentScope.returnT() ?:
-            throw VascException("return statement for method without return type", ctx)
+        val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
         val actualT = ctx.expression().let {
             it.accept(this)
              typeTable[it]!!
         }
         if (!expectedT.isAssignableFrom(actualT)) {
-            throw TypeCheckException(actualT, expectedT, ctx)
+            throw UnexpectedTypeException(actualT, expectedT, ctx)
         }
     }
 
@@ -146,11 +145,10 @@ class TypeChecker(
                         typeTable[it]!!
                     }
                     val name = nextCall.identifier().text
-                    val method = nextT!!.getMethod(name, args) ?:
-                        throw VascException("method '$nextT.$name(${args.joinToString(",")})' does not exist", nextCall)
+                    val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
                     val result = method.returnType
                     if (result == null && nextCall != calls.last()) {
-                        throw VascException("method '$nextT.$method' does not return a value", nextCall)
+                        throw throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
                     }
                     nextT = result
                 }
@@ -166,7 +164,7 @@ class TypeChecker(
             typeTable[it]!!
         }
         if (expectT != actualT) {
-            throw TypeCheckException(expectT, actualT, ctx)
+            throw UnexpectedTypeException(expectT, actualT, ctx.expression())
         }
         ctx.thenBody.accept(copy(currentScope.enclosed()))
         ctx.elseBody?.accept(copy(currentScope.enclosed()))
@@ -174,14 +172,14 @@ class TypeChecker(
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         val initT = currentScope.classT()!!.let {
-            it.parent ?: throw VascException("class '${it.name}' does not have a parent", ctx)
+            it.parent ?: throw ParentNotFoundException(it.name, ctx)
         }
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
                 typeTable[it]!!
             }
-            initT.getDeclaredConstructor(args) ?: throw VascException("no constructor found for ${initT.name} with arguments $args", ctx)
+            initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
@@ -195,7 +193,7 @@ class TypeChecker(
                 it.accept(this)
                 typeTable[it]!!
             }
-            initT.getDeclaredConstructor(args) ?: throw VascException("no constructor found for ${initT.name} with arguments $args", ctx)
+            initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
@@ -204,7 +202,7 @@ class TypeChecker(
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
         val initT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw VascException("unknown variable '${it.text}'", ctx)
+            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, ctx)
         }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
