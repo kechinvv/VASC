@@ -70,4 +70,7 @@ class PlusNode extends Node is
 end
 
 class MinusNode extends PlusNode is
+    this(_value : Integer, _left : Node, _right : Node) is
+        super(_value, _left, _right)
+    end
 end

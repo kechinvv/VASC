@@ -2,9 +2,9 @@ class Main is
     this() is
         var shapes : List[Shape]
 
-        shapes.append(Triangle(16, 25, 39)) // 120
-        shapes.append(Square(13))           // 169
-        shapes.append(Rectangle(5, 16))     // 80
+        shapes.append(Triangle(16.0, 25.0, 39.0)) // 120
+        shapes.append(Square(13.0))               // 169
+        shapes.append(Rectangle(5.0, 16.0))       // 80
         var expectedArea : Real = 369.0
 
         var totalArea : Real = 0.0

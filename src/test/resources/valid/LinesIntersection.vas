@@ -2,15 +2,15 @@
 
 class Main is
     this() is
-        var l1 : Line = Line(Point(4, 0), Point(6, 10))
-        var l2 : Line = Line(Point(0, 3), Point(10, 7))
+        var l1 : Line = Line(Point(4.0, 0.0), Point(6.0, 10.0))
+        var l2 : Line = Line(Point(0.0, 3.0), Point(10.0, 7.0))
         var o : Option = l1.findIntersection(l2)
         if o.ok.and(o.value.x.equal(5).and(o.value.y.equal(5))).not() then // TODO: epsilon?
             // TODO: error
         end
 
-        l1 = Line(Point(0, 0), Point(1, 1))
-        l2 = Line(Point(1, 2), Point(4, 5))
+        l1 = Line(Point(0.0, 0.0), Point(1.0, 1.0))
+        l2 = Line(Point(1.0, 2.0), Point(4.0, 5.0))
         o = l1.findIntersection(l2)
         if o.ok then
             // TODO: error
@@ -60,7 +60,7 @@ class Line is
         if delta.equal(0) then
             return Option(Point(0.0, 0.0), false)
         else
-            return Option(Point(b2.mul(c1).minus(b1.mul(c2)).div(delta), a1.mul(c2).minus(a2.mul(c1)).div(delta), true))
+            return Option(Point(b2.mul(c1).minus(b1.mul(c2)).div(delta), a1.mul(c2).minus(a2.mul(c1)).div(delta)), true)
         end
     end
 end
