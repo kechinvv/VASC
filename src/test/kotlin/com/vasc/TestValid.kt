@@ -2,6 +2,7 @@ package com.vasc
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
+import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
 import org.antlr.v4.runtime.*
@@ -44,8 +45,10 @@ class TestValid {
                     fail("unexpected parser errors in (${file.name}:1)")
                 }
                 val typeResolver = DeclarationCollector.visitProgram(program)
-                val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), mutableMapOf())
+                val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
+                val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
                 tc.visitProgram(program)
+                ExhaustiveChecker(typeResolver, typeTable).visitProgram(program)
             }
         }
     }

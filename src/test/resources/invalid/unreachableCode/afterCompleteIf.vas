@@ -5,11 +5,11 @@ class Main is
         var a : Integer = 0
         var b : Integer = 0
         var c : Integer = 1
-        if a.more(c) then
+        if true then
             return a
         else
             return c
         end
-        c.Plus(a)
+        c = 2
     end
 end

@@ -5,10 +5,10 @@ class Main is
         var a : Integer = 0
         var b : Integer = 0
         var c : Integer = 1
-        while a.Less(b) loop
-            a.Plus(b)
+        while true loop
+            a = 1
             return c
-            a.Plus(b)
+            a = 2
         end
     end
 end

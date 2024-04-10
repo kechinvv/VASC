@@ -3,7 +3,11 @@ package com.vasc
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.error.ExhaustiveReturnException
+import com.vasc.error.CyclicConstructorException
 import com.vasc.error.UnreachableCodeException
+import com.vasc.type.VascType
+import com.vasc.typecheck.Scope
+import com.vasc.typecheck.TypeChecker
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -20,7 +24,9 @@ class TestInvalid {
             ) to ExhaustiveReturnException::class,
             File(
                 this::class.java.classLoader.resources("invalid/unreachableCode").toList().first().path
-            ) to UnreachableCodeException::class
+            ) to UnreachableCodeException::class,
+            File(this::class.java.classLoader.resources("invalid/recursiveConstructor").toList().first().path
+            ) to CyclicConstructorException::class
         )
         val tests = mutableListOf<DynamicTest>()
 
@@ -53,7 +59,13 @@ class TestInvalid {
                         System.err.println(errorListener.errors.joinToString("\n\n"))
                         fail("unexpected parser errors in (${file.name}:1)")
                     }
-                    assertFailsWith(exceptionClass = exc, block = { ExhaustiveChecker().visitProgram(program) })
+                    val typeResolver = DeclarationCollector.visitProgram(program)
+                    val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
+                    val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
+                    tc.visitProgram(program)
+                    assertFailsWith(
+                        exceptionClass = exc,
+                        block = { ExhaustiveChecker(typeResolver, typeTable).visitProgram(program) })
                 }
             }
             tests.addAll(dirTests)

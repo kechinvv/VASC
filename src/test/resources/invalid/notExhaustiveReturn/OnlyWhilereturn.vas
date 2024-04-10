@@ -5,9 +5,7 @@ class Main is
         var a : Integer = 0
         var b : Integer = 0
         var c : Integer = 1
-        while a.Less(b) loop
-            totalArea.Plus(shapes.head())
-            shapes = shapes.tail()
+        while true loop
             return c
         end
     end

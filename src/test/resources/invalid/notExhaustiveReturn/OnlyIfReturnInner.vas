@@ -5,9 +5,9 @@ class Main is
         var a : Integer = 0
         var b : Integer = 0
         var c : Integer = 1
-        if a.more(c) then
-            a = a.Plus(a)
-            if a.more(c) then
+        if true then
+            a = 2
+            if true then
                 return a
             end
         else

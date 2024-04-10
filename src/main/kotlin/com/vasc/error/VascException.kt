@@ -11,7 +11,8 @@ class SuperConstructorCallException(override val message: String) : VascExceptio
 class ThisConstructorCallException(override val message: String) : VascException(message)
 class ExhaustiveReturnException(override val message: String) : VascException(message)
 class UnreachableCodeException(override val message: String) : VascException(message)
-class UninitializedLocalVarException(override val message: String) : VascException(message)
+class ConstructorNotFound(override val message: String) : VascException(message)
+class CyclicConstructorException(override val message: String) : VascException(message)
 
 private fun prettyPosition(ctx: ParserRuleContext?): String {
     ctx ?: return ""

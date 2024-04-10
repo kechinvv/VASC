@@ -1,0 +1,22 @@
+class Main is
+
+    this(a: Integer, b: Integer, c: Integer, d: Integer) is
+       this(a, a, a)
+    end
+
+    this(a: Integer, b: Integer, c: Real) is
+       this(a, a)
+    end
+
+    this(a: Integer, b: Integer, c: Integer) is
+       this(a)
+    end
+
+    this(a: Integer, b: Integer) is
+       this(a)
+    end
+
+    this(a: Integer) is
+       this(a, a, a, a)
+    end
+end
