@@ -1,12 +1,9 @@
 package com.vasc.util
 
 import com.vasc.VascTypeResolver
-import com.vasc.antlr.VascParser.ParameterContext
-import com.vasc.antlr.VascParser.ParametersContext
-import com.vasc.antlr.VascParser.VariableDeclarationContext
+import com.vasc.antlr.VascParser.*
 import com.vasc.error.VascException
 import com.vasc.member.VascVariable
-import com.vasc.type.VascClass
 import com.vasc.type.VascType
 
 fun VariableDeclarationContext.toVascVariable(typeResolver: VascTypeResolver): VascVariable {
