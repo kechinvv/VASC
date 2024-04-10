@@ -1,18 +1,25 @@
 package com.vasc
 
 import com.vasc.antlr.VascParser
+import com.vasc.antlr.VascParser.ThisExpressionContext
 import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.ExhaustiveReturnException
 import com.vasc.error.SuperConstructorCallException
 import com.vasc.error.ThisConstructorCallException
 import com.vasc.error.UnreachableCodeException
+import com.vasc.type.VascType
 
-class ExhaustiveChecker : VascParserBaseVisitor<StatementType>() {
+class ExhaustiveChecker(private val typeResolver: VascTypeResolver) : VascParserBaseVisitor<StatementType>() {
 
     private var waitReturn = true
     private val completeIf = 2
     private var constructorCheck = false
+    private var currentClass: VascType? = null
 
+    override fun visitClassDeclaration(ctx: VascParser.ClassDeclarationContext): StatementType {
+        currentClass = ctx.name.accept(typeResolver)
+        return super.visitClassDeclaration(ctx)
+    }
     override fun visitMethodDeclaration(ctx: VascParser.MethodDeclarationContext): StatementType {
         waitReturn = ctx.returnType != null
         return super.visitMethodDeclaration(ctx)
@@ -42,6 +49,7 @@ class ExhaustiveChecker : VascParserBaseVisitor<StatementType>() {
 
                 StatementType.THIS_CONSTRUCTOR -> if (!constructorCheck || i != 0)
                     throw ThisConstructorCallException("This Constructor must be called first in constructor body (line ${ctx.start.line})")
+                    else checkRecursiveConstructorCall(statements[i].getChild(0) as ThisExpressionContext)
                 StatementType.SUPER -> if (!constructorCheck || i != 0)
                     throw SuperConstructorCallException("Super Constructor must be called first in constructor body (line ${ctx.start.line})")
                 else -> continue
@@ -83,6 +91,11 @@ class ExhaustiveChecker : VascParserBaseVisitor<StatementType>() {
 
     override fun defaultResult(): StatementType {
         return StatementType.OTHER
+    }
+
+    private fun checkRecursiveConstructorCall(expr: ThisExpressionContext){
+        currentClass!!.declaredConstructors.forEach { it.parameterTypes }
+        val args = expr.arguments()
     }
 
 }
