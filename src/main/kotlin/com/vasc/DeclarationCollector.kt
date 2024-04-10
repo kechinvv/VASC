@@ -4,8 +4,7 @@ import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.VascException
 import com.vasc.member.*
-import com.vasc.type.VascClass
-import com.vasc.type.VascType
+import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
 
@@ -60,7 +59,7 @@ private class ClassBuilder(
         val method = VascMethod(
             name = ctx.identifier().text,
             parameters = ctx.parameters().toUniqueVariables(typeResolver),
-            returnType = ctx.returnType?.accept(typeResolver)
+            returnType = ctx.returnType?.accept(typeResolver) ?: VascVoid
         )
         vascClass.addMethod(method)
     }

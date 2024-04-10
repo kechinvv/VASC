@@ -15,7 +15,7 @@ class VascArray(val genericType: VascType) : VascClass("Array[${genericType.name
         VascMethod("toList", emptyList(), genericType),
         VascMethod("length", emptyList(), VascInteger),
         VascMethod("get", listOf("i" colon VascInteger), genericType),
-        VascMethod("set", listOf("i" colon VascInteger, "v" colon genericType), null)
+        VascMethod("set", listOf("i" colon VascInteger, "v" colon genericType), VascVoid)
     )
 
 }

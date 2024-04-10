@@ -1,12 +1,13 @@
 package com.vasc.member
 
 import com.vasc.type.VascType
+import com.vasc.type.VascVoid
 
 class VascMethod(
     val name: String,
     parameters: List<VascVariable>,
-    val returnType: VascType?
+    val returnType: VascType
 ) : VascParametrized(parameters) {
 
-    override fun toString() = "$name${super.toString()}${returnType?.let { ": $it" } ?: ""}"
+    override fun toString() = "$name${super.toString()}${returnType.let { if (it is VascVoid) "" else ": $it" }}"
 }
