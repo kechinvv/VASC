@@ -15,4 +15,9 @@ class Derived extends Parent is
         return null
     end
 
+    method acceptNull(a : Real,  b : Boolean) is
+        this(null)
+        acceptNull(null, null)
+    end
+
 end

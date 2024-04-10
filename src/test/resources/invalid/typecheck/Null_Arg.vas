@@ -1,5 +1,0 @@
-class Main is
-    this() is
-        Integer(null)
-    end
-end

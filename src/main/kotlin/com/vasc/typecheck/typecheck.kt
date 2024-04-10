@@ -11,7 +11,6 @@ class TypeChecker(
     private val typeResolver: VascTypeResolver,
     private val currentScope: Scope,
     private val typeTable: MutableMap<ParserRuleContext, VascType>,
-    private val expectedExpressionT: VascType? = null
 ) : VascParserBaseVisitor<Unit>() {
 
 // LITERALS
@@ -33,7 +32,7 @@ class TypeChecker(
     }
 
     override fun visitNullLiteral(ctx: NullLiteralContext) {
-        typeTable[ctx] = expectedExpressionT ?: throw UnexpectedNullException(ctx)
+        typeTable[ctx] = VascNull
     }
 
 // STATEMENTS
@@ -55,7 +54,7 @@ class TypeChecker(
             currentScope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
         val actualT = ctx.expression().let {
-            it.accept(copy(newExpectedExpressionT = expectedT))
+            it.accept(this)
             typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
@@ -85,7 +84,7 @@ class TypeChecker(
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
         val actualT = ctx.expression().let {
-            it.accept(copy(newExpectedExpressionT = expectedT))
+            it.accept(this)
             typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
         if (!expectedT.isAssignableFrom(actualT)) {
@@ -120,7 +119,7 @@ class TypeChecker(
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
         val expectedT = typeResolver.visit(ctx.className())
         ctx.expression()?.let {
-            it.accept(copy(newExpectedExpressionT = expectedT))
+            it.accept(this)
             val actualT = typeTable[it] ?: throw ExpressionHasNoValueException(it)
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
@@ -238,11 +237,10 @@ class TypeChecker(
         return nextT
     }
 
-    private fun copy(enclosedScope: Scope = this.currentScope, newExpectedExpressionT: VascType? = this.expectedExpressionT) =
+    private fun copy(enclosedScope: Scope = this.currentScope) =
         TypeChecker(
             typeResolver = this.typeResolver,
             currentScope = enclosedScope,
             typeTable = this.typeTable,
-            expectedExpressionT = newExpectedExpressionT
         )
 }
