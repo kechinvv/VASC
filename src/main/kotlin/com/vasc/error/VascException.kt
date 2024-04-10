@@ -13,6 +13,8 @@ class ExhaustiveReturnException(override val message: String) : VascException(me
 class UnreachableCodeException(override val message: String) : VascException(message)
 class ConstructorNotFound(override val message: String) : VascException(message)
 class CyclicConstructorException(override val message: String) : VascException(message)
+class DefaultConstructorNotExistException(override val message: String) : VascException(message)
+
 
 private fun prettyPosition(ctx: ParserRuleContext?): String {
     ctx ?: return ""

@@ -7,6 +7,7 @@ import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.*
 import com.vasc.member.VascConstructor
 import com.vasc.type.VascType
+import com.vasc.util.parentHasDefaultConstructor
 import org.antlr.v4.runtime.ParserRuleContext
 
 class ExhaustiveChecker(
@@ -42,6 +43,7 @@ class ExhaustiveChecker(
 
     override fun visitBody(ctx: VascParser.BodyContext): StatementType {
         var statementType = StatementType.OTHER
+        var wasSuperOrThisCall = false
 
         val statements = ctx.statement().toList()
         val n: Int = statements.size
@@ -55,11 +57,17 @@ class ExhaustiveChecker(
                     if (i != n - 1) throw UnreachableCodeException("Unreachable code (line ${statements[i + 1].start.line})")
                     else if (parentIsMethod) waitReturn = false
 
-                StatementType.THIS_CONSTRUCTOR -> if (constructorContext == null || i != 0)
-                    throw ThisConstructorCallException("This Constructor must be called first in constructor body (line ${ctx.start.line})")
+                StatementType.THIS_CONSTRUCTOR -> {
+                    if (constructorContext == null || i != 0)
+                        throw ThisConstructorCallException("This Constructor must be called first in constructor body (line ${ctx.start.line})")
+                    wasSuperOrThisCall = true
+                }
 
-                StatementType.SUPER -> if (constructorContext == null || i != 0)
-                    throw SuperConstructorCallException("Super Constructor must be called first in constructor body (line ${ctx.start.line})")
+                StatementType.SUPER -> {
+                    if (constructorContext == null || i != 0)
+                        throw SuperConstructorCallException("Super Constructor must be called first in constructor body (line ${ctx.start.line})")
+                    wasSuperOrThisCall = true
+                }
 
                 else -> continue
             }
@@ -67,7 +75,8 @@ class ExhaustiveChecker(
 
         if (parentIsMethod && waitReturn)
             throw ExhaustiveReturnException("Exhaustive Return (line ${ctx.start.line})")
-
+        if (constructorContext != null && !wasSuperOrThisCall && !currentClass!!.parentHasDefaultConstructor())
+            throw DefaultConstructorNotExistException("Default constructor not exist. Use super call. (line ${ctx.start.line})")
         return statementType
     }
 

@@ -6,6 +6,8 @@ import com.vasc.antlr.VascParser.ParametersContext
 import com.vasc.antlr.VascParser.VariableDeclarationContext
 import com.vasc.error.VascException
 import com.vasc.member.VascVariable
+import com.vasc.type.VascClass
+import com.vasc.type.VascType
 
 fun VariableDeclarationContext.toVascVariable(typeResolver: VascTypeResolver): VascVariable {
     return VascVariable(
@@ -31,4 +33,8 @@ fun ParametersContext.toUniqueVariables(typeResolver: VascTypeResolver): List<Va
         if (prevValue != null) throw VascException("")
     }
     return variableMap.values.toList()
+}
+
+fun VascType.parentHasDefaultConstructor(): Boolean {
+    return parent == null || parent!!.getDeclaredConstructor(emptyList()) != null || parent!!.declaredConstructors.isEmpty()
 }

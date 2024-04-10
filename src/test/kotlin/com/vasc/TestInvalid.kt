@@ -4,6 +4,7 @@ import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.error.ExhaustiveReturnException
 import com.vasc.error.CyclicConstructorException
+import com.vasc.error.DefaultConstructorNotExistException
 import com.vasc.error.UnreachableCodeException
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
@@ -26,7 +27,9 @@ class TestInvalid {
                 this::class.java.classLoader.resources("invalid/unreachableCode").toList().first().path
             ) to UnreachableCodeException::class,
             File(this::class.java.classLoader.resources("invalid/recursiveConstructor").toList().first().path
-            ) to CyclicConstructorException::class
+            ) to CyclicConstructorException::class,
+            File(this::class.java.classLoader.resources("invalid/defaultConstructor").toList().first().path
+            ) to DefaultConstructorNotExistException::class
         )
         val tests = mutableListOf<DynamicTest>()
 
@@ -66,6 +69,7 @@ class TestInvalid {
                     assertFailsWith(
                         exceptionClass = exc,
                         block = { ExhaustiveChecker(typeResolver, typeTable).visitProgram(program) })
+//                    ExhaustiveChecker(typeResolver, typeTable).visitProgram(program)
                 }
             }
             tests.addAll(dirTests)
