@@ -14,6 +14,7 @@ class UnreachableCodeException(override val message: String) : VascException(mes
 class ConstructorNotFound(override val message: String) : VascException(message)
 class CyclicConstructorException(override val message: String) : VascException(message)
 class DefaultConstructorNotExistException(override val message: String) : VascException(message)
+class ConstructorsMatchSuperNotExists(override val message: String) : VascException(message)
 
 
 private fun prettyPosition(ctx: ParserRuleContext?): String {

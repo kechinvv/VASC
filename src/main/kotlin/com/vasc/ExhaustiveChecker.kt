@@ -23,6 +23,10 @@ class ExhaustiveChecker(
 
     override fun visitClassDeclaration(ctx: VascParser.ClassDeclarationContext): StatementType {
         currentClass = ctx.name.accept(typeResolver)
+
+        if (currentClass!!.declaredConstructors.isEmpty() && !currentClass!!.parentHasDefaultConstructor())
+            throw ConstructorsMatchSuperNotExists("No constructors match super (line ${ctx.start.line})")
+
         constructorCalls = mutableMapOf()
         return super.visitClassDeclaration(ctx)
     }
