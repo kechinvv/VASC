@@ -16,10 +16,11 @@ class ExhaustiveChecker(
 ) : VascParserBaseVisitor<StatementType>() {
 
     private var waitReturn = true
-    private val completeIf = 2
-    private var constructorContext: VascConstructor? = null
+    private var currentConstructor: VascConstructor? = null
     private var currentClass: VascType? = null
     private var constructorCalls: MutableMap<VascConstructor, VascConstructor> = mutableMapOf()
+
+    private val completeIf = 2
 
     override fun visitClassDeclaration(ctx: VascParser.ClassDeclarationContext): StatementType {
         currentClass = ctx.name.accept(typeResolver)
@@ -31,17 +32,19 @@ class ExhaustiveChecker(
         return super.visitClassDeclaration(ctx)
     }
 
+
     override fun visitMethodDeclaration(ctx: VascParser.MethodDeclarationContext): StatementType {
         waitReturn = ctx.returnType != null
         return super.visitMethodDeclaration(ctx)
     }
 
+
     override fun visitConstructorDeclaration(ctx: VascParser.ConstructorDeclarationContext): StatementType {
-        constructorContext =
+        currentConstructor =
             currentClass!!.getDeclaredConstructor(
                 ctx.parameters().parameter().map { it.className().accept(typeResolver) })
         val res = super.visitConstructorDeclaration(ctx)
-        constructorContext = null
+        currentConstructor = null
         return res
     }
 
@@ -62,13 +65,13 @@ class ExhaustiveChecker(
                     else if (parentIsMethod) waitReturn = false
 
                 StatementType.THIS_CONSTRUCTOR -> {
-                    if (constructorContext == null || i != 0)
+                    if (currentConstructor == null || i != 0)
                         throw ThisConstructorCallException("This Constructor must be called first in constructor body (line ${ctx.start.line})")
                     wasSuperOrThisCall = true
                 }
 
                 StatementType.SUPER -> {
-                    if (constructorContext == null || i != 0)
+                    if (currentConstructor == null || i != 0)
                         throw SuperConstructorCallException("Super Constructor must be called first in constructor body (line ${ctx.start.line})")
                     wasSuperOrThisCall = true
                 }
@@ -79,10 +82,20 @@ class ExhaustiveChecker(
 
         if (parentIsMethod && waitReturn)
             throw ExhaustiveReturnException("Exhaustive Return (line ${ctx.start.line})")
-        if (constructorContext != null && !wasSuperOrThisCall && !currentClass!!.parentHasDefaultConstructor())
+        if (currentConstructor != null && !wasSuperOrThisCall && !currentClass!!.parentHasDefaultConstructor())
             throw DefaultConstructorNotExistException("Default constructor not exist. Use super call. (line ${ctx.start.line})")
         return statementType
     }
+
+
+    override fun visitThisExpression(ctx: ThisExpressionContext): StatementType {
+        super.visitThisExpression(ctx)
+        if (ctx.arguments() == null) return StatementType.THIS_CALL
+        constructorCalls[currentConstructor!!] = getConstructorByArgs(ctx.arguments())
+        checkCyclicConstructor(currentConstructor!!)
+        return StatementType.THIS_CONSTRUCTOR
+    }
+
 
     override fun visitIfStatement(ctx: VascParser.IfStatementContext): StatementType {
         var returnCount = 0
@@ -92,35 +105,32 @@ class ExhaustiveChecker(
         }
 
         return if (returnCount == completeIf) StatementType.EXHAUSTIVE_RETURN
-        else StatementType.NON_EXHAUSTIVE_RETURN
+        else StatementType.NOT_EXHAUSTIVE_RETURN
     }
+
 
     override fun visitReturnStatement(ctx: VascParser.ReturnStatementContext): StatementType {
         super.visitReturnStatement(ctx)
         return StatementType.EXHAUSTIVE_RETURN
     }
 
+
     override fun visitSuperExpression(ctx: VascParser.SuperExpressionContext?): StatementType {
         super.visitSuperExpression(ctx)
         return StatementType.SUPER
     }
 
-    override fun visitThisExpression(ctx: ThisExpressionContext): StatementType {
-        super.visitThisExpression(ctx)
-        if (ctx.arguments() == null) return StatementType.THIS_CALL
-        constructorCalls[constructorContext!!] = getConstructorByArgs(ctx.arguments())
-        checkCyclicConstructor(constructorContext!!)
-        return StatementType.THIS_CONSTRUCTOR
-    }
 
     override fun defaultResult(): StatementType {
         return StatementType.OTHER
     }
 
+
     private fun getConstructorByArgs(args: ArgumentsContext): VascConstructor {
         val argTypes = args.expression().map { typeTable[it]!! }
         return currentClass!!.getDeclaredConstructor(argTypes) ?: throw ConstructorNotFound("Constructor not found")
     }
+
 
     private fun checkCyclicConstructor(startPoint: VascConstructor) {
         var pointer = constructorCalls[startPoint]
@@ -134,6 +144,6 @@ class ExhaustiveChecker(
 }
 
 enum class StatementType {
-    EXHAUSTIVE_RETURN, NON_EXHAUSTIVE_RETURN, THIS_CONSTRUCTOR, THIS_CALL, SUPER, OTHER
+    EXHAUSTIVE_RETURN, NOT_EXHAUSTIVE_RETURN, THIS_CONSTRUCTOR, THIS_CALL, SUPER, OTHER
 }
 
