@@ -9,8 +9,10 @@ import org.antlr.v4.runtime.ParserRuleContext
 
 class TypeChecker(
     private val typeResolver: VascTypeResolver,
-    private val currentScope: Scope,
+    private val scope: Scope,
     private val typeTable: MutableMap<ParserRuleContext, VascType>,
+    private val returnT: VascType = VascVoid,
+    private val classT: VascType = VascVoid,
 ) : VascParserBaseVisitor<Unit>() {
 
 // LITERALS
@@ -46,12 +48,12 @@ class TypeChecker(
         if (expectedT != actualT) {
             throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
         }
-        ctx.body().accept(copy(currentScope.enclosed()))
+        ctx.body().accept(copy(scope.enclosed()))
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         val expectedT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, it)
+            scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
         val actualT = ctx.expression().let {
             it.accept(this)
@@ -71,18 +73,21 @@ class TypeChecker(
         if (expectT != actualT) {
             throw UnexpectedTypeException(expectT, actualT, ctx.expression())
         }
-        ctx.thenBody.accept(copy(currentScope.enclosed()))
-        ctx.elseBody?.accept(copy(currentScope.enclosed()))
+        ctx.thenBody.accept(copy(scope.enclosed()))
+        ctx.elseBody?.accept(copy(scope.enclosed()))
     }
 
     override fun visitVariableStatement(ctx: VariableStatementContext) {
         val v = ctx.variableDeclaration()
         v.accept(this)
-        currentScope.add(v.identifier().text, typeResolver.visit(ctx.variableDeclaration().className()))
+        scope.add(v.identifier().text, typeResolver.visit(ctx.variableDeclaration().className()))
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
-        val expectedT = currentScope.returnT() ?: throw UnnecessaryReturnException(ctx)
+        if (returnT == VascVoid) {
+            throw UnnecessaryReturnException(ctx)
+        }
+        val expectedT = returnT
         val actualT = ctx.expression().let {
             it.accept(this)
             typeTable[it] ?: throw ExpressionHasNoValueException(it)
@@ -97,21 +102,17 @@ class TypeChecker(
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         val classT = typeResolver.visit(ctx.name)!!
         val bodyCtx = ctx.classBody()
-        val (fields, nonFields) = bodyCtx.memberDeclarations.partition { it is FieldDeclarationContext }
-        fields.forEach {
-            it.accept(this)
-        }
         val enclosed = copy(
-            currentScope.enclosed(
+            scope.enclosed(
                 vars = classT.fields.associate { it.name to it.type }.toMutableMap(),
-                classT = classT
-            )
+            ),
+            enclosedClassT = classT
         )
-        enclosed.currentScope.add("this", classT)
+        enclosed.scope.add("this", classT)
         classT.parent?.let {
-            enclosed.currentScope.add("super", it)
+            enclosed.scope.add("super", it)
         }
-        nonFields.forEach {
+        bodyCtx.memberDeclarations.forEach {
             it.accept(enclosed)
         }
     }
@@ -129,17 +130,17 @@ class TypeChecker(
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = ctx.parameters().toUniqueVariables(typeResolver)
-        val enclosed = copy(currentScope.enclosed(params.associate { it.name to it.type }.toMutableMap()))
+        val enclosed = copy(scope.enclosed(params.associate { it.name to it.type }.toMutableMap()))
         ctx.body().accept(enclosed)
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
         val params = ctx.parameters().toUniqueVariables(typeResolver)
         val enclosed = copy(
-            currentScope.enclosed(
+            enclosedScope = scope.enclosed(
                 vars = params.associate { it.name to it.type }.toMutableMap(),
-                returnT = currentScope.classT()!!.getDeclaredMethod(ctx.identifier().text, params.map { it.type })!!.returnType
-            )
+            ),
+            enclosedReturnT = classT.getDeclaredMethod(ctx.identifier().text, params.map { it.type })!!.returnType
         )
         ctx.body().accept(enclosed)
     }
@@ -152,22 +153,19 @@ class TypeChecker(
         val args = ctx.arguments().expression().map {
             typeTable[it] ?: throw ExpressionHasNoValueException(it)
         }
-        val methodCandidate = currentScope.classT()?.getMethod(name, args)
-        val initT = if (methodCandidate != null) {
-            methodCandidate.returnType
-        } else {
-            typeResolver.visit(ctx.className())!!.let {
+        val methodCandidate = classT.getMethod(name, args)
+        val initT = methodCandidate?.returnType
+            ?: typeResolver.visit(ctx.className())!!.let {
                 it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
                 it
             }
-        }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
         }
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
-        val initT = currentScope.classT()!!.let {
+        val initT = classT.let {
             it.parent ?: throw ParentNotFoundException(it.name, ctx)
         }
         ctx.arguments()?.let { argsCtx ->
@@ -183,7 +181,7 @@ class TypeChecker(
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
-        val initT = currentScope.classT()!!
+        val initT = classT
         ctx.arguments()?.let { argsCtx ->
             val args = argsCtx.expression().map {
                 it.accept(this)
@@ -198,7 +196,7 @@ class TypeChecker(
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
         val initT = ctx.identifier().let {
-            currentScope.find(it.text) ?: throw UnknownVariableException(it.text, it)
+            scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
         dotCall(initT, ctx.dotCall())?.let {
             typeTable[ctx] = it
@@ -227,7 +225,7 @@ class TypeChecker(
                     val name = nextCall.identifier().text
                     val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
                     val result = method.returnType
-                    if (result == null && nextCall != calls.last()) {
+                    if (result == VascVoid && nextCall != calls.last()) {
                         throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
                     }
                     nextT = result
@@ -237,10 +235,16 @@ class TypeChecker(
         return nextT
     }
 
-    private fun copy(enclosedScope: Scope = this.currentScope) =
+    private fun copy(
+        enclosedScope: Scope = this.scope,
+        enclosedReturnT: VascType = this.returnT,
+        enclosedClassT: VascType = this.classT
+    ) =
         TypeChecker(
             typeResolver = this.typeResolver,
-            currentScope = enclosedScope,
+            scope = enclosedScope,
             typeTable = this.typeTable,
+            returnT = enclosedReturnT,
+            classT = enclosedClassT
         )
 }
