@@ -7,6 +7,12 @@ open class VascException(
     description: String, ctx: ParserRuleContext? = null
 ) : RuntimeException(description + prettyPosition(ctx))
 
+class SuperConstructorCallException(override val message: String) : VascException(message)
+class ThisConstructorCallException(override val message: String) : VascException(message)
+class ExhaustiveReturnException(override val message: String) : VascException(message)
+class UnreachableCodeException(override val message: String) : VascException(message)
+class UninitializedLocalVarException(override val message: String) : VascException(message)
+
 private fun prettyPosition(ctx: ParserRuleContext?): String {
     ctx ?: return ""
     return when (val parentCtx = ctx.parent) {
