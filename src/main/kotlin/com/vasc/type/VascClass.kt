@@ -37,6 +37,8 @@ open class VascClass(override val name: String) : VascType {
     }
 
     override fun isAssignableFrom(subtype: VascType): Boolean {
+        if (subtype is VascNull) return true
+
         var current: VascType? = subtype
         while (current != null) {
             if (this.name == current.name) return true
