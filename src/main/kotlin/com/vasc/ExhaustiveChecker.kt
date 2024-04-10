@@ -8,7 +8,7 @@ import com.vasc.error.UnreachableCodeException
 class ExhaustiveChecker : VascParserBaseVisitor<Boolean>() {
 
     private var waitReturn = true
-    private var uninitializedVariables: MutableMap<String, Int> = mutableMapOf()
+    private val completeIf = 2
 
 
     override fun visitBody(ctx: VascParser.BodyContext): Boolean {
@@ -22,22 +22,14 @@ class ExhaustiveChecker : VascParserBaseVisitor<Boolean>() {
         for (i in 0 until n) {
             wasAbsoluteReturn = statements[i].accept(this)
             if (wasAbsoluteReturn)
-                if (i != n - 1) throw UnreachableCodeException("Unreachable code (line ${ctx.start.line})")
+                if (i != n - 1) throw UnreachableCodeException("Unreachable code (line ${statements[i + 1].start.line})")
                 else if (parentIsMethod) waitReturn = false
         }
 
-//        if (uninitializedVariables.isNotEmpty())
-//            throw UninitializedLocalVarException("Variables $uninitializedVariables are not initialized (line ${ctx.start.line})")
         if (parentIsMethod && waitReturn)
             throw ExhaustiveReturnException("Exhaustive Return (line ${ctx.start.line})")
 
         return wasAbsoluteReturn
-    }
-
-
-    override fun visitVariableDeclaration(ctx: VascParser.VariableDeclarationContext): Boolean {
-//        if (ctx.initExpression == null) uninitializedVariables[ctx.identifier().text] = 1
-        return super.visitVariableDeclaration(ctx)
     }
 
     override fun visitIfStatement(ctx: VascParser.IfStatementContext): Boolean {
@@ -47,11 +39,7 @@ class ExhaustiveChecker : VascParserBaseVisitor<Boolean>() {
             if (childResult) returnCount++
         }
 
-        return returnCount == 2
-    }
-
-    override fun visitAssignStatement(ctx: VascParser.AssignStatementContext?): Boolean {
-        return super.visitAssignStatement(ctx)
+        return returnCount == completeIf
     }
 
     override fun visitMethodDeclaration(ctx: VascParser.MethodDeclarationContext): Boolean {
