@@ -1,0 +1,14 @@
+class Parent is
+    this() is
+    end
+
+    var a: Integer = getInt(empty())
+
+    method getInt(i : Integer): Integer is
+        return i.mul(2)
+    end
+
+    method empty() is
+    end
+
+end
