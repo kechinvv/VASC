@@ -155,7 +155,7 @@ class TypeChecker(
         }
         val methodCandidate = classT.getMethod(name, args)
         val initT = methodCandidate?.returnType
-            ?: typeResolver.visit(ctx.className())!!.let {
+            ?: typeResolver.visit(ctx.className()).let {
                 it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
                 it
             }
