@@ -2,10 +2,7 @@ package com.vasc
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
-import com.vasc.error.ExhaustiveReturnException
-import com.vasc.error.CyclicConstructorException
-import com.vasc.error.DefaultConstructorNotExistException
-import com.vasc.error.UnreachableCodeException
+import com.vasc.exhaustiveness.*
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
@@ -22,7 +19,7 @@ class TestInvalid {
         val dirs = mapOf(
             File(
                 this::class.java.classLoader.resources("invalid/notExhaustiveReturn").toList().first().path
-            ) to ExhaustiveReturnException::class,
+            ) to NonExhaustiveReturnException::class,
             File(
                 this::class.java.classLoader.resources("invalid/unreachableCode").toList().first().path
             ) to UnreachableCodeException::class,

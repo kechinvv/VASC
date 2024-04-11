@@ -1,12 +1,10 @@
-package com.vasc
+package com.vasc.typecheck
 
-import com.vasc.typecheck.TypeCheckException
+import com.vasc.DeclarationCollector
 import org.junit.jupiter.api.assertThrows
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
-import com.vasc.typecheck.Scope
-import com.vasc.typecheck.TypeChecker
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory

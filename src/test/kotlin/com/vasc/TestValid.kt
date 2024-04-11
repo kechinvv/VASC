@@ -2,6 +2,7 @@ package com.vasc
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
+import com.vasc.exhaustiveness.ExhaustivenessChecker
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
