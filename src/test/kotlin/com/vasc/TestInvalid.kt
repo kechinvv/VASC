@@ -1,64 +1,32 @@
 package com.vasc
 
-import com.vasc.antlr.VascLexer
-import com.vasc.antlr.VascParser
 import com.vasc.exhaustiveness.*
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
-import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.ParserRuleContext
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.fail
-import java.io.File
 import kotlin.test.assertFailsWith
 
 class TestInvalid {
+
     @TestFactory
     fun `test invalid code`(): Collection<DynamicTest> {
         val dirs = mapOf(
-            File(
-                this::class.java.classLoader.resources("invalid/notExhaustiveReturn").toList().first().path
-            ) to NonExhaustiveReturnException::class,
-            File(
-                this::class.java.classLoader.resources("invalid/unreachableCode").toList().first().path
-            ) to UnreachableCodeException::class,
-            File(this::class.java.classLoader.resources("invalid/recursiveConstructor").toList().first().path
-            ) to CyclicConstructorException::class,
-            File(this::class.java.classLoader.resources("invalid/defaultConstructor").toList().first().path
-            ) to DefaultConstructorNotExistException::class
+            testResource("invalid/nonExhaustiveReturn") to NonExhaustiveReturnException::class,
+            testResource("invalid/unreachableCode") to UnreachableCodeException::class,
+            testResource("invalid/recursiveConstructor") to CyclicConstructorException::class,
+            testResource("invalid/defaultConstructor") to DefaultConstructorNotExistException::class
         )
         val tests = mutableListOf<DynamicTest>()
 
         dirs.forEach { (dir, exc) ->
             val dirTests = dir.listFiles()!!.map { file ->
+                val stream = CharStreams.fromFileName(file.path)
                 DynamicTest.dynamicTest(file.nameWithoutExtension) {
-                    val lexer = VascLexer(CharStreams.fromString(file.readText()))
-                    val parser = VascParser(CommonTokenStream(lexer))
-                    val errorListener = object : BaseErrorListener() {
-                        val errors = mutableListOf<String>()
-                        override fun syntaxError(
-                            recognizer: Recognizer<*, *>?,
-                            offendingSymbol: Any?,
-                            line: Int,
-                            charPositionInLine: Int,
-                            msg: String?,
-                            e: RecognitionException?
-                        ) {
-                            val detailedMsg = """
-                            |parser error at $line:$charPositionInLine
-                            |$msg
-                        """.trimMargin()
-                            errors.add(detailedMsg)
-                        }
-                    }
-                    parser.removeErrorListeners()
-                    parser.addErrorListener(errorListener)
-                    val program = parser.program()
-                    if (errorListener.errors.isNotEmpty()) {
-                        System.err.println(errorListener.errors.joinToString("\n\n"))
-                        fail("unexpected parser errors in (${file.name}:1)")
-                    }
+                    val program = programWithErrorListener(stream)
                     val typeResolver = DeclarationCollector.visitProgram(program)
                     val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                     val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
@@ -66,7 +34,6 @@ class TestInvalid {
                     assertFailsWith(
                         exceptionClass = exc,
                         block = { ExhaustivenessChecker(typeResolver, typeTable).visitProgram(program) })
-//                    ExhaustiveChecker(typeResolver, typeTable).visitProgram(program)
                 }
             }
             tests.addAll(dirTests)
