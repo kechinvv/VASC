@@ -95,7 +95,7 @@ class TypeChecker(
                 typeTable[it] ?: throw ExpressionHasNoValueException(it)
             }
             if (!expectedT.isAssignableFrom(actualT)) {
-                throw UnexpectedTypeException(actualT, expectedT, ctx)
+                throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
         }
     }
