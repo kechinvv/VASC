@@ -13,7 +13,8 @@ repositories {
 
 dependencies {
     antlr("org.antlr:antlr4:4.13.1")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation(kotlin("test"))
+//    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
 
 kotlin {

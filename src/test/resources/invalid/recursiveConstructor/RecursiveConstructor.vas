@@ -1,0 +1,9 @@
+class Main is
+    this(a: Integer, b: Integer) is
+       this(a)
+    end
+
+    this(a: Integer) is
+       this(a, a)
+    end
+end

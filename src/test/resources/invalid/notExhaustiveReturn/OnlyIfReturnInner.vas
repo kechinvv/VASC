@@ -1,0 +1,17 @@
+// https://rosettacode.org/wiki/Four_bit_adder#Kotlin
+
+class Main is
+    method foo() : Integer is
+        var a : Integer = 0
+        var b : Integer = 0
+        var c : Integer = 1
+        if true then
+            a = 2
+            if true then
+                return a
+            end
+        else
+            return b
+        end
+    end
+end

@@ -1,0 +1,9 @@
+class Main is
+    this(a: Integer) is
+    end
+end
+
+class A extends Main is
+    this(a: Integer) is
+    end
+end
