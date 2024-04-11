@@ -68,7 +68,7 @@ class TestInvalid {
                     tc.visitProgram(program)
                     assertFailsWith(
                         exceptionClass = exc,
-                        block = { ExhaustiveChecker(typeResolver, typeTable).visitProgram(program) })
+                        block = { ExhaustivenessChecker(typeResolver, typeTable).visitProgram(program) })
 //                    ExhaustiveChecker(typeResolver, typeTable).visitProgram(program)
                 }
             }
