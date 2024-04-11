@@ -15,9 +15,6 @@ class UnexpectedTypeException(expected: VascType, actual: VascType, ctx: ParserR
         |  $actual
     """.trimMargin(), ctx)
 
-class UnnecessaryReturnException(ctx: ReturnStatementContext) :
-    TypeCheckException("unnecessary return inside method without return type", ctx)
-
 class ParentNotFoundException(className: String, ctx: SuperExpressionContext) :
     TypeCheckException("class '$className' does not have a parent", ctx)
 
