@@ -1,0 +1,5 @@
+class Main is
+    this() is
+        this.unknown
+    end
+end

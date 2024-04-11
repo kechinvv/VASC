@@ -207,7 +207,8 @@ class TypeChecker(
         for (nextCall in calls) {
             when(nextCall) {
                 is FieldAccessContext -> {
-                    nextT = nextT.getField(nextCall.identifier().text)!!.type
+                    val name = nextCall.identifier().text
+                    nextT = (nextT.getField(name)?.type ?: throw FieldNotFoundException(nextT.name, name, nextCall))
                 }
                 is MethodCallContext -> {
                     val args = nextCall.arguments().expression().map {

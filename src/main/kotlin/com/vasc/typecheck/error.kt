@@ -38,3 +38,6 @@ class UnexpectedNullException(ctx: NullLiteralContext) :
 
 class ExpressionHasNoValueException(ctx: ExpressionContext) :
     TypeCheckException("expression has no value", ctx)
+
+class FieldNotFoundException(className: String, fieldName: String, ctx: ParserRuleContext) :
+    TypeCheckException("field not found '$className.$fieldName'", ctx)
