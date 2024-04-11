@@ -159,9 +159,7 @@ class TypeChecker(
                 it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
                 it
             }
-        dotCall(initT, ctx.dotCall())?.let {
-            typeTable[ctx] = it
-        }
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
@@ -175,9 +173,7 @@ class TypeChecker(
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
-        dotCall(initT, ctx.dotCall())?.let {
-            typeTable[ctx] = it
-        }
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
@@ -189,18 +185,14 @@ class TypeChecker(
             }
             initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
         }
-        dotCall(initT, ctx.dotCall())?.let {
-            typeTable[ctx] = it
-        }
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
         val initT = ctx.identifier().let {
             scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
         }
-        dotCall(initT, ctx.dotCall())?.let {
-            typeTable[ctx] = it
-        }
+        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
@@ -210,12 +202,12 @@ class TypeChecker(
         }
     }
 
-    private fun dotCall(initT: VascType?, calls: List<DotCallContext>): VascType? {
-        var nextT: VascType? = initT
+    private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType {
+        var nextT: VascType = initT
         for (nextCall in calls) {
             when(nextCall) {
                 is FieldAccessContext -> {
-                    nextT = nextT!!.getField(nextCall.identifier().text)!!.type
+                    nextT = nextT.getField(nextCall.identifier().text)!!.type
                 }
                 is MethodCallContext -> {
                     val args = nextCall.arguments().expression().map {
@@ -223,7 +215,7 @@ class TypeChecker(
                         typeTable[it] ?: throw ExpressionHasNoValueException(it)
                     }
                     val name = nextCall.identifier().text
-                    val method = nextT!!.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
+                    val method = nextT.getMethod(name, args) ?: throw MethodNotFoundException(nextT.name, name, args, nextCall)
                     val result = method.returnType
                     if (result == VascVoid && nextCall != calls.last()) {
                         throw MethodReturnsNoValueException(nextT.name, method.name, nextCall)
