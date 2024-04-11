@@ -85,18 +85,12 @@ class TypeChecker(
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         val expectedT = returnT
-        if (ctx.expression() == null) {
-            if (expectedT != VascVoid) {
-                throw UnexpectedTypeException(expectedT, VascVoid, ctx)
-            }
-        } else {
-            val actualT = ctx.expression().let {
-                it.accept(this)
-                typeTable[it] ?: throw ExpressionHasNoValueException(it)
-            }
-            if (!expectedT.isAssignableFrom(actualT)) {
-                throw UnexpectedTypeException(expectedT, actualT, ctx)
-            }
+        val actualT = ctx.expression()?.let {
+            it.accept(this)
+            typeTable[it] ?: throw ExpressionHasNoValueException(it)
+        } ?: VascVoid
+        if (!expectedT.isAssignableFrom(actualT)) {
+            throw UnexpectedTypeException(expectedT, actualT, ctx)
         }
     }
 
