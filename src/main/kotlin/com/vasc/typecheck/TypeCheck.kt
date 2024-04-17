@@ -3,17 +3,24 @@ package com.vasc.typecheck
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
+import com.vasc.check.Check
+import com.vasc.error.VascException
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
 
-class TypeChecker(
+class TypeCheck(
+    private val errors: MutableList<VascException>,
     private val typeResolver: VascTypeResolver,
-    private val scope: Scope,
-    private val typeTable: MutableMap<ParserRuleContext, VascType>,
+    private val scope: Scope = Scope(mutableMapOf()),
+    private val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf(),
     private val returnT: VascType = VascVoid,
     private val classT: VascType = VascVoid,
-) : VascParserBaseVisitor<Unit>() {
+) : VascParserBaseVisitor<Unit>(), Check {
+
+    override fun check(program: ProgramContext) {
+        visitProgram(program)
+    }
 
 // LITERALS
 
@@ -41,37 +48,40 @@ class TypeChecker(
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
         val expectedT = VascBoolean
-        val actualT = ctx.expression().let {
-            it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(it)
-        }
-        if (expectedT != actualT) {
-            throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
+        try {
+            val actualT = ctx.expression().typeOrThrow()
+            if (expectedT != actualT) {
+                throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
+            }
+        } catch (e: VascException) {
+            errors.add(e)
         }
         ctx.body().accept(copy(scope.enclosed()))
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
-        val expectedT = ctx.identifier().let {
-            scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
-        }
-        val actualT = ctx.expression().let {
-            it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(it)
-        }
-        if (!expectedT.isAssignableFrom(actualT)) {
-            throw UnexpectedTypeException(expectedT, actualT, ctx)
+        try {
+            val expectedT = ctx.identifier().let {
+                scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
+            }
+            val actualT = ctx.expression().typeOrThrow()
+            if (!expectedT.isAssignableFrom(actualT)) {
+                throw UnexpectedTypeException(expectedT, actualT, ctx)
+            }
+        } catch (e: VascException) {
+            errors.add(e)
         }
     }
 
     override fun visitIfStatement(ctx: IfStatementContext) {
         val expectT = VascBoolean
-        val actualT = ctx.expression().let {
-            it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(it)
-        }
-        if (expectT != actualT) {
-            throw UnexpectedTypeException(expectT, actualT, ctx.expression())
+        try {
+            val actualT = ctx.expression().typeOrThrow()
+            if (expectT != actualT) {
+                throw UnexpectedTypeException(expectT, actualT, ctx.expression())
+            }
+        } catch (e: VascException) {
+            errors.add(e)
         }
         ctx.thenBody.accept(copy(scope.enclosed()))
         ctx.elseBody?.accept(copy(scope.enclosed()))
@@ -85,19 +95,20 @@ class TypeChecker(
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         val expectedT = returnT
-        val actualT = ctx.expression()?.let {
-            it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(it)
-        } ?: VascVoid
-        if (!expectedT.isAssignableFrom(actualT)) {
-            throw UnexpectedTypeException(expectedT, actualT, ctx)
+        try {
+            val actualT = ctx.expression()?.typeOrThrow() ?: VascVoid
+            if (!expectedT.isAssignableFrom(actualT)) {
+                throw UnexpectedTypeException(expectedT, actualT, ctx)
+            }
+        } catch (e: VascException) {
+            errors.add(e)
         }
     }
 
 // DECLARATIONS
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        val classT = typeResolver.visit(ctx.name)!!
+        val classT = typeResolver.visit(ctx.name)
         val bodyCtx = ctx.classBody()
         val enclosed = copy(
             scope.enclosed(
@@ -115,13 +126,14 @@ class TypeChecker(
     }
 
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
-        val expectedT = typeResolver.visit(ctx.className())
-        ctx.expression()?.let {
-            it.accept(this)
-            val actualT = typeTable[it] ?: throw ExpressionHasNoValueException(it)
+        try {
+            val expectedT = typeResolver.visit(ctx.className())
+            val actualT = ctx.expression()?.typeOrThrow() ?: VascNull
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
+        } catch (e: VascException) {
+            errors.add(e)
         }
     }
 
@@ -145,57 +157,74 @@ class TypeChecker(
 // EXPRESSIONS
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
-        ctx.arguments().expression().forEach { it.accept(this) }
         val name = ctx.className().text
-        val args = ctx.arguments().expression().map {
-            typeTable[it] ?: throw ExpressionHasNoValueException(it)
-        }
-        val methodCandidate = classT.getMethod(name, args)
-        val initT = methodCandidate?.returnType
-            ?: typeResolver.visit(ctx.className()).let {
-                it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
-                it
+        try {
+            val args = ctx.arguments().expression().map {
+                it.typeOrThrow()
             }
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
+            val methodCandidate = classT.getMethod(name, args)
+            val initT = methodCandidate?.returnType
+                ?: typeResolver.visit(ctx.className()).let {
+                    it.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(it.name, args, ctx)
+                    it
+                }
+            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        } catch (e: VascException) {
+            errors.add(e)
+        }
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
-        val initT = classT.let {
-            it.parent ?: throw ParentNotFoundException(it.name, ctx)
-        }
-        ctx.arguments()?.let { argsCtx ->
-            val args = argsCtx.expression().map {
-                it.accept(this)
-                typeTable[it] ?: throw ExpressionHasNoValueException(it)
+        try {
+            val initT = classT.let {
+                it.parent ?: throw ParentNotFoundException(it.name, ctx)
             }
-            initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
+            ctx.arguments()?.let { argsCtx ->
+                val args = argsCtx.expression().map {
+                    it.typeOrThrow()
+                }
+                initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
+            }
+            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        } catch (e: VascException) {
+            errors.add(e)
         }
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         val initT = classT
-        ctx.arguments()?.let { argsCtx ->
-            val args = argsCtx.expression().map {
-                it.accept(this)
-                typeTable[it] ?: throw ExpressionHasNoValueException(it)
+        try {
+            ctx.arguments()?.let { argsCtx ->
+                val args = argsCtx.expression().map {
+                    it.typeOrThrow()
+                }
+                initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
             }
-            initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
+            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        } catch (e: VascException) {
+            errors.add(e)
         }
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
-        val initT = ctx.identifier().let {
-            scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
+        try {
+            val initT = ctx.identifier().let {
+                scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
+            }
+            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+        } catch (e: VascException) {
+            errors.add(e)
         }
-        typeTable[ctx] = dotCall(initT, ctx.dotCall())
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
-        typeTable[ctx] = ctx.primary().let {
-            it.accept(this)
-            typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+        try {
+            typeTable[ctx] = ctx.primary().let {
+                it.accept(this)
+                typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
+            }
+        } catch (e: VascException) {
+            errors.add(e)
         }
     }
 
@@ -225,12 +254,18 @@ class TypeChecker(
         return nextT
     }
 
+    private fun ExpressionContext.typeOrThrow(): VascType {
+        accept(this@TypeCheck)
+        return typeTable[this] ?: throw ExpressionHasNoValueException(this)
+    }
+
     private fun copy(
         enclosedScope: Scope = this.scope,
         enclosedReturnT: VascType = this.returnT,
         enclosedClassT: VascType = this.classT
     ) =
-        TypeChecker(
+        TypeCheck(
+            errors = this.errors,
             typeResolver = this.typeResolver,
             scope = enclosedScope,
             typeTable = this.typeTable,

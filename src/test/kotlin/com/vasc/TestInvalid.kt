@@ -1,9 +1,10 @@
 package com.vasc
 
+import com.vasc.error.VascException
 import com.vasc.exhaustiveness.*
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
-import com.vasc.typecheck.TypeChecker
+import com.vasc.typecheck.TypeCheck
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.ParserRuleContext
 import org.junit.jupiter.api.DynamicTest
@@ -29,7 +30,8 @@ class TestInvalid {
                     val program = programWithErrorListener(stream)
                     val typeResolver = DeclarationCollector.visitProgram(program)
                     val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
-                    val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
+                    val errors = mutableListOf<VascException>()
+                    val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
                     tc.visitProgram(program)
                     assertFailsWith(
                         exceptionClass = exc,
