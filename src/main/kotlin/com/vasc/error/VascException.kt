@@ -4,10 +4,10 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.misc.Interval
 
 open class VascException(
-    override val message: String, ctx: ParserRuleContext? = null
+    final override val message: String, ctx: ParserRuleContext? = null
 ) : RuntimeException(message) {
 
-    val description = ctx?.let { prettyPosition(it) } ?: ""
+    val description = message + (ctx?.let { prettyPosition(it) } ?: "")
 
     private fun prettyPosition(ctx: ParserRuleContext): String {
         return when (val parentCtx = ctx.parent) {
