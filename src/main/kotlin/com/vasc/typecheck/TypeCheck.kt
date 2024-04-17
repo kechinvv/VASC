@@ -48,19 +48,17 @@ class TypeCheck(
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
         val expectedT = VascBoolean
-        try {
-            val actualT = ctx.expression().typeOrThrow()
+        tryWithContext(ctx.expression()) {
+            val actualT = it.typeOrThrow()
             if (expectedT != actualT) {
-                throw UnexpectedTypeException(expectedT, actualT, ctx.expression())
+                throw UnexpectedTypeException(expectedT, actualT, it)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
         ctx.body().accept(copy(scope.enclosed()))
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
-        try {
+        tryWithContext(ctx) {
             val expectedT = ctx.identifier().let {
                 scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
             }
@@ -68,20 +66,16 @@ class TypeCheck(
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitIfStatement(ctx: IfStatementContext) {
         val expectT = VascBoolean
-        try {
-            val actualT = ctx.expression().typeOrThrow()
+        tryWithContext(ctx.expression()) {
+            val actualT = it.typeOrThrow()
             if (expectT != actualT) {
-                throw UnexpectedTypeException(expectT, actualT, ctx.expression())
+                throw UnexpectedTypeException(expectT, actualT, it)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
         ctx.thenBody.accept(copy(scope.enclosed()))
         ctx.elseBody?.accept(copy(scope.enclosed()))
@@ -90,18 +84,18 @@ class TypeCheck(
     override fun visitVariableStatement(ctx: VariableStatementContext) {
         val v = ctx.variableDeclaration()
         v.accept(this)
-        scope.add(v.identifier().text, typeResolver.visit(ctx.variableDeclaration().className()))
+        tryWithContext(ctx.variableDeclaration()) {
+            scope.add(v.identifier().text, typeResolver.visit(it.className()))
+        }
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         val expectedT = returnT
-        try {
-            val actualT = ctx.expression()?.typeOrThrow() ?: VascVoid
+        tryWithContext(ctx.expression()) {
+            val actualT = it?.typeOrThrow() ?: VascVoid
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
@@ -126,39 +120,41 @@ class TypeCheck(
     }
 
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
-        try {
+        tryWithContext(ctx) {
             val expectedT = typeResolver.visit(ctx.className())
             val actualT = ctx.expression()?.typeOrThrow() ?: VascNull
             if (!expectedT.isAssignableFrom(actualT)) {
                 throw UnexpectedTypeException(expectedT, actualT, ctx)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
-        val params = ctx.parameters().toUniqueVariables(typeResolver)
-        val enclosed = copy(scope.enclosed(params.associate { it.name to it.type }.toMutableMap()))
-        ctx.body().accept(enclosed)
+        tryWithContext(ctx) {
+            val params = ctx.parameters().toUniqueVariables(typeResolver)
+            val enclosed = copy(scope.enclosed(params.associate { it.name to it.type }.toMutableMap()))
+            ctx.body().accept(enclosed)
+        }
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
-        val params = ctx.parameters().toUniqueVariables(typeResolver)
-        val enclosed = copy(
-            enclosedScope = scope.enclosed(
-                vars = params.associate { it.name to it.type }.toMutableMap(),
-            ),
-            enclosedReturnT = classT.getDeclaredMethod(ctx.identifier().text, params.map { it.type })!!.returnType
-        )
-        ctx.body().accept(enclosed)
+        tryWithContext(ctx) {
+            val params = ctx.parameters().toUniqueVariables(typeResolver)
+            val enclosed = copy(
+                enclosedScope = scope.enclosed(
+                    vars = params.associate { it.name to it.type }.toMutableMap(),
+                ),
+                enclosedReturnT = classT.getDeclaredMethod(ctx.identifier().text, params.map { it.type })!!.returnType
+            )
+            ctx.body().accept(enclosed)
+        }
     }
 
 // EXPRESSIONS
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
         val name = ctx.className().text
-        try {
+        tryWithContext(ctx) {
             val args = ctx.arguments().expression().map {
                 it.typeOrThrow()
             }
@@ -169,13 +165,11 @@ class TypeCheck(
                     it
                 }
             typeTable[ctx] = dotCall(initT, ctx.dotCall())
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
-        try {
+        tryWithContext(ctx) {
             val initT = classT.let {
                 it.parent ?: throw ParentNotFoundException(it.name, ctx)
             }
@@ -186,14 +180,12 @@ class TypeCheck(
                 initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
             }
             typeTable[ctx] = dotCall(initT, ctx.dotCall())
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         val initT = classT
-        try {
+        tryWithContext(ctx) {
             ctx.arguments()?.let { argsCtx ->
                 val args = argsCtx.expression().map {
                     it.typeOrThrow()
@@ -201,30 +193,24 @@ class TypeCheck(
                 initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
             }
             typeTable[ctx] = dotCall(initT, ctx.dotCall())
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
-        try {
+        tryWithContext(ctx) {
             val initT = ctx.identifier().let {
                 scope.find(it.text) ?: throw UnknownVariableException(it.text, it)
             }
             typeTable[ctx] = dotCall(initT, ctx.dotCall())
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
-        try {
+        tryWithContext(ctx) {
             typeTable[ctx] = ctx.primary().let {
                 it.accept(this)
                 typeTable[it] ?: throw ExpressionHasNoValueException(ctx)
             }
-        } catch (e: VascException) {
-            errors.add(e)
         }
     }
 
@@ -257,6 +243,16 @@ class TypeCheck(
     private fun ExpressionContext.typeOrThrow(): VascType {
         accept(this@TypeCheck)
         return typeTable[this] ?: throw ExpressionHasNoValueException(this)
+    }
+
+    private fun <T : ParserRuleContext> tryWithContext(ctx: T, block: (T) -> Unit) {
+        try {
+            block(ctx)
+        } catch (e: TypeCheckException) {
+            errors.add(e)
+        } catch (e: VascException) {
+            errors.add(VascException(e.message, ctx))
+        }
     }
 
     private fun copy(
