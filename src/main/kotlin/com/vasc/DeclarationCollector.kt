@@ -49,7 +49,7 @@ private class ClassBuilder(
             val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
             vascClass.addField(variable)
         } catch (e: VascException) {
-            errors.add(VascException(e.description, ctx))
+            errors.add(VascException(e.fullMessage, ctx))
         }
     }
 
@@ -60,7 +60,7 @@ private class ClassBuilder(
             )
             vascClass.addConstructor(constructor)
         } catch (e: VascException) {
-            errors.add(VascException(e.description, ctx))
+            errors.add(VascException(e.fullMessage, ctx))
         }
     }
 
@@ -73,7 +73,7 @@ private class ClassBuilder(
             )
             vascClass.addMethod(method)
         } catch (e: VascException) {
-            errors.add(VascException(e.description, ctx))
+            errors.add(VascException(e.fullMessage, ctx))
         }
     }
 }

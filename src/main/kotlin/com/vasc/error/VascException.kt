@@ -7,7 +7,7 @@ open class VascException(
     final override val message: String, ctx: ParserRuleContext? = null
 ) : RuntimeException(message) {
 
-    val description = message + (ctx?.let { prettyPosition(it) } ?: "")
+    val fullMessage = message + (ctx?.let { prettyPosition(it) } ?: "")
 
     private fun prettyPosition(ctx: ParserRuleContext): String {
         return when (val parentCtx = ctx.parent) {
