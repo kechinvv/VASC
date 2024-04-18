@@ -10,9 +10,13 @@ open class VascException(
     val fullMessage = message + (ctx?.let { prettyPosition(it) } ?: "")
 
     private fun prettyPosition(ctx: ParserRuleContext): String {
-        return when (val parentCtx = ctx.parent) {
-            is ParserRuleContext -> prettyPositionWithinParent(ctx, parentCtx)
-            else -> prettyPositionNoParent(ctx)
+        return try { // getSourceText can fail (for some reason)
+            when (val parentCtx = ctx.parent) {
+                is ParserRuleContext -> prettyPositionWithinParent(ctx, parentCtx)
+                else -> prettyPositionNoParent(ctx)
+            }
+        } catch (e: Exception) {
+            ""
         }
     }
 
@@ -37,12 +41,12 @@ open class VascException(
             .partition { it.first + parentCtx.start.line <= ctx.start.line }
         val pointers = "^".repeat(source.lines().last().length)
         return """
-        |
-        |${at(ctx)}
-        |$indentParent${before.joinToString("\n") { it.second }}  
-        |$indent$pointers
-        |${after.joinToString("\n") { it.second }}
-    """.trimMargin()
+            |
+            |${at(ctx)}
+            |$indentParent${before.joinToString("\n") { it.second }}  
+            |$indent$pointers
+            |${after.joinToString("\n") { it.second }}
+        """.trimMargin()
     }
 
     private fun getSourceText(ctx: ParserRuleContext) =

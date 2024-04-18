@@ -20,7 +20,7 @@ class TestValid {
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                 val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
                 tc.visitProgram(program)
-                ExhaustivenessChecker(typeResolver, typeTable).visitProgram(program)
+                ExhaustivenessChecker(typeResolver, typeTable, errors).visitProgram(program)
             }
         }
     }
