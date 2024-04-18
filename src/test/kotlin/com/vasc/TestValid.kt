@@ -18,9 +18,8 @@ class TestValid {
                 val errors = mutableListOf<VascException>()
                 val typeResolver = makeTypeResolver(program, errors)
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
-                val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
-                tc.visitProgram(program)
-                ExhaustivenessCheck(typeResolver, typeTable, errors).visitProgram(program)
+                TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
+                ExhaustivenessCheck(typeResolver, typeTable, errors).check(program)
             }
         }
     }

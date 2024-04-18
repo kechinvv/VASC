@@ -33,8 +33,7 @@ class TestTypeCheck {
         val program = programWithErrorListener(file)
         val errors = mutableListOf<VascException>()
         val typeResolver = makeTypeResolver(program, errors)
-        val tc = TypeCheck(errors, typeResolver)
-        tc.check(program)
+        TypeCheck(errors, typeResolver).check(program)
         if (valid) {
             if (errors.isNotEmpty()) {
                 val msg = "expected no errors but got:\n" + errors.mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.fullMessage}\n" }.joinToString("")

@@ -3,6 +3,7 @@ package com.vasc.exhaustiveness
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
+import com.vasc.check.Check
 import com.vasc.error.VascException
 import com.vasc.member.VascConstructor
 import com.vasc.type.VascType
@@ -12,7 +13,11 @@ class ExhaustivenessCheck(
     private val typeResolver: VascTypeResolver,
     private val typeTable: MutableMap<ParserRuleContext, VascType>,
     private val errors: MutableList<VascException>,
-) : VascParserBaseVisitor<ExhaustivenessCheck.StatementType>() {
+) : VascParserBaseVisitor<ExhaustivenessCheck.StatementType>(), Check {
+
+    override fun check(program: ProgramContext) {
+        visitProgram(program)
+    }
 
     private var waitReturn = true
     private var currentConstructor: VascConstructor? = null
