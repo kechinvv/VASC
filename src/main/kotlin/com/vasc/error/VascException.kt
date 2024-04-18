@@ -54,3 +54,5 @@ open class VascException(
 
     private fun at(ctx: ParserRuleContext) = "at [${ctx.start.line}:${ctx.start.charPositionInLine}]"
 }
+
+fun List<VascException>.toPrettyString() = mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.fullMessage}\n" }.joinToString("")

@@ -1,6 +1,7 @@
 package com.vasc
 
 import com.vasc.error.VascException
+import com.vasc.error.toPrettyString
 import com.vasc.exhaustiveness.*
 import com.vasc.type.VascType
 import com.vasc.typecheck.TypeCheck
@@ -33,7 +34,7 @@ class TestInvalid {
                     TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
                     ExhaustivenessCheck(typeResolver, typeTable, errors).check(program)
                     if (errors.find { it::class == exc } == null) {
-                        fail("expected error of type '$exc' but got nothing")
+                        fail("expected error of type '$exc' but got:\n" + errors.toPrettyString())
                     }
                 }
             }

@@ -1,12 +1,14 @@
 package com.vasc
 
 import com.vasc.error.VascException
+import com.vasc.error.toPrettyString
 import com.vasc.exhaustiveness.ExhaustivenessCheck
 import com.vasc.type.VascType
 import com.vasc.typecheck.TypeCheck
 import org.antlr.v4.runtime.ParserRuleContext
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.fail
 
 class TestValid {
 
@@ -20,6 +22,9 @@ class TestValid {
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                 TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
                 ExhaustivenessCheck(typeResolver, typeTable, errors).check(program)
+                if (errors.isNotEmpty()) {
+                    fail("expected no errors but got:\n" + errors.toPrettyString())
+                }
             }
         }
     }

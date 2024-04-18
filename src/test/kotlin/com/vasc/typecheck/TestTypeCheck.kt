@@ -2,6 +2,7 @@ package com.vasc.typecheck
 
 import com.vasc.*
 import com.vasc.error.VascException
+import com.vasc.error.toPrettyString
 import org.junit.jupiter.api.*
 import java.io.File
 
@@ -36,7 +37,7 @@ class TestTypeCheck {
         TypeCheck(errors, typeResolver).check(program)
         if (valid) {
             if (errors.isNotEmpty()) {
-                val msg = "expected no errors but got:\n" + errors.mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.fullMessage}\n" }.joinToString("")
+                val msg = "expected no errors but got:\n" + errors.toPrettyString()
                 fail(msg)
             }
         } else {
