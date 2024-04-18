@@ -4,8 +4,6 @@ import com.vasc.*
 import com.vasc.error.VascException
 import org.junit.jupiter.api.*
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 
 class TestTypeCheck {
 
@@ -33,8 +31,8 @@ class TestTypeCheck {
 
     private fun test(file: File, valid: Boolean) {
         val program = programWithErrorListener(file)
-        val typeResolver = DeclarationCollector.visitProgram(program)
         val errors = mutableListOf<VascException>()
+        val typeResolver = makeTypeResolver(program, errors)
         val tc = TypeCheck(errors, typeResolver)
         tc.check(program)
         if (valid) {

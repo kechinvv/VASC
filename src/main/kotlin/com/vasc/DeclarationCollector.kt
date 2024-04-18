@@ -8,32 +8,33 @@ import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
 
-object DeclarationCollector : VascParserBaseVisitor<Any>() {
-
-    override fun visitProgram(ctx: ProgramContext): VascTypeResolver {
-        val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
-        ctx.classDeclarations.forEach {
-            val name = it.name.text
-            if (namedDeclarations.contains(name)) throw VascException("Class $name is already declared in this scope")
+fun makeTypeResolver(ctx: ProgramContext, errors: MutableList<VascException>): VascTypeResolver {
+    val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
+    ctx.classDeclarations.forEach {
+        val name = it.name.text
+        if (namedDeclarations.contains(name)) {
+            errors.add(VascException("Class $name is already declared in this scope", it.name))
+        } else {
             namedDeclarations[name] = it
         }
-
-        val classMap = namedDeclarations.mapValues { (name, _) -> MutableVascClass(name) }
-        val typeResolver = VascTypeResolver {
-            classMap[it] ?: throw VascException("Unknown type: $it")
-        }
-
-        namedDeclarations.forEach { (name, decl) ->
-            decl.accept(ClassBuilder(classMap[name]!!, typeResolver))
-        }
-
-        return typeResolver
     }
+
+    val classMap = namedDeclarations.mapValues { (name, _) -> MutableVascClass(name) }
+    val typeResolver = VascTypeResolver {
+        classMap[it] ?: throw VascException("Unknown type: $it")
+    }
+
+    namedDeclarations.forEach { (name, decl) ->
+        decl.accept(ClassBuilder(classMap[name]!!, typeResolver, errors))
+    }
+
+    return typeResolver
 }
 
 private class ClassBuilder(
     val vascClass: MutableVascClass,
-    val typeResolver: VascTypeResolver
+    val typeResolver: VascTypeResolver,
+    val errors: MutableList<VascException>,
 ) : VascParserBaseVisitor<Unit>() {
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
@@ -44,24 +45,36 @@ private class ClassBuilder(
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
-        val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
-        vascClass.addField(variable)
+        try {
+            val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
+            vascClass.addField(variable)
+        } catch (e: VascException) {
+            errors.add(VascException(e.description, ctx))
+        }
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
-        val constructor = VascConstructor(
-            parameters = ctx.parameters().toUniqueVariables(typeResolver)
-        )
-        vascClass.addConstructor(constructor)
+        try {
+            val constructor = VascConstructor(
+                parameters = ctx.parameters().toUniqueVariables(typeResolver)
+            )
+            vascClass.addConstructor(constructor)
+        } catch (e: VascException) {
+            errors.add(VascException(e.description, ctx))
+        }
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
-        val method = VascMethod(
-            name = ctx.identifier().text,
-            parameters = ctx.parameters().toUniqueVariables(typeResolver),
-            returnType = ctx.returnType?.accept(typeResolver) ?: VascVoid
-        )
-        vascClass.addMethod(method)
+        try {
+            val method = VascMethod(
+                name = ctx.identifier().text,
+                parameters = ctx.parameters().toUniqueVariables(typeResolver),
+                returnType = ctx.returnType?.accept(typeResolver) ?: VascVoid
+            )
+            vascClass.addMethod(method)
+        } catch (e: VascException) {
+            errors.add(VascException(e.description, ctx))
+        }
     }
 }
 

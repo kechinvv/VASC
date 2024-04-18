@@ -3,7 +3,6 @@ package com.vasc
 import com.vasc.error.VascException
 import com.vasc.exhaustiveness.*
 import com.vasc.type.VascType
-import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeCheck
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.ParserRuleContext
@@ -28,9 +27,9 @@ class TestInvalid {
                 val stream = CharStreams.fromFileName(file.path)
                 DynamicTest.dynamicTest(file.nameWithoutExtension) {
                     val program = programWithErrorListener(stream)
-                    val typeResolver = DeclarationCollector.visitProgram(program)
-                    val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                     val errors = mutableListOf<VascException>()
+                    val typeResolver = makeTypeResolver(program, errors)
+                    val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                     val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
                     tc.visitProgram(program)
                     assertFailsWith(
