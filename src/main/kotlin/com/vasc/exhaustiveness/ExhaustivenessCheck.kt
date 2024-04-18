@@ -8,11 +8,11 @@ import com.vasc.member.VascConstructor
 import com.vasc.type.VascType
 import org.antlr.v4.runtime.ParserRuleContext
 
-class ExhaustivenessChecker(
+class ExhaustivenessCheck(
     private val typeResolver: VascTypeResolver,
     private val typeTable: MutableMap<ParserRuleContext, VascType>,
     private val errors: MutableList<VascException>,
-) : VascParserBaseVisitor<ExhaustivenessChecker.StatementType>() {
+) : VascParserBaseVisitor<ExhaustivenessCheck.StatementType>() {
 
     private var waitReturn = true
     private var currentConstructor: VascConstructor? = null

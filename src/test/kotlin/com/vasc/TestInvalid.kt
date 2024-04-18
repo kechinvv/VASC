@@ -9,8 +9,6 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.fail
-import kotlin.test.assertContains
-import kotlin.test.assertFailsWith
 
 class TestInvalid {
 
@@ -34,7 +32,7 @@ class TestInvalid {
                     val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                     val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
                     tc.visitProgram(program)
-                    ExhaustivenessChecker(typeResolver, typeTable, errors).visitProgram(program)
+                    ExhaustivenessCheck(typeResolver, typeTable, errors).visitProgram(program)
                     if (errors.find { it::class == exc } == null) {
                         fail("expected error of type '$exc' but got nothing")
                     }

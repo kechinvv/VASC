@@ -1,7 +1,7 @@
 package com.vasc
 
 import com.vasc.error.VascException
-import com.vasc.exhaustiveness.ExhaustivenessChecker
+import com.vasc.exhaustiveness.ExhaustivenessCheck
 import com.vasc.type.VascType
 import com.vasc.typecheck.TypeCheck
 import org.antlr.v4.runtime.ParserRuleContext
@@ -20,7 +20,7 @@ class TestValid {
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                 val tc = TypeCheck(errors, typeResolver, typeTable = typeTable)
                 tc.visitProgram(program)
-                ExhaustivenessChecker(typeResolver, typeTable, errors).visitProgram(program)
+                ExhaustivenessCheck(typeResolver, typeTable, errors).visitProgram(program)
             }
         }
     }
