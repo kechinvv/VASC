@@ -37,7 +37,7 @@ class TestTypeCheck {
         tc.check(program)
         if (valid) {
             if (errors.isNotEmpty()) {
-                val msg = "expected no errors but got:\n" + errors.mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.message}\n" }.joinToString("")
+                val msg = "expected no errors but got:\n" + errors.mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.fullMessage}\n" }.joinToString("")
                 fail(msg)
             }
         } else {
