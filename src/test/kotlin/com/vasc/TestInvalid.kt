@@ -19,7 +19,7 @@ class TestInvalid {
             testResource("invalid/nonExhaustiveReturn") to NonExhaustiveReturnException::class,
             testResource("invalid/unreachableCode") to UnreachableCodeException::class,
             testResource("invalid/recursiveConstructor") to CyclicConstructorException::class,
-            testResource("invalid/defaultConstructor") to DefaultConstructorNotExistException::class
+            testResource("invalid/defaultConstructor") to DefaultConstructorNotExistsException::class
         )
         val tests = mutableListOf<DynamicTest>()
 

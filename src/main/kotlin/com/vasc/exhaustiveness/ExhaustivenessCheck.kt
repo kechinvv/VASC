@@ -71,14 +71,14 @@ class ExhaustivenessCheck(
 
                 StatementType.THIS_CONSTRUCTOR -> {
                     if (currentConstructor == null || i != 0) {
-                        errors.add(ThisConstructorCallException(statements[i]))
+                        errors.add(IllegalThisConstructorCallException(statements[i]))
                     }
                     wasSuperOrThisCall = true
                 }
 
                 StatementType.SUPER -> {
                     if (currentConstructor == null || i != 0) {
-                        errors.add(SuperConstructorCallException(statements[i]))
+                        errors.add(IllegalSuperConstructorCallException(statements[i]))
                     }
                     wasSuperOrThisCall = true
                 }
@@ -91,7 +91,7 @@ class ExhaustivenessCheck(
             errors.add(NonExhaustiveReturnException(ctx))
         }
         if (currentConstructor != null && !wasSuperOrThisCall && !currentClass.parentHasDefaultConstructor()) {
-            errors.add(DefaultConstructorNotExistException(ctx))
+            errors.add(DefaultConstructorNotExistsException(ctx))
         }
         return statementType
     }
