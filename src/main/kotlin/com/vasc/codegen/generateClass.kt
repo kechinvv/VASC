@@ -39,37 +39,51 @@ class ClassCodeGenerator(private val typeResolver: VascTypeResolver, private val
     }
 
     private fun generateClassBody(vascClass: VascClass, ctx: ClassBodyContext) {
-        ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().forEach {
-            generateField(vascClass.getDeclaredField(it.variableDeclaration().identifier().text)!!)
+        val fieldInits = ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().map {
+            generateField(
+                vascClass.getDeclaredField(it.variableDeclaration().identifier().text)!!,
+                it
+            )
         }
         appendLine()
         ctx.memberDeclarations.filterIsInstance<ConstructorDeclarationContext>().forEach { ctor ->
-            generateConstructor(vascClass.getDeclaredConstructor(ctor.parameters().toUniqueVariables(typeResolver).map { it.type })!!)
+            generateConstructor(
+                vascClass.getDeclaredConstructor(ctor.parameters().toUniqueVariables(typeResolver).map { it.type })!!,
+                ctor
+            )
         }
         appendLine()
         ctx.memberDeclarations.filterIsInstance<MethodDeclarationContext>().forEach { method ->
-            generateMethod(vascClass.getDeclaredMethod(method.identifier().text, method.parameters().toUniqueVariables(typeResolver).map { it.type })!!)
+            generateMethod(
+                vascClass.getDeclaredMethod(method.identifier().text, method.parameters().toUniqueVariables(typeResolver).map { it.type })!!,
+                method
+            )
         }
         appendLine()
     }
 
-    private fun generateField(vascVariable: VascVariable) {
+    private fun generateField(vascVariable: VascVariable, ctx: FieldDeclarationContext): Pair<VascVariable, ExpressionContext>? {
         appendLine(".field public ${vascVariable.name} ${vascVariable.type.toJType()}")
+        return ctx.variableDeclaration().expression()?.let { Pair(vascVariable, it) }
     }
 
-    private fun generateConstructor(vascConstructor: VascConstructor) {
+    private fun generateConstructor(vascConstructor: VascConstructor, ctx: ConstructorDeclarationContext) {
         val params = vascConstructor.parameters.joinToString("") { it.type.toJType() }
-        appendLine(".method public init($params)V")
-        appendLine(";TODO")
+        appendLine(".method public <init>($params)V")
+        generateBody(ctx.body())
         appendLine(".end method")
     }
 
-    private fun generateMethod(vascMethod: VascMethod) {
+    private fun generateMethod(vascMethod: VascMethod, ctx: MethodDeclarationContext) {
         val params = vascMethod.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public ${vascMethod.name}($params)${vascMethod.returnType.toJType()}")
-        appendLine(";TODO")
+        generateBody(ctx.body())
         appendLine(".end method")
     }
+
+    private fun generateBody(ctx: BodyContext) {
+    }
+
 }
 
 private fun VascType.toJType(): String {
