@@ -4,6 +4,7 @@ import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.error.VascException
 import com.vasc.member.VascConstructor
+import com.vasc.member.VascMethod
 import com.vasc.member.VascVariable
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
@@ -45,6 +46,11 @@ class ClassCodeGenerator(private val typeResolver: VascTypeResolver, private val
         ctx.memberDeclarations.filterIsInstance<ConstructorDeclarationContext>().forEach { ctor ->
             generateConstructor(vascClass.getDeclaredConstructor(ctor.parameters().toUniqueVariables(typeResolver).map { it.type })!!)
         }
+        appendLine()
+        ctx.memberDeclarations.filterIsInstance<MethodDeclarationContext>().forEach { method ->
+            generateMethod(vascClass.getDeclaredMethod(method.identifier().text, method.parameters().toUniqueVariables(typeResolver).map { it.type })!!)
+        }
+        appendLine()
     }
 
     private fun generateField(vascVariable: VascVariable) {
@@ -57,6 +63,13 @@ class ClassCodeGenerator(private val typeResolver: VascTypeResolver, private val
         appendLine(";TODO")
         appendLine(".end method")
     }
+
+    private fun generateMethod(vascMethod: VascMethod) {
+        val params = vascMethod.parameters.joinToString("") { it.type.toJType() }
+        appendLine(".method public ${vascMethod.name}($params)${vascMethod.returnType.toJType()}")
+        appendLine(";TODO")
+        appendLine(".end method")
+    }
 }
 
 private fun VascType.toJType(): String {
@@ -65,7 +78,7 @@ private fun VascType.toJType(): String {
         is VascReal -> "D"
         is VascInteger -> "J"
         is VascBoolean -> "Z"
-        is VascClass -> "L$classPrefix$name;"
+        is VascClass -> "L$classPrefix$name;" // TODO: fix generics
         else -> throw IllegalArgumentException(this.toString())
     }
 }
