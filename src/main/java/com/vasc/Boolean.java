@@ -26,4 +26,9 @@ public class Boolean {
     public com.vasc.Boolean not() {
         return new Boolean(!this.value);
     }
+
+    @Override
+    public String toString() {
+        return java.lang.Boolean.toString(value);
+    }
 }

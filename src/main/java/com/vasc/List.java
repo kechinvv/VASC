@@ -46,4 +46,9 @@ public class List<T> {
     public com.vasc.Boolean isEmpty() {
         return new Boolean(value.isEmpty());
     }
+
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 }

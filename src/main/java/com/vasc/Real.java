@@ -105,4 +105,9 @@ public class Real {
     public com.vasc.Boolean equal(com.vasc.Integer other) {
         return new Boolean(value == other.value);
     }
+
+    @Override
+    public String toString() {
+        return Double.toString(value);
+    }
 }

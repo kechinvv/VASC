@@ -105,4 +105,9 @@ public class Integer {
     public com.vasc.Boolean equal(com.vasc.Real other) {
         return new Boolean(value == other.value);
     }
+
+    @Override
+    public String toString() {
+        return java.lang.Long.toString(value);
+    }
 }

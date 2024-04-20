@@ -27,4 +27,9 @@ public class Array<T> {
     public void set(com.vasc.Integer index, T v) {
         value.set((int) index.value, v);
     }
+
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 }
