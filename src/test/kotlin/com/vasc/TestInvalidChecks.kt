@@ -35,10 +35,8 @@ class TestInvalidChecks {
             { typeResolver, _, errors, program -> ExhaustivenessCheck(typeResolver, errors).check(program) }
 
         return dirs.map { (dir, exc) ->
-            dynamicContainer(
-                "Test check for ${exc.simpleName}",
-                dir.listFiles()!!.map { getDynamicTestForFile(it, exc, runChecks) }
-            )
+            dynamicContainer("Test check for ${exc.simpleName}",
+                dir.listFiles()!!.map { getDynamicTestForFile(it, exc, runChecks) })
         }
     }
 
@@ -48,25 +46,18 @@ class TestInvalidChecks {
             testResource("invalid/recursiveConstructor") to CyclicConstructorException::class,
             testResource("invalid/defaultConstructor") to DefaultConstructorNotExistsException::class
         )
-        val runChecks: RunnableChecks =
-            { typeResolver, typeTable, errors, program ->
-                ConstructorCheck(typeResolver, typeTable, errors).check(
-                    program
-                )
-            }
+        val runChecks: RunnableChecks = { typeResolver, typeTable, errors, program ->
+            ConstructorCheck(typeResolver, typeTable, errors).check(program)
+        }
 
         return dirs.map { (dir, exc) ->
-            dynamicContainer(
-                "Test check for ${exc.simpleName}",
-                dir.listFiles()!!.map { getDynamicTestForFile(it, exc, runChecks) }
-            )
+            dynamicContainer("Test check for ${exc.simpleName}",
+                dir.listFiles()!!.map { getDynamicTestForFile(it, exc, runChecks) })
         }
     }
 
     private fun getDynamicTestForFile(
-        file: File,
-        exc: KClass<out VascException>,
-        enabledChecks: RunnableChecks
+        file: File, exc: KClass<out VascException>, enabledChecks: RunnableChecks
     ): DynamicTest {
         val stream = CharStreams.fromFileName(file.path)
         return dynamicTest(file.nameWithoutExtension) {
@@ -88,8 +79,5 @@ class TestInvalidChecks {
 }
 
 typealias RunnableChecks = (
-    VascTypeResolver,
-    MutableMap<ParserRuleContext, VascType>,
-    MutableList<VascException>,
-    VascParser.ProgramContext
+    VascTypeResolver, MutableMap<ParserRuleContext, VascType>, MutableList<VascException>, VascParser.ProgramContext
 ) -> Unit
