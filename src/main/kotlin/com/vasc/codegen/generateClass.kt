@@ -127,6 +127,7 @@ class ClassCodeGenerator(private val typeResolver: VascTypeResolver, private val
                     appendLine("; TODO: assign")
                 }
                 is ReturnStatementContext -> {
+                    st.expression()?.let { generateExpression(it) }
                     appendLine("return")
                 }
                 is ExpressionStatementContext -> {
