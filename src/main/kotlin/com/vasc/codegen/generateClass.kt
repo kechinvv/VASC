@@ -10,7 +10,7 @@ import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
 
-private const val classPrefix = "vasc/"
+private const val classPrefix = "com/vasc/"
 
 class ClassCodeGenerator(private val typeResolver: VascTypeResolver, private val errors: MutableList<VascException>) {
     private val code = StringBuilder()
