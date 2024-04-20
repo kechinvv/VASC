@@ -1,4 +1,4 @@
-package com.vasc.exhaustiveness
+package com.vasc.checks
 
 import com.vasc.error.VascException
 

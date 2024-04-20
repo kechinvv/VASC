@@ -1,6 +1,7 @@
 package com.vasc
 
-import com.vasc.exhaustiveness.ExhaustivenessChecker
+import com.vasc.checks.constructor.ConstructorChecker
+import com.vasc.checks.exhaustiveness.ExhaustivenessChecker
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
@@ -19,7 +20,8 @@ class TestValid {
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                 val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
                 tc.visitProgram(program)
-                ExhaustivenessChecker(typeResolver, typeTable).visitProgram(program)
+                ExhaustivenessChecker(typeResolver).visitProgram(program)
+                ConstructorChecker(typeResolver, typeTable).visitProgram(program)
             }
         }
     }

@@ -1,6 +1,11 @@
 package com.vasc
 
-import com.vasc.exhaustiveness.*
+import com.vasc.checks.CyclicConstructorException
+import com.vasc.checks.DefaultConstructorNotExistException
+import com.vasc.checks.NonExhaustiveReturnException
+import com.vasc.checks.UnreachableCodeException
+import com.vasc.checks.constructor.ConstructorChecker
+import com.vasc.checks.exhaustiveness.*
 import com.vasc.type.VascType
 import com.vasc.typecheck.Scope
 import com.vasc.typecheck.TypeChecker
@@ -33,7 +38,10 @@ class TestInvalid {
                     tc.visitProgram(program)
                     assertFailsWith(
                         exceptionClass = exc,
-                        block = { ExhaustivenessChecker(typeResolver, typeTable).visitProgram(program) })
+                        block = {
+                            ExhaustivenessChecker(typeResolver).visitProgram(program)
+                            ConstructorChecker(typeResolver, typeTable).visitProgram(program)
+                        })
                 }
             }
             tests.addAll(dirTests)
