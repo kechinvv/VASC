@@ -1,13 +1,15 @@
 package com.vasc
 
-import com.vasc.checks.constructor.ConstructorChecker
-import com.vasc.checks.exhaustiveness.ExhaustivenessChecker
+import com.vasc.checks.constructor.ConstructorCheck
+import com.vasc.checks.exhaustiveness.ExhaustivenessCheck
+import com.vasc.error.VascException
+import com.vasc.error.toPrettyString
 import com.vasc.type.VascType
-import com.vasc.typecheck.Scope
-import com.vasc.typecheck.TypeChecker
+import com.vasc.typecheck.TypeCheck
 import org.antlr.v4.runtime.ParserRuleContext
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.fail
 
 class TestValid {
 
@@ -16,12 +18,15 @@ class TestValid {
         return testResource("valid").listFiles()!!.filter { it.isFile }.map { file ->
             DynamicTest.dynamicTest(file.nameWithoutExtension) {
                 val program = programWithErrorListener(file)
-                val typeResolver = DeclarationCollector.visitProgram(program)
+                val errors = mutableListOf<VascException>()
+                val typeResolver = makeTypeResolver(program, errors)
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
-                val tc = TypeChecker(typeResolver, Scope(mutableMapOf()), typeTable)
-                tc.visitProgram(program)
-                ExhaustivenessChecker(typeResolver).visitProgram(program)
-                ConstructorChecker(typeResolver, typeTable).visitProgram(program)
+                TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
+                ExhaustivenessCheck(typeResolver, errors).check(program)
+                ConstructorCheck(typeResolver, typeTable, errors).check(program)
+                if (errors.isNotEmpty()) {
+                    fail("expected no errors but got:\n" + errors.toPrettyString())
+                }
             }
         }
     }

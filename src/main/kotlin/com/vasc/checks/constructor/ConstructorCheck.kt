@@ -4,23 +4,32 @@ import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.checks.*
+import com.vasc.check.Check
+import com.vasc.error.VascException
 import com.vasc.member.VascConstructor
 import com.vasc.type.VascType
 import org.antlr.v4.runtime.ParserRuleContext
 
-class ConstructorChecker(
+class ConstructorCheck(
     private val typeResolver: VascTypeResolver,
-    private val typeTable: MutableMap<ParserRuleContext, VascType>
-) : VascParserBaseVisitor<StatementType>() {
+    private val typeTable: MutableMap<ParserRuleContext, VascType>,
+    private val errors: MutableList<VascException>
+) : VascParserBaseVisitor<StatementType>(), Check {
+
     private var currentConstructor: VascConstructor? = null
     private lateinit var currentClass: VascType
     private var constructorCalls: MutableMap<VascConstructor, VascConstructor> = mutableMapOf()
 
+    override fun check(program: ProgramContext) {
+        visitProgram(program)
+    }
+
     override fun visitClassDeclaration(ctx: ClassDeclarationContext): StatementType {
         currentClass = ctx.name.accept(typeResolver)
 
-        if (currentClass.declaredConstructors.isEmpty() && !currentClass.parentHasDefaultConstructor())
-            throw ConstructorsMatchSuperNotExists("No constructors match super (line ${ctx.start.line})")
+        if (currentClass.declaredConstructors.isEmpty() && !currentClass.parentHasDefaultConstructor()) {
+            errors.add(ConstructorsMatchSuperNotExists(ctx))
+        }
 
         constructorCalls = mutableMapOf()
         return super.visitClassDeclaration(ctx)
@@ -49,14 +58,16 @@ class ConstructorChecker(
             when (statementType) {
 
                 StatementType.THIS_CONSTRUCTOR -> {
-                    if (currentConstructor == null || i != 0)
-                        throw ThisConstructorCallException("This Constructor must be called first in constructor body (line ${ctx.start.line})")
+                    if (currentConstructor == null || i != 0) {
+                        errors.add(IllegalThisConstructorCallException(statements[i]))
+                    }
                     wasSuperOrThisCall = true
                 }
 
                 StatementType.SUPER -> {
-                    if (currentConstructor == null || i != 0)
-                        throw SuperConstructorCallException("Super Constructor must be called first in constructor body (line ${ctx.start.line})")
+                    if (currentConstructor == null || i != 0) {
+                        errors.add(IllegalSuperConstructorCallException(statements[i]))
+                    }
                     wasSuperOrThisCall = true
                 }
 
@@ -64,16 +75,19 @@ class ConstructorChecker(
             }
         }
 
-        if (currentConstructor != null && !wasSuperOrThisCall && !currentClass.parentHasDefaultConstructor())
-            throw DefaultConstructorNotExistException("Default constructor not exist. Use super call. (line ${ctx.start.line})")
+        if (currentConstructor != null && !wasSuperOrThisCall && !currentClass.parentHasDefaultConstructor()) {
+            errors.add(DefaultConstructorNotExistsException(ctx))
+        }
         return statementType
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext): StatementType {
         super.visitThisExpression(ctx)
         if (ctx.arguments() == null) return StatementType.THIS_CALL
-        constructorCalls[currentConstructor!!] = getConstructorByArgs(ctx.arguments())
-        checkCyclicConstructor(currentConstructor!!)
+        getConstructorByArgs(ctx)?.let {
+            constructorCalls[currentConstructor!!] = it
+        }
+        checkCyclicConstructor(currentConstructor!!, ctx)
         return StatementType.THIS_CONSTRUCTOR
     }
 
@@ -86,17 +100,24 @@ class ConstructorChecker(
         return parent == null || parent!!.getDeclaredConstructor(emptyList()) != null || parent!!.declaredConstructors.isEmpty()
     }
 
-    private fun getConstructorByArgs(args: ArgumentsContext): VascConstructor {
-        val argTypes = args.expression().map { typeTable[it]!! }
-        return currentClass.getDeclaredConstructor(argTypes) ?: throw ConstructorNotFound("Constructor not found")
+    private fun getConstructorByArgs(ctx: ThisExpressionContext): VascConstructor? {
+        val argTypes = ctx.arguments().expression().map { typeTable[it]!! }
+        val constructor = currentClass.getDeclaredConstructor(argTypes)
+        if (constructor == null) {
+            errors.add(ConstructorNotFound(ctx))
+        }
+        return constructor
     }
 
-    private fun checkCyclicConstructor(startPoint: VascConstructor) {
+    private fun checkCyclicConstructor(startPoint: VascConstructor, ctx: ThisExpressionContext) {
         var pointer = constructorCalls[startPoint]
         while (pointer != null) {
-            if (pointer == startPoint)
-                throw CyclicConstructorException("Cyclic constructor usage")
-            pointer = constructorCalls[pointer]
+            if (pointer == startPoint) {
+                errors.add(CyclicConstructorException(ctx))
+                break
+            } else {
+                pointer = constructorCalls[pointer]
+            }
         }
     }
 

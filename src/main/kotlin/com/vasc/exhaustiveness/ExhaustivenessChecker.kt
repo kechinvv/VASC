@@ -3,19 +3,26 @@ package com.vasc.checks.exhaustiveness
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
+import com.vasc.check.Check
 import com.vasc.checks.NonExhaustiveReturnException
 import com.vasc.checks.StatementType
 import com.vasc.checks.UnreachableCodeException
+import com.vasc.error.VascException
 import com.vasc.type.VascType
 
 class ExhaustivenessChecker(
-    private val typeResolver: VascTypeResolver
-) : VascParserBaseVisitor<StatementType>() {
+    private val typeResolver: VascTypeResolver,
+    private val errors: MutableList<VascException>
+) : VascParserBaseVisitor<StatementType>(), Check {
 
     private var waitReturn = true
     private lateinit var currentClass: VascType
 
     private val completeIf = 2
+
+    override fun check(program: ProgramContext) {
+        visitProgram(program)
+    }
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext): StatementType {
         currentClass = ctx.name.accept(typeResolver)
@@ -41,7 +48,7 @@ class ExhaustivenessChecker(
             statementType = statements[i].accept(this)
             when (statementType) {
                 StatementType.EXHAUSTIVE_RETURN ->
-                    if (i != n - 1) throw UnreachableCodeException("Unreachable code (line ${statements[i + 1].start.line})")
+                    if (i != n - 1) errors.add(UnreachableCodeException(statements[i + 1]))
                     else if (parentIsMethod) waitReturn = false
 
                 else -> continue
@@ -49,7 +56,7 @@ class ExhaustivenessChecker(
         }
 
         if (parentIsMethod && waitReturn)
-            throw NonExhaustiveReturnException("Nonexhaustive return (line ${ctx.start.line})")
+            errors.add(NonExhaustiveReturnException(ctx))
 
         return statementType
     }

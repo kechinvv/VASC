@@ -4,15 +4,19 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.misc.Interval
 
 open class VascException(
-    override val message: String, ctx: ParserRuleContext? = null
+    final override val message: String, ctx: ParserRuleContext? = null
 ) : RuntimeException(message) {
 
-    val description = ctx?.let { prettyPosition(it) } ?: ""
+    val fullMessage = message + (ctx?.let { prettyPosition(it) } ?: "")
 
     private fun prettyPosition(ctx: ParserRuleContext): String {
-        return when (val parentCtx = ctx.parent) {
-            is ParserRuleContext -> prettyPositionWithinParent(ctx, parentCtx)
-            else -> prettyPositionNoParent(ctx)
+        return try { // getSourceText can fail (for some reason)
+            when (val parentCtx = ctx.parent) {
+                is ParserRuleContext -> prettyPositionWithinParent(ctx, parentCtx)
+                else -> prettyPositionNoParent(ctx)
+            }
+        } catch (e: Exception) {
+            ""
         }
     }
 
@@ -37,12 +41,12 @@ open class VascException(
             .partition { it.first + parentCtx.start.line <= ctx.start.line }
         val pointers = "^".repeat(source.lines().last().length)
         return """
-        |
-        |${at(ctx)}
-        |$indentParent${before.joinToString("\n") { it.second }}  
-        |$indent$pointers
-        |${after.joinToString("\n") { it.second }}
-    """.trimMargin()
+            |
+            |${at(ctx)}
+            |$indentParent${before.joinToString("\n") { it.second }}  
+            |$indent$pointers
+            |${after.joinToString("\n") { it.second }}
+        """.trimMargin()
     }
 
     private fun getSourceText(ctx: ParserRuleContext) =
@@ -50,3 +54,5 @@ open class VascException(
 
     private fun at(ctx: ParserRuleContext) = "at [${ctx.start.line}:${ctx.start.charPositionInLine}]"
 }
+
+fun List<VascException>.toPrettyString() = mapIndexed { i, e -> "## ERROR ${i + 1} ##\n ${e.fullMessage}\n" }.joinToString("")
