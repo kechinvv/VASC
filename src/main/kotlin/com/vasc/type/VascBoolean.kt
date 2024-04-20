@@ -12,7 +12,7 @@ object VascBoolean : VascClass("Boolean") {
     )
 
     override val declaredMethods: List<VascMethod> = listOf(
-        VascMethod("toInteger", listOf("p" colon VascBoolean), VascBoolean),
+        VascMethod("toInteger", listOf("p" colon VascBoolean), VascInteger),
 
         VascMethod("or", listOf("p" colon VascBoolean), VascBoolean),
         VascMethod("and", listOf("p" colon VascBoolean), VascBoolean),
