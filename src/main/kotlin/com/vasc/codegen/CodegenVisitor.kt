@@ -52,6 +52,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     private var currentClass: VascClass? = null
+    private var currentClassName: String? = null
     private var currentField: VascVariable? = null
     private var currentConstructor: VascConstructor? = null
     private var currentMethod: VascMethod? = null
@@ -67,7 +68,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         fieldsInitCode.clear()
 
         currentClass = typeResolver.visit(ctx.name) as VascClass
-        appendLine(".class public $classPrefix${currentClass!!.name}")
+        currentClassName = "$classPrefix${currentClass!!.name}"
+        appendLine(".class public $currentClassName")
         if (currentClass!!.parent == null) {
             appendLine(".super java/lang/Object")
         } else {
@@ -201,7 +203,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         ctx.expression().accept(this)
         val name = ctx.identifier().text
         val stackIndex = variableStack.indexOfFirst { it.name == name } // TODO: putfield if not local var
-        appendLine("astore $stackIndex", "assign $name")
+        if (stackIndex > 0) {
+            appendLine("astore $stackIndex", "assign $name")
+        } else {
+            val field = currentClass!!.getField(name)!!
+            appendLine("putfield $currentClassName/${field.name} ${field.type}", "assign field $field")
+        }
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
