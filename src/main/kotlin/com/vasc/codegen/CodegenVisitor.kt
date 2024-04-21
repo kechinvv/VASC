@@ -44,6 +44,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     private val fieldsInitCode = mutableListOf<String>()
 
+// CLASS
+
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         classCode.clear()
         fieldsInitCode.clear()
@@ -117,6 +119,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         indent -= indentStep
     }
 
+// STATEMENTS
+
     override fun visitIfStatement(ctx: IfStatementContext) {
         val endLabel = "If_End_${ctx.pos()}"
         val elseLabel = "If_Else_${ctx.pos()}"
@@ -155,6 +159,25 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         ctx.expression()?.accept(this)
         appendLine("return")
     }
+
+    override fun visitAssignStatement(ctx: AssignStatementContext) {
+        appendLine("; TODO: assign") // TODO
+    }
+
+    override fun visitPrintStatement(ctx: PrintStatementContext) {
+        appendLine("; TODO: print") // TODO
+    }
+
+    override fun visitVariableStatement(ctx: VariableStatementContext) {
+        appendLine("; TODO: variable")
+    }
+
+    override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
+        appendLine("; TODO: expression")
+    }
+
+// EXPRESSIONS
+
 }
 
 private fun VascType.toJType(): String {
