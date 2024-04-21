@@ -275,7 +275,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
         val arguments = ctx.arguments().expression().map { typeTable[it]!! }
-        val method = nextCallType!!.getMethod(ctx.className().text, arguments)
+        val method = currentClass!!.getMethod(ctx.className().text, arguments)
         if (method != null) {
             appendLine("aload 0", "load this")
             ctx.arguments().expression().forEach {
@@ -294,7 +294,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             }
             val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "new $cls$constructor")
-            nextCallType = VascVoid
+            nextCallType = cls
         }
         ctx.dotCall().forEach {
             it.accept(this)
