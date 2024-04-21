@@ -22,7 +22,7 @@ private const val arrayClass = classPrefix + "Array"
 private typealias ClassName = String
 private typealias ClassCode = String
 
-class CodegenVisitor(private val typeResolver: VascTypeResolver, private val errors: MutableList<VascException>) : VascParserBaseVisitor<Unit>() {
+class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typeTable: MutableMap<ParserRuleContext, VascType>, private val errors: MutableList<VascException>) : VascParserBaseVisitor<Unit>() {
 
     private val generatedClasses = mutableMapOf<ClassName, ClassCode>()
 
@@ -73,7 +73,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         if (currentClass!!.parent == null) {
             appendLine(".super java/lang/Object")
         } else {
-            appendLine(".super $classPrefix${currentClass!!.parent}")
+            appendLine(".super ${currentClass!!.parent!!.toJName()}")
         }
         appendLine()
         ctx.classBody().accept(this)
@@ -207,7 +207,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
             appendLine("astore $stackIndex", "assign $name")
         } else {
             val field = currentClass!!.getField(name)!!
-            appendLine("putfield ${currentClass!!.toJType()}/${field.name} ${field.type}", "assign field $field")
+            appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "assign field $field")
         }
     }
 
@@ -268,12 +268,21 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     override fun visitFieldAccess(ctx: FieldAccessContext) {
         val field = nextCallType!!.getField(ctx.identifier().text)
-        appendLine("getfield ${nextCallType!!.toJType()}/${field!!.name} ${field.type}", "read field $field")
+        appendLine("getfield ${nextCallType!!.toJName()}/${field!!.name} ${field.type}", "read field $field")
         nextCallType = field.type
     }
 
     override fun visitMethodCall(ctx: MethodCallContext) {
-        appendLine("; TODO: method call")
+        val name = ctx.identifier().text
+        val arguments = ctx.arguments().expression().map { typeTable[it]!! }
+        val cls = nextCallType!!
+        val method = nextCallType!!.getMethod(name, arguments)
+        ctx.arguments().expression().forEach {
+            it.accept(this)
+        }
+        val call = "${cls.toJName()}/$name(${arguments.joinToString("") { it.toJType() }})${method!!.returnType.toJType()}"
+        appendLine("invokevirtual $call", "call $cls.$method")
+        nextCallType = method.returnType
     }
 
 // PRIMARY
@@ -312,17 +321,26 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
 }
 
+private fun removeGenericInfo(name: String): String {
+    val typeParamIndex = name.indexOf("[")
+    var ret = name
+    if (typeParamIndex > 0) {
+        ret = ret.substring(0, typeParamIndex)
+    }
+    return ret
+}
+
 private fun VascType.toJType(): String {
     return when (this) {
         is VascVoid -> "V"
-        is VascClass -> {
-            val typeParamIndex = name.indexOf("[")
-            var name = name
-            if (typeParamIndex > 0) {
-                name = name.substring(0, typeParamIndex)
-            }
-            "L$classPrefix$name;"
-        }
+        is VascClass -> "L$classPrefix${removeGenericInfo(name)};"
+        else -> throw IllegalArgumentException(this.toString())
+    }
+}
+
+private fun VascType.toJName(): String {
+    return when (this) {
+        is VascClass -> "$classPrefix${removeGenericInfo(name)}"
         else -> throw IllegalArgumentException(this.toString())
     }
 }

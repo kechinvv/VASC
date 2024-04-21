@@ -28,7 +28,7 @@ fun main() {
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
-    val generator = CodegenVisitor(typeResolver, errors)
+    val generator = CodegenVisitor(typeResolver, typeTable, errors)
     generator.visitProgram(program)
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
