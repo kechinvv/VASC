@@ -260,7 +260,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${currentClass!!.toJName()}/${method.name}(${arguments.joinToString("") { it.toJType() }})${method.returnType.toJType()}"
+            val call = "${currentClass!!.toJName()}/${method.name}(${arguments.joinToString("") { it.toJType() }})${method.returnType.toJType()}" // TODO: generics should return object
             appendLine("invokevirtual $call", "call this.$method")
             nextCallType = method.returnType
         } else {
@@ -273,7 +273,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             }
             val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "new $cls$constructor")
-            nextCallType = cls
+            nextCallType = VascVoid
         }
         ctx.dotCall().forEach {
             it.accept(this)
@@ -281,11 +281,42 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
-        appendLine("; TODO: this expression") // TODO
+        if (ctx.arguments() == null) {
+            nextCallType = currentClass
+            ctx.dotCall().forEach {
+                it.accept(this)
+            }
+        } else {
+            val arguments = ctx.arguments().expression().map { typeTable[it]!! }
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            appendLine("aload 0", "load this")
+            ctx.arguments().expression().forEach {
+                it.accept(this)
+            }
+            val call = "${currentClass!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            appendLine("invokespecial $call", "call constructor $currentClass$constructor")
+            nextCallType = VascVoid
+        }
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
-        appendLine("; TODO: super expression") // TODO
+        if (ctx.arguments() == null) {
+            nextCallType = currentClass!!.parent!!
+            ctx.dotCall().forEach {
+                it.accept(this)
+            }
+        } else {
+            val arguments = ctx.arguments().expression().map { typeTable[it]!! }
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            val cls = currentClass!!.parent!!
+            appendLine("aload 0", "load this")
+            ctx.arguments().expression().forEach {
+                it.accept(this)
+            }
+            val call = "${cls.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            appendLine("invokespecial $call", "call parent constructor $cls$constructor")
+            nextCallType = VascVoid
+        }
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
