@@ -166,11 +166,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             val elseLabel = "If_Else_${ctx.pos()}"
             generateBooleanExpression(ctx.condition)
             if (ctx.elseBody != null) {
-                appendLine("ifne $elseLabel")
+                appendLine("ifeq $elseLabel")
                 ctx.thenBody.accept(this)
                 appendLine("goto $endLabel")
                 appendLine("$elseLabel:")
-                ctx.thenBody.accept(this)
+                ctx.elseBody.accept(this)
                 appendLine("$endLabel:")
             } else {
                 appendLine("ifne $endLabel")
@@ -186,7 +186,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             val endLabel = "While_End_${ctx.pos()}"
             appendLine("$condLabel:")
             generateBooleanExpression(ctx.condition)
-            appendLine("ifne $endLabel")
+            appendLine("ifeq $endLabel")
             ctx.body().accept(this)
             appendLine("goto $condLabel")
             appendLine("$endLabel:")
