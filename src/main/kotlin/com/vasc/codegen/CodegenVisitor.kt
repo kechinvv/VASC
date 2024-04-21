@@ -148,7 +148,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     private fun generateBooleanExpression(ctx: ExpressionContext) {
         ctx.accept(this)
-        // TODO: get Boolean value
+        appendLine("getfield com/vasc/Boolean Z;")
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
