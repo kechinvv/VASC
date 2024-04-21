@@ -237,7 +237,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             } else {
                 appendLine("ldc \"$text\"")
             }
-            appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V")
+            appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V", "println \"$text\"")
         }
     }
 
