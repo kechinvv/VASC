@@ -221,7 +221,23 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
         withLineInfo(ctx.start.line) {
-            appendLine("; TODO: print") // TODO
+            appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
+            val text = ctx.STRING().text.removeSurrounding("\"")
+            if (text.startsWith("$")) {
+                val name = text.removePrefix("$")
+                val stackIndex = variableStack.indexOfFirst { it.name == name }
+                if (stackIndex > 0) {
+                    appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
+                    nextCallType = variableStack[stackIndex].type
+                } else {
+                    val field = currentClass!!.getField(name)!!
+                    appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "read field $field")
+                }
+                appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
+            } else {
+                appendLine("ldc $text")
+            }
+            appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V")
         }
     }
 

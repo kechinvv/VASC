@@ -1,0 +1,6 @@
+class Main is
+    this() is
+        var a: Integer = 42
+        println("a = $a")
+    end
+end

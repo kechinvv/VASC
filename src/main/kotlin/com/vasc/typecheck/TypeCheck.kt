@@ -99,6 +99,16 @@ class TypeCheck(
         }
     }
 
+    override fun visitPrintStatement(ctx: PrintStatementContext) {
+        val text = ctx.STRING().text.removeSurrounding("\"")
+        if (text.startsWith("$")) {
+            val varName = text.removePrefix("$")
+            if (scope.find(varName) == null) {
+                errors.add(UnknownVariableException(varName, ctx))
+            }
+        }
+    }
+
 // DECLARATIONS
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
