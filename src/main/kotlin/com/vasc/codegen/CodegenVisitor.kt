@@ -13,6 +13,12 @@ import org.antlr.v4.runtime.ParserRuleContext
 
 private const val classPrefix = "com/vasc/"
 
+private const val booleanClass = classPrefix + "Boolean"
+private const val integerClass = classPrefix + "Integer"
+private const val realClass = classPrefix + "Real"
+private const val listClass = classPrefix + "List"
+private const val arrayClass = classPrefix + "Array"
+
 private typealias ClassName = String
 private typealias ClassCode = String
 
@@ -35,6 +41,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     private fun appendLine(line: String) {
         classCode.appendLine(" ".repeat(indent) + line)
+    }
+
+    private fun appendHeader(header: String) {
+        classCode.appendLine("; %%% $header %%%")
     }
 
     private var currentClass: VascClass? = null
@@ -63,18 +73,18 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitClassBody(ctx: ClassBodyContext) {
-        appendLine("; %%% Fields %%%")
+        appendHeader("Fields")
         ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().map {
             currentField = currentClass!!.getDeclaredField(it.variableDeclaration().identifier().text)!!
             it.accept(this)
         }
-        appendLine("; %%% Constructors %%%")
+        appendHeader("Constructors")
         ctx.memberDeclarations.filterIsInstance<ConstructorDeclarationContext>().forEach { constructor ->
             currentConstructor =  currentClass!!.getDeclaredConstructor(constructor.parameters().toUniqueVariables(typeResolver).map { it.type })!!
             constructor.accept(this)
         }
         // TODO: generate default constructor if needed
-        appendLine("; %%% Methods %%%")
+        appendHeader("Methods")
         ctx.memberDeclarations.filterIsInstance<MethodDeclarationContext>().forEach { method ->
             currentMethod = currentClass!!.getDeclaredMethod(method.identifier().text, method.parameters().toUniqueVariables(typeResolver).map { it.type })!!
             method.accept(this)
@@ -152,7 +162,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     private fun generateBooleanExpression(ctx: ExpressionContext) {
         ctx.accept(this)
-        appendLine("getfield com/vasc/Boolean Z;")
+        appendLine("getfield $booleanClass Z")
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
@@ -195,29 +205,37 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
-        appendLine("; TODO: primary expression") // TODO
+        ctx.primary().accept(this)
     }
 
 // PRIMARY
 
     override fun visitRealLiteral(ctx: RealLiteralContext) {
-        appendLine("; TODO: new Real") // TODO
+        appendLine("new $integerClass")
+        appendLine("ldc2_w ${ctx.text}")
+        appendLine("invokespecial $integerClass/<init>(D)V")
     }
 
     override fun visitIntegerLiteral(ctx: IntegerLiteralContext) {
-        appendLine("; TODO: new Integer") // TODO
+        appendLine("new $integerClass")
+        appendLine("ldc2_w ${ctx.text}")
+        appendLine("invokespecial $integerClass/<init>(J)V")
     }
 
     override fun visitFalseLiteral(ctx: FalseLiteralContext) {
-        appendLine("; TODO: new Boolean(false)") // TODO
+        appendLine("new $booleanClass")
+        appendLine("iconst_0")
+        appendLine("invokespecial $booleanClass/<init>(Z)V")
     }
 
     override fun visitTrueLiteral(ctx: TrueLiteralContext) {
-        appendLine("; TODO: new Boolean(true)") // TODO
+        appendLine("new $booleanClass")
+        appendLine("iconst_1")
+        appendLine("invokespecial $booleanClass/<init>(Z)V")
     }
 
     override fun visitNullLiteral(ctx: NullLiteralContext) {
-        appendLine("; TODO: null") // TODO
+        appendLine("aconst_null")
     }
 
 }
