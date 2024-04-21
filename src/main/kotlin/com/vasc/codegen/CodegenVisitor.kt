@@ -247,7 +247,9 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             appendLine("getfield ${currentClass!!.toJType()}/${field.name} ${field.type}", "read field $field")
             nextCallType = field.type
         }
-        super.visitVariableExpression(ctx)
+        ctx.dotCall().forEach {
+            it.accept(this)
+        }
     }
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
@@ -273,7 +275,9 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             appendLine("invokespecial $call", "new $cls$constructor")
             nextCallType = cls
         }
-        super.visitCallableExpression(ctx)
+        ctx.dotCall().forEach {
+            it.accept(this)
+        }
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
