@@ -69,7 +69,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         fieldsInitCode.clear()
 
         currentClass = typeResolver.visit(ctx.name) as VascClass
-        appendLine(".class public ${currentClass!!.toJType()}")
+        appendLine(".class public ${currentClass!!.toJName()}")
         if (currentClass!!.parent == null) {
             appendLine(".super java/lang/Object")
         } else {
