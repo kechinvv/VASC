@@ -213,7 +213,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     override fun visitRealLiteral(ctx: RealLiteralContext) {
         appendLine("new $integerClass")
         appendLine("ldc2_w ${ctx.text}")
-        appendLine("invokespecial $integerClass/<init>(D)V")
+        appendLine("invokespecial $realClass/<init>(D)V")
     }
 
     override fun visitIntegerLiteral(ctx: IntegerLiteralContext) {
