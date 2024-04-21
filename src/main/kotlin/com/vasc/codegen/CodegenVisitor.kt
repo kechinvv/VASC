@@ -52,10 +52,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     private var currentClass: VascClass? = null
-    private var currentClassName: String? = null
     private var currentField: VascVariable? = null
     private var currentConstructor: VascConstructor? = null
     private var currentMethod: VascMethod? = null
+
+    private var nextCallType: VascType? = null
 
     private val variableStack = mutableListOf<VascVariable>()
 
@@ -68,8 +69,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         fieldsInitCode.clear()
 
         currentClass = typeResolver.visit(ctx.name) as VascClass
-        currentClassName = "$classPrefix${currentClass!!.name}"
-        appendLine(".class public $currentClassName")
+        appendLine(".class public ${currentClass!!.toJType()}")
         if (currentClass!!.parent == null) {
             appendLine(".super java/lang/Object")
         } else {
@@ -202,12 +202,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         ctx.expression().accept(this)
         val name = ctx.identifier().text
-        val stackIndex = variableStack.indexOfFirst { it.name == name } // TODO: putfield if not local var
+        val stackIndex = variableStack.indexOfFirst { it.name == name }
         if (stackIndex > 0) {
             appendLine("astore $stackIndex", "assign $name")
         } else {
             val field = currentClass!!.getField(name)!!
-            appendLine("putfield $currentClassName/${field.name} ${field.type}", "assign field $field")
+            appendLine("putfield ${currentClass!!.toJType()}/${field.name} ${field.type}", "assign field $field")
         }
     }
 
@@ -237,7 +237,17 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 // EXPRESSIONS
 
     override fun visitVariableExpression(ctx: VariableExpressionContext) {
-        appendLine("; TODO: variable expression") // TODO
+        val name = ctx.identifier().text
+        val stackIndex = variableStack.indexOfFirst { it.name == name }
+        if (stackIndex > 0) {
+            appendLine("aload $stackIndex", "read $name")
+            nextCallType = variableStack[stackIndex].type
+        } else {
+            val field = currentClass!!.getField(name)!!
+            appendLine("getfield ${currentClass!!.toJType()}/${field.name} ${field.type}", "read field $field")
+            nextCallType = field.type
+        }
+        super.visitVariableExpression(ctx)
     }
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
@@ -254,6 +264,15 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
         ctx.primary().accept(this)
+    }
+
+    override fun visitFieldAccess(ctx: FieldAccessContext) {
+        val field = nextCallType!!.getField(ctx.identifier().text)
+        appendLine("getfield ${nextCallType!!.toJType()}/${field!!.name} ${field.type}", "read field $field")
+    }
+
+    override fun visitMethodCall(ctx: MethodCallContext) {
+        appendLine("; TODO: method call")
     }
 
 // PRIMARY
