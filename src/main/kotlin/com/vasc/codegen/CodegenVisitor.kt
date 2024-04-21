@@ -40,7 +40,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     private fun appendLine(line: String) {
-        classCode.appendLine(" ".repeat(indent) + line)
+        classCode.appendLine(" ".repeat(indent) + line) // TODO: add ".line" to trace the source code
     }
 
     private fun appendHeader(header: String) {
@@ -194,7 +194,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         ctx.expression().accept(this)
         val name = ctx.identifier().text
-        val stackIndex = variableStack.indexOfFirst { it.name == name }
+        val stackIndex = variableStack.indexOfFirst { it.name == name } // TODO: putfield if not local var
         appendLine("astore $stackIndex")
     }
 
