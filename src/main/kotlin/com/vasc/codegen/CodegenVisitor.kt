@@ -269,6 +269,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     override fun visitFieldAccess(ctx: FieldAccessContext) {
         val field = nextCallType!!.getField(ctx.identifier().text)
         appendLine("getfield ${nextCallType!!.toJType()}/${field!!.name} ${field.type}", "read field $field")
+        nextCallType = field.type
     }
 
     override fun visitMethodCall(ctx: MethodCallContext) {
