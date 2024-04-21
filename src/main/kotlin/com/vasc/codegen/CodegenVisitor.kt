@@ -52,6 +52,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     private var currentConstructor: VascConstructor? = null
     private var currentMethod: VascMethod? = null
 
+    private val variableStack = mutableListOf<VascVariable>()
+
     private val fieldsInitCode = mutableListOf<String>()
 
 // CLASS
@@ -100,32 +102,51 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public <init>($params)V")
+
         indent += indentStep
+
         appendLine(".limit stack 32") // TODO: calculate limits
         appendLine(".limit locals 32")
+
         // TODO: add field inits
         // TODO: add super call if not in body
+
+        variableStack.clear()
+        variableStack.add(VascVariable("this", currentClass!!))
+        variableStack.addAll(currentConstructor!!.parameters)
         ctx.body().accept(this)
         appendLine("return") // TODO: add return only if needed
+
         indent -= indentStep
+
         appendLine(".end method")
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
         val params = currentMethod!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}")
+
         indent += indentStep
+
         appendLine(".limit stack 32")
         appendLine(".limit locals 32")
+
+        variableStack.clear()
+        variableStack.add(VascVariable("this", currentClass!!))
+        variableStack.addAll(currentMethod!!.parameters)
         ctx.body().accept(this)
-        appendLine("return")
+        appendLine("return") // TODO: add return only if needed
+
         indent -= indentStep
+
         appendLine(".end method")
     }
 
     override fun visitBody(ctx: BodyContext) {
         indent += indentStep
+        val stackSize = variableStack.size
         super.visitBody(ctx)
+        variableStack.dropLast(variableStack.size - stackSize)
         indent -= indentStep
     }
 
@@ -171,7 +192,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
-        appendLine("; TODO: assign") // TODO
+        ctx.expression().accept(this)
+        val name = ctx.identifier().text
+        val stackIndex = variableStack.indexOfFirst { it.name == name }
+        appendLine("astore $stackIndex")
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
@@ -179,7 +203,17 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitVariableStatement(ctx: VariableStatementContext) {
-        appendLine("; TODO: variable") // TODO
+        ctx.variableDeclaration().let {
+            val name = ctx.variableDeclaration().identifier().text
+            val type = typeResolver.visit(ctx.variableDeclaration().className())
+            variableStack.add(VascVariable(name, type))
+            if (it.expression() == null) {
+                appendLine("aconst_null")
+            } else {
+                it.expression().accept(this)
+            }
+            appendLine("astore ${variableStack.size-1}")
+        }
     }
 
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
