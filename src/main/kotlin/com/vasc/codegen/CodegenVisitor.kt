@@ -214,7 +214,9 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 appendLine("astore $stackIndex", "assign $name")
             } else {
                 val field = currentClass!!.getField(name)!!
-                appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "assign field $field")
+                appendLine("aload 0", "load this")
+                appendLine("swap")
+                appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "assign field $field")
             }
         }
     }
@@ -231,7 +233,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                     nextCallType = variableStack[stackIndex].type
                 } else {
                     val field = currentClass!!.getField(name)!!
-                    appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "read field $field")
+                    appendLine("aload 0", "load this")
+                    appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $field")
                 }
                 appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
             } else {
@@ -281,7 +284,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             nextCallType = variableStack[stackIndex].type
         } else {
             val field = currentClass!!.getField(name)!!
-            appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "read field $field")
+            appendLine("aload 0", "load this")
+            appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $field")
             nextCallType = field.type
         }
         ctx.dotCall().forEach {
@@ -362,7 +366,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitFieldAccess(ctx: FieldAccessContext) {
         val field = nextCallType!!.getField(ctx.identifier().text)
-        appendLine("getfield ${nextCallType!!.toJName()}/${field!!.name} ${field.type}", "read field $field")
+        appendLine("getfield ${nextCallType!!.toJName()}/${field!!.name} ${field.type.toJType()}", "read field $field")
         nextCallType = field.type
     }
 
