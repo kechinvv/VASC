@@ -43,6 +43,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         classCode.appendLine(" ".repeat(indent) + line) // TODO: add ".line" to trace the source code
     }
 
+    private fun appendLine(line: String, comment: String) {
+        appendLine("$line\t\t;/// ${comment.replace("\n", "|")}")
+    }
+
     private fun appendHeader(header: String) {
         classCode.appendLine("; %%% $header %%%")
     }
@@ -95,13 +99,13 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
-        appendLine(".field public ${currentField!!.name} ${currentField!!.type.toJType()}")
+        appendLine(".field public ${currentField!!.name} ${currentField!!.type.toJType()}", currentField!!.toString())
         // TODO: generate field init code
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
-        appendLine(".method public <init>($params)V")
+        appendLine(".method public <init>($params)V", currentConstructor!!.toString())
 
         indent += indentStep
 
@@ -120,11 +124,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         indent -= indentStep
 
         appendLine(".end method")
+        appendLine()
     }
 
     override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
         val params = currentMethod!!.parameters.joinToString("") { it.type.toJType() }
-        appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}")
+        appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}", currentMethod!!.toString())
 
         indent += indentStep
 
@@ -140,6 +145,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         indent -= indentStep
 
         appendLine(".end method")
+        appendLine()
     }
 
     override fun visitBody(ctx: BodyContext) {
@@ -188,14 +194,14 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         ctx.expression()?.accept(this)
-        appendLine("return")
+        appendLine("return", ctx.expression()?.text.toString() ?: "")
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
         ctx.expression().accept(this)
         val name = ctx.identifier().text
         val stackIndex = variableStack.indexOfFirst { it.name == name } // TODO: putfield if not local var
-        appendLine("astore $stackIndex")
+        appendLine("astore $stackIndex", "assign $name")
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
@@ -206,13 +212,14 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
         ctx.variableDeclaration().let {
             val name = ctx.variableDeclaration().identifier().text
             val type = typeResolver.visit(ctx.variableDeclaration().className())
-            variableStack.add(VascVariable(name, type))
+            val varr = VascVariable(name, type)
+            variableStack.add(varr)
             if (it.expression() == null) {
                 appendLine("aconst_null")
             } else {
                 it.expression().accept(this)
             }
-            appendLine("astore ${variableStack.size-1}")
+            appendLine("astore ${variableStack.size-1}", "init $varr")
         }
     }
 
@@ -245,7 +252,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 // PRIMARY
 
     override fun visitRealLiteral(ctx: RealLiteralContext) {
-        appendLine("new $integerClass")
+        appendLine("new $realClass")
         appendLine("dup")
         appendLine("ldc2_w ${ctx.text}")
         appendLine("invokespecial $realClass/<init>(D)V")
