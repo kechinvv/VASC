@@ -183,7 +183,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
-        appendLine("; TODO: expression") // TODO
+        ctx.expression().accept(this)
     }
 
 // EXPRESSIONS
@@ -212,24 +212,28 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 
     override fun visitRealLiteral(ctx: RealLiteralContext) {
         appendLine("new $integerClass")
+        appendLine("dup")
         appendLine("ldc2_w ${ctx.text}")
         appendLine("invokespecial $realClass/<init>(D)V")
     }
 
     override fun visitIntegerLiteral(ctx: IntegerLiteralContext) {
         appendLine("new $integerClass")
+        appendLine("dup")
         appendLine("ldc2_w ${ctx.text}")
         appendLine("invokespecial $integerClass/<init>(J)V")
     }
 
     override fun visitFalseLiteral(ctx: FalseLiteralContext) {
         appendLine("new $booleanClass")
+        appendLine("dup")
         appendLine("iconst_0")
         appendLine("invokespecial $booleanClass/<init>(Z)V")
     }
 
     override fun visitTrueLiteral(ctx: TrueLiteralContext) {
         appendLine("new $booleanClass")
+        appendLine("dup")
         appendLine("iconst_1")
         appendLine("invokespecial $booleanClass/<init>(Z)V")
     }
