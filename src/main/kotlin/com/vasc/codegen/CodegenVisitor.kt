@@ -265,7 +265,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             nextCallType = variableStack[stackIndex].type
         } else {
             val field = currentClass!!.getField(name)!!
-            appendLine("getfield ${currentClass!!.toJType()}/${field.name} ${field.type}", "read field $field")
+            appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "read field $field")
             nextCallType = field.type
         }
         ctx.dotCall().forEach {
@@ -293,7 +293,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 it.accept(this)
             }
             val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
-            appendLine("invokespecial $call", "new $cls$constructor")
+            appendLine("invokespecial $call", "new $cls.$constructor")
             nextCallType = cls
         }
         ctx.dotCall().forEach {
@@ -315,7 +315,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 it.accept(this)
             }
             val call = "${currentClass!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
-            appendLine("invokespecial $call", "call constructor $currentClass$constructor")
+            appendLine("invokespecial $call", "call constructor $currentClass.$constructor")
             nextCallType = VascVoid
         }
     }
@@ -335,7 +335,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 it.accept(this)
             }
             val call = "${cls.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
-            appendLine("invokespecial $call", "call parent constructor $cls$constructor")
+            appendLine("invokespecial $call", "call parent constructor $cls.$constructor")
             nextCallType = VascVoid
         }
     }
