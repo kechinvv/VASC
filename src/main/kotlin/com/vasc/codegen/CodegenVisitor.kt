@@ -40,7 +40,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     private fun appendLine(line: String) {
-        classCode.appendLine(" ".repeat(indent) + line) // TODO: add ".line" to trace the source code
+        classCode.appendLine(" ".repeat(indent) + line)
     }
 
     private fun appendLine(line: String, comment: String) {
@@ -161,32 +161,36 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 // STATEMENTS
 
     override fun visitIfStatement(ctx: IfStatementContext) {
-        val endLabel = "If_End_${ctx.pos()}"
-        val elseLabel = "If_Else_${ctx.pos()}"
-        generateBooleanExpression(ctx.condition)
-        if (ctx.elseBody != null) {
-            appendLine("ifne $elseLabel")
-            ctx.thenBody.accept(this)
-            appendLine("goto $endLabel")
-            appendLine("$elseLabel:")
-            ctx.thenBody.accept(this)
-            appendLine("$endLabel:")
-        } else {
-            appendLine("ifne $endLabel")
-            ctx.thenBody.accept(this)
-            appendLine("$endLabel:")
+        withLineInfo(ctx.start.line) {
+            val endLabel = "If_End_${ctx.pos()}"
+            val elseLabel = "If_Else_${ctx.pos()}"
+            generateBooleanExpression(ctx.condition)
+            if (ctx.elseBody != null) {
+                appendLine("ifne $elseLabel")
+                ctx.thenBody.accept(this)
+                appendLine("goto $endLabel")
+                appendLine("$elseLabel:")
+                ctx.thenBody.accept(this)
+                appendLine("$endLabel:")
+            } else {
+                appendLine("ifne $endLabel")
+                ctx.thenBody.accept(this)
+                appendLine("$endLabel:")
+            }
         }
     }
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
-        val condLabel = "While_Cond_${ctx.pos()}"
-        val endLabel = "While_End_${ctx.pos()}"
-        appendLine("$condLabel:")
-        generateBooleanExpression(ctx.condition)
-        appendLine("ifne $endLabel")
-        ctx.body().accept(this)
-        appendLine("goto $condLabel")
-        appendLine("$endLabel:")
+        withLineInfo(ctx.start.line) {
+            val condLabel = "While_Cond_${ctx.pos()}"
+            val endLabel = "While_End_${ctx.pos()}"
+            appendLine("$condLabel:")
+            generateBooleanExpression(ctx.condition)
+            appendLine("ifne $endLabel")
+            ctx.body().accept(this)
+            appendLine("goto $condLabel")
+            appendLine("$endLabel:")
+        }
     }
 
     private fun generateBooleanExpression(ctx: ExpressionContext) {
@@ -195,43 +199,60 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
-        ctx.expression()?.accept(this)
-        appendLine("return", ctx.expression()?.text.toString() ?: "")
+        withLineInfo(ctx.start.line) {
+            ctx.expression()?.accept(this)
+            appendLine("return", ctx.expression()?.text.toString() ?: "<void>")
+        }
     }
 
     override fun visitAssignStatement(ctx: AssignStatementContext) {
-        ctx.expression().accept(this)
-        val name = ctx.identifier().text
-        val stackIndex = variableStack.indexOfFirst { it.name == name }
-        if (stackIndex > 0) {
-            appendLine("astore $stackIndex", "assign $name")
-        } else {
-            val field = currentClass!!.getField(name)!!
-            appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "assign field $field")
+        withLineInfo(ctx.start.line) {
+            ctx.expression().accept(this)
+            val name = ctx.identifier().text
+            val stackIndex = variableStack.indexOfFirst { it.name == name }
+            if (stackIndex > 0) {
+                appendLine("astore $stackIndex", "assign $name")
+            } else {
+                val field = currentClass!!.getField(name)!!
+                appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type}", "assign field $field")
+            }
         }
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
-        appendLine("; TODO: print") // TODO
+        withLineInfo(ctx.start.line) {
+            appendLine("; TODO: print") // TODO
+        }
     }
 
     override fun visitVariableStatement(ctx: VariableStatementContext) {
-        ctx.variableDeclaration().let {
-            val name = ctx.variableDeclaration().identifier().text
-            val type = typeResolver.visit(ctx.variableDeclaration().className())
-            val varr = VascVariable(name, type)
-            variableStack.add(varr)
-            if (it.expression() == null) {
-                appendLine("aconst_null")
-            } else {
-                it.expression().accept(this)
+        withLineInfo(ctx.start.line) {
+            ctx.variableDeclaration().let {
+                val name = ctx.variableDeclaration().identifier().text
+                val type = typeResolver.visit(ctx.variableDeclaration().className())
+                val varr = VascVariable(name, type)
+                variableStack.add(varr)
+                if (it.expression() == null) {
+                    appendLine("aconst_null")
+                } else {
+                    it.expression().accept(this)
+                }
+                appendLine("astore ${variableStack.size-1}", "init $varr")
             }
-            appendLine("astore ${variableStack.size-1}", "init $varr")
         }
     }
 
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
-        ctx.expression().accept(this)
+        withLineInfo(ctx.start.line) {
+            ctx.expression().accept(this)
+        }
+    }
+
+    private fun withLineInfo(line: Int, action: () -> Unit) {
+        appendLine(".line $line")
+        indent += indentStep
+        action()
+        indent -= indentStep
     }
 
 // EXPRESSIONS
