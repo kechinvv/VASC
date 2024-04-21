@@ -160,10 +160,14 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
 private fun VascType.toJType(): String {
     return when (this) {
         is VascVoid -> "V"
-        is VascReal -> "D"
-        is VascInteger -> "J"
-        is VascBoolean -> "Z"
-        is VascClass -> "L$classPrefix$name;" // TODO: fix generics
+        is VascClass -> {
+            val typeParamIndex = name.indexOf("[")
+            var name = name
+            if (typeParamIndex > 0) {
+                name = name.substring(0, typeParamIndex)
+            }
+            "L$classPrefix$name;"
+        }
         else -> throw IllegalArgumentException(this.toString())
     }
 }
