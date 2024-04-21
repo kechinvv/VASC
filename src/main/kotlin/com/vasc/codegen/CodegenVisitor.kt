@@ -169,14 +169,56 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val err
     }
 
     override fun visitVariableStatement(ctx: VariableStatementContext) {
-        appendLine("; TODO: variable")
+        appendLine("; TODO: variable") // TODO
     }
 
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
-        appendLine("; TODO: expression")
+        appendLine("; TODO: expression") // TODO
     }
 
 // EXPRESSIONS
+
+    override fun visitVariableExpression(ctx: VariableExpressionContext) {
+        appendLine("; TODO: variable expression") // TODO
+    }
+
+    override fun visitCallableExpression(ctx: CallableExpressionContext) {
+        appendLine("; TODO: callable expression") // TODO
+    }
+
+    override fun visitThisExpression(ctx: ThisExpressionContext) {
+        appendLine("; TODO: this expression") // TODO
+    }
+
+    override fun visitSuperExpression(ctx: SuperExpressionContext) {
+        appendLine("; TODO: super expression") // TODO
+    }
+
+    override fun visitPrimaryExpression(ctx: PrimaryExpressionContext) {
+        appendLine("; TODO: primary expression") // TODO
+    }
+
+// PRIMARY
+
+    override fun visitRealLiteral(ctx: RealLiteralContext) {
+        appendLine("; TODO: new Real") // TODO
+    }
+
+    override fun visitIntegerLiteral(ctx: IntegerLiteralContext) {
+        appendLine("; TODO: new Integer") // TODO
+    }
+
+    override fun visitFalseLiteral(ctx: FalseLiteralContext) {
+        appendLine("; TODO: new Boolean(false)") // TODO
+    }
+
+    override fun visitTrueLiteral(ctx: TrueLiteralContext) {
+        appendLine("; TODO: new Boolean(true)") // TODO
+    }
+
+    override fun visitNullLiteral(ctx: NullLiteralContext) {
+        appendLine("; TODO: null") // TODO
+    }
 
 }
 
