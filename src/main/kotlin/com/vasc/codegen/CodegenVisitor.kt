@@ -240,7 +240,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         val name = ctx.identifier().text
         val stackIndex = variableStack.indexOfFirst { it.name == name }
         if (stackIndex > 0) {
-            appendLine("aload $stackIndex", "read $name")
+            appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
             nextCallType = variableStack[stackIndex].type
         } else {
             val field = currentClass!!.getField(name)!!
