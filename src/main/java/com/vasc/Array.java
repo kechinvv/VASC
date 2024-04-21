@@ -1,15 +1,12 @@
 package com.vasc;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Array<T> {
-    private final ArrayList<T> value;
+    private final T[] value;
 
     public Array(int length) {
-        this.value = new ArrayList<>(length);
-        for (int i = 0; i < length; i++) {
-            value.add(null);
-        }
+        this.value = (T[]) new Object[length];
     }
 
     public com.vasc.List toList() {
@@ -17,19 +14,19 @@ public class Array<T> {
     }
 
     public com.vasc.Integer length() {
-        return new Integer(value.size());
+        return new Integer(value.length);
     }
 
     public T get(com.vasc.Integer index) {
-        return value.get((int) index.value);
+        return value[(int) index.value];
     }
 
     public void set(com.vasc.Integer index, T v) {
-        value.set((int) index.value, v);
+        value[(int) index.value] = v;
     }
 
     @Override
     public String toString() {
-        return value.toString();
+        return Arrays.toString(value);
     }
 }
