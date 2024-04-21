@@ -251,7 +251,29 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitCallableExpression(ctx: CallableExpressionContext) {
-        appendLine("; TODO: callable expression") // TODO
+        val arguments = ctx.arguments().expression().map { typeTable[it]!! }
+        val method = nextCallType!!.getMethod(ctx.className().text, arguments)
+        if (method != null) {
+            appendLine("aload 0", "load this")
+            ctx.arguments().expression().forEach {
+                it.accept(this)
+            }
+            val call = "${currentClass!!.toJName()}/${method.name}(${arguments.joinToString("") { it.toJType() }})${method.returnType.toJType()}"
+            appendLine("invokevirtual $call", "call this.$method")
+            nextCallType = method.returnType
+        } else {
+            val cls = typeResolver.visit(ctx.className())
+            val constructor = cls.getDeclaredConstructor(arguments)
+            appendLine("new ${cls.toJName()}")
+            appendLine("dup")
+            ctx.arguments().expression().forEach {
+                it.accept(this)
+            }
+            val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            appendLine("invokespecial $call", "new $cls$constructor")
+            nextCallType = cls
+        }
+        super.visitCallableExpression(ctx)
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
