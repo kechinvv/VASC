@@ -234,7 +234,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 } else {
                     val field = currentClass!!.getField(name)!!
                     appendLine("aload 0", "load this")
-                    appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $field")
+                    instrGetField(currentClass!!, field)
                 }
                 appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
             } else {
@@ -285,7 +285,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         } else {
             val field = currentClass!!.getField(name)!!
             appendLine("aload 0", "load this")
-            appendLine("getfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $field")
+            instrGetField(currentClass!!, field)
             nextCallType = field.type
         }
         ctx.dotCall().forEach {
@@ -366,7 +366,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitFieldAccess(ctx: FieldAccessContext) {
         val field = nextCallType!!.getField(ctx.identifier().text)
-        appendLine("getfield ${nextCallType!!.toJName()}/${field!!.name} ${field.type.toJType()}", "read field $field")
+        instrGetField(nextCallType as VascClass, field!!)
         nextCallType = field.type
     }
 
@@ -417,6 +417,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         appendLine("aconst_null")
     }
 
+// HELPERS
+
+    private fun instrGetField(cls: VascClass, field: VascVariable) {
+        appendLine("getfield ${nextCallType!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $cls.$field")
+    }
+    
 }
 
 private fun removeGenericInfo(name: String): String {
