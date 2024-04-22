@@ -216,7 +216,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 val field = currentClass!!.getField(name)!!
                 appendLine("aload 0", "load this")
                 appendLine("swap")
-                appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "assign field $field")
+                instrPutField(field)
             }
         }
     }
@@ -422,7 +422,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     private fun instrGetField(cls: VascClass, field: VascVariable) {
         appendLine("getfield ${nextCallType!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $cls.$field")
     }
-    
+
+    private fun instrPutField(field: VascVariable) {
+        appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "assign field $currentClass.$field")
+    }
+
 }
 
 private fun removeGenericInfo(name: String): String {
