@@ -424,7 +424,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 // HELPERS
 
     private fun instrGetField(cls: VascClass, field: VascVariable) {
-        appendLine("getfield ${nextCallType!!.toJName()}/${field.name} ${field.type.toJType()}", "read field $cls.$field")
+        appendLine("getfield ${cls.toJName()}/${field.name} ${field.type.toJType()}", "read field $cls.$field")
     }
 
     private fun instrPutField(field: VascVariable) {
