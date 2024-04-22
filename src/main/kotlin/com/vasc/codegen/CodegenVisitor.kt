@@ -200,8 +200,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         withLineInfo(ctx.start.line) {
-            ctx.expression()?.accept(this)
-            appendLine("areturn", ctx.expression()?.text.toString() ?: "<void>")
+            if (currentMethod!!.returnType == VascVoid) {
+                appendLine("return")
+            } else {
+                ctx.expression().accept(this)
+                appendLine("areturn", ctx.expression().text.toString())
+            }
         }
     }
 
