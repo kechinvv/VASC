@@ -346,7 +346,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         if (ctx.arguments() == null) {
-            nextCallType = currentClass!!.parent!!
+            nextCallType = currentClass!!.parent!! // TODO: use invokespecial for next call
             ctx.dotCall().forEach {
                 it.accept(this)
             }
