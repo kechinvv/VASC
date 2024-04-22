@@ -218,7 +218,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 appendLine("astore $stackIndex", "assign $name")
             } else {
                 val field = currentClass!!.getField(name)!!
-                appendLine("aload 0", "load this")
+                instrLoadThis()
                 appendLine("swap")
                 instrPutField(field)
             }
@@ -237,7 +237,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                     nextCallType = variableStack[stackIndex].type
                 } else {
                     val field = currentClass!!.getField(name)!!
-                    appendLine("aload 0", "load this")
+                    instrLoadThis()
                     instrGetField(currentClass!!, field)
                 }
                 appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
@@ -288,7 +288,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             nextCallType = variableStack[stackIndex].type
         } else {
             val field = currentClass!!.getField(name)!!
-            appendLine("aload 0", "load this")
+            instrLoadThis()
             instrGetField(currentClass!!, field)
             nextCallType = field.type
         }
@@ -301,7 +301,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         val arguments = ctx.arguments().expression().map { typeTable[it]!! }
         val method = currentClass!!.getMethod(ctx.className().text, arguments)
         if (method != null) {
-            appendLine("aload 0", "load this")
+            instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
@@ -334,7 +334,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         } else {
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
             val constructor = currentClass!!.getDeclaredConstructor(arguments)
-            appendLine("aload 0", "load this")
+            instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
@@ -354,7 +354,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
             val constructor = currentClass!!.getDeclaredConstructor(arguments)
             val cls = currentClass!!.parent!!
-            appendLine("aload 0", "load this")
+            instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
@@ -429,6 +429,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     private fun instrPutField(field: VascVariable) {
         appendLine("putfield ${currentClass!!.toJName()}/${field.name} ${field.type.toJType()}", "assign field $currentClass.$field")
+    }
+
+    private fun instrLoadThis() {
+        appendLine("aload_0", "load this")
     }
 
 }
