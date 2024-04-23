@@ -14,8 +14,6 @@ private const val classPrefix = "com/vasc/"
 private const val booleanClass = classPrefix + "Boolean"
 private const val integerClass = classPrefix + "Integer"
 private const val realClass = classPrefix + "Real"
-private const val listClass = classPrefix + "List"
-private const val arrayClass = classPrefix + "Array"
 
 private const val defaultParent = "java/lang/Object"
 private const val erasedType = "L$defaultParent;"
@@ -35,6 +33,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     private val indentStep = 2
     private var indent = 0
+
+    private inline fun withIndent(action: () -> Unit) {
+        indent += indentStep
+        action()
+        indent -= indentStep
+    }
 
     private fun appendLine() {
         code.appendLine()
@@ -93,12 +97,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         if (indexOfDefault >= 0) {
             appendHeader("Main")
             appendLine(".method public static main([Ljava/lang/String;)V")
-            indent += indentStep
-            val className = currentClass!!.toJName()
-            appendLine("new $className")
-            appendLine("invokespecial $className/<init>()V")
-            appendLine("return")
-            indent -= indentStep
+            withIndent {
+                val className = currentClass!!.toJName()
+                appendLine("new $className")
+                appendLine("invokespecial $className/<init>()V")
+                appendLine("return")
+            }
             appendLine(".end method")
         }
         appendHeader("Constructors")
@@ -108,11 +112,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         }
         if (currentClass!!.declaredConstructors.isEmpty()) {
             appendLine(".method public <init>()V", "generated default constructor")
-            indent += indentStep
-            instrLoadThis()
-            appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
-            appendLine("return")
-            indent -= indentStep
+            withIndent {
+                instrLoadThis()
+                appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
+                appendLine("return")
+            }
             appendLine(".end method")
         }
         appendHeader("Methods")
@@ -139,36 +143,34 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public <init>($params)V", currentConstructor!!.toString())
+        withIndent {
+            appendLine(".limit stack 32") // TODO: calculate limits
+            appendLine(".limit locals 32")
+            appendLine()
 
-        indent += indentStep
-
-        appendLine(".limit stack 32") // TODO: calculate limits
-        appendLine(".limit locals 32")
-        appendLine()
-
-        if (fieldsInitCode.isNotEmpty()) {
-            appendHeader("Init Fields")
-            fieldsInitCode.forEach {
-                it.lines().forEach { line ->
-                    appendLine(line)
+            if (fieldsInitCode.isNotEmpty()) {
+                appendHeader("Init Fields")
+                fieldsInitCode.forEach {
+                    it.lines().forEach { line ->
+                        appendLine(line)
+                    }
                 }
             }
-        }
-        if (ctx.body().statement() !is SuperExpressionContext) {
-            indent += indentStep
-            instrLoadThis()
-            appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
-            indent -= indentStep
-        }
-        appendLine()
+            if (ctx.body().statement() !is SuperExpressionContext) {
+                withIndent {
+                    instrLoadThis()
+                    appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
+                }
+            }
+            appendLine()
 
-        variableStack.clear()
-        variableStack.add(VascVariable("this", currentClass!!))
-        variableStack.addAll(currentConstructor!!.parameters)
-        ctx.body().accept(this)
-        appendLine("return") // TODO: add return only if needed
+            variableStack.clear()
+            variableStack.add(VascVariable("this", currentClass!!))
+            variableStack.addAll(currentConstructor!!.parameters)
+            ctx.body().accept(this)
+            appendLine("return") // TODO: add return only if needed
+        }
 
-        indent -= indentStep
 
         appendLine(".end method")
         appendLine()
@@ -178,29 +180,27 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         val params = currentMethod!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}", currentMethod!!.toString())
 
-        indent += indentStep
+        withIndent {
+            appendLine(".limit stack 32")
+            appendLine(".limit locals 32")
 
-        appendLine(".limit stack 32")
-        appendLine(".limit locals 32")
-
-        variableStack.clear()
-        variableStack.add(VascVariable("this", currentClass!!))
-        variableStack.addAll(currentMethod!!.parameters)
-        ctx.body().accept(this)
-        appendLine("return") // TODO: add return only if needed
-
-        indent -= indentStep
+            variableStack.clear()
+            variableStack.add(VascVariable("this", currentClass!!))
+            variableStack.addAll(currentMethod!!.parameters)
+            ctx.body().accept(this)
+            appendLine("return") // TODO: add return only if needed
+        }
 
         appendLine(".end method")
         appendLine()
     }
 
     override fun visitBody(ctx: BodyContext) {
-        indent += indentStep
-        val stackSize = variableStack.size
-        super.visitBody(ctx)
-        variableStack.dropLast(variableStack.size - stackSize)
-        indent -= indentStep
+        withIndent {
+            val stackSize = variableStack.size
+            super.visitBody(ctx)
+            variableStack.dropLast(variableStack.size - stackSize)
+        }
     }
 
 // STATEMENTS
@@ -316,11 +316,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         }
     }
 
-    private fun withLineInfo(line: Int, action: () -> Unit) {
+    private inline fun withLineInfo(line: Int, action: () -> Unit) {
         appendLine(".line $line")
-        indent += indentStep
-        action()
-        indent -= indentStep
+        withIndent {
+            action()
+        }
     }
 
 // EXPRESSIONS
