@@ -13,5 +13,5 @@ fun main() {
     val parser = VascParser(tokens)
     val program = parser.program()
 
-    val typeResolver = makeTypeResolver(program, mutableListOf())
+    val typeResolver = createTypeResolver(program, mutableListOf())
 }

@@ -19,7 +19,7 @@ class TestValid {
             DynamicTest.dynamicTest(file.nameWithoutExtension) {
                 val program = programWithErrorListener(file)
                 val errors = mutableListOf<VascException>()
-                val typeResolver = makeTypeResolver(program, errors)
+                val typeResolver = createTypeResolver(program, errors)
                 val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
                 TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
                 ExhaustivenessCheck(typeResolver, errors).check(program)

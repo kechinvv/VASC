@@ -63,7 +63,7 @@ class TestInvalidChecks {
         return dynamicTest(file.nameWithoutExtension) {
             val program = programWithErrorListener(stream)
             val errors = mutableListOf<VascException>()
-            val typeResolver = makeTypeResolver(program, errors)
+            val typeResolver = createTypeResolver(program, errors)
             val typeTable: MutableMap<ParserRuleContext, VascType> = mutableMapOf()
             TypeCheck(errors, typeResolver, typeTable = typeTable).check(program)
 

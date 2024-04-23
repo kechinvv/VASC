@@ -33,7 +33,7 @@ class TestTypeCheck {
     private fun test(file: File, valid: Boolean) {
         val program = programWithErrorListener(file)
         val errors = mutableListOf<VascException>()
-        val typeResolver = makeTypeResolver(program, errors)
+        val typeResolver = createTypeResolver(program, errors)
         TypeCheck(errors, typeResolver).check(program)
         if (valid) {
             if (errors.isNotEmpty()) {
