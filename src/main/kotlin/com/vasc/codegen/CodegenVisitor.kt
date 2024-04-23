@@ -94,7 +94,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         val indexOfDefault = currentClass!!.declaredConstructors.indexOfFirst {
             it.parameters.isEmpty()
         }
-        if (indexOfDefault >= 0) {
+        if (indexOfDefault >= 0) { // TODO: pass main arguments to specific constructor
             appendHeader("Main")
             appendLine(".method public static main([Ljava/lang/String;)V")
             withIndent {
