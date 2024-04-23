@@ -41,7 +41,7 @@ private class ClassBuilder(
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         ctx.parentName?.accept(typeResolver)?.let { parent ->
-            if (parent.isAssignableFrom(vascClass)) {
+            if (vascClass.isAssignableFrom(parent)) {
                 errors.add(VascException("Cyclic inheritance involving '$className'"))
             } else {
                 vascClass.parent = parent
