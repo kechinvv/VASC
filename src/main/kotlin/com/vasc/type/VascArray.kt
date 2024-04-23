@@ -12,7 +12,7 @@ class VascArray(val genericType: VascType) : VascClass("Array[${genericType.name
     )
 
     override val declaredMethods: List<VascMethod> = listOf(
-        VascMethod("toList", emptyList(), genericType),
+        VascMethod("toList", emptyList(), VascList(genericType)),
         VascMethod("length", emptyList(), VascInteger),
         VascMethod("get", listOf("i" colon VascInteger), genericType),
         VascMethod("set", listOf("i" colon VascInteger, "v" colon genericType), VascVoid)

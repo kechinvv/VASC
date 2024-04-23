@@ -15,7 +15,6 @@ class VascList(val genericType: VascType) : VascClass("List[${genericType.name}]
 
     override val declaredMethods: List<VascMethod> = listOf(
         VascMethod("append", listOf("v" colon genericType), this),
-        VascMethod("append", listOf("v" colon genericType), this),
         VascMethod("head", emptyList(), genericType),
         VascMethod("tail", emptyList(), this),
         VascMethod("isEmpty", emptyList(), VascBoolean)
