@@ -106,7 +106,15 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             currentConstructor =  currentClass!!.getDeclaredConstructor(constructor.parameters().toUniqueVariables(typeResolver).map { it.type })!!
             constructor.accept(this)
         }
-        // TODO: generate default constructor if needed
+        if (currentClass!!.declaredConstructors.isEmpty()) {
+            appendLine(".method public <init>()V", "generated default constructor")
+            indent += indentStep
+            instrLoadThis()
+            appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
+            appendLine("return")
+            indent -= indentStep
+            appendLine(".end method")
+        }
         appendHeader("Methods")
         ctx.memberDeclarations.filterIsInstance<MethodDeclarationContext>().forEach { method ->
             currentMethod = currentClass!!.getDeclaredMethod(method.identifier().text, method.parameters().toUniqueVariables(typeResolver).map { it.type })!!
