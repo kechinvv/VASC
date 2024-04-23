@@ -121,7 +121,9 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         ctx.variableDeclaration().expression()?.let {
             val backupCode = code
             code = StringBuilder() // TODO: need a better solution
+            instrLoadThis()
             it.accept(this)
+            instrPutField(currentField!!)
             fieldsInitCode.add(code.toString())
             code = backupCode
         }
@@ -138,7 +140,6 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         appendLine()
 
         if (fieldsInitCode.isNotEmpty()) {
-            appendLine()
             appendHeader("Init Fields")
             fieldsInitCode.forEach {
                 it.lines().forEach { line ->
