@@ -7,6 +7,7 @@ import com.vasc.member.*
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
+import org.antlr.v4.runtime.ParserRuleContext
 
 fun createTypeResolver(ctx: ProgramContext, errors: MutableList<VascException>): VascTypeResolver {
     val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
@@ -54,7 +55,11 @@ private class ClassBuilder(
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         if (visited) return
 
-        ctx.parentName?.accept(typeResolver)?.let { parent ->
+        var parentType: VascType? = null
+        ctx.parentName?.let { idCtx ->
+            tryWithContext(idCtx) { parentType = it.accept(typeResolver) }
+        }
+        parentType?.let { parent ->
             if (vascClass.isAssignableFrom(parent)) {
                 errors.add(VascException("Cyclic inheritance involving '$className'", ctx.parentName))
             } else {
@@ -62,6 +67,7 @@ private class ClassBuilder(
                 parentTypeVisitor.invoke(parent)
             }
         }
+
         ctx.classBody().memberDeclarations.forEach {
             it.accept(this)
         }
@@ -69,30 +75,32 @@ private class ClassBuilder(
         visited = true
     }
 
-    override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
+    override fun visitFieldDeclaration(ctx: FieldDeclarationContext) = tryWithContext(ctx) {
         val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
-        if (!vascClass.addField(variable)) {
-            errors.add(VascException("Duplicate field '$className.${variable.name}'", ctx))
-        }
+        vascClass.addField(variable)
     }
 
-    override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
+    override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) = tryWithContext(ctx) {
         val constructor = VascConstructor(
             parameters = ctx.parameters().toUniqueVariables(typeResolver)
         )
-        if (!vascClass.addConstructor(constructor)) {
-            errors.add(VascException("Duplicate constructor '$className.$constructor'", ctx))
-        }
+        vascClass.addConstructor(constructor)
     }
 
-    override fun visitMethodDeclaration(ctx: MethodDeclarationContext) {
+    override fun visitMethodDeclaration(ctx: MethodDeclarationContext) = tryWithContext(ctx) {
         val method = VascMethod(
             name = ctx.identifier().text,
             parameters = ctx.parameters().toUniqueVariables(typeResolver),
             returnType = ctx.returnType?.accept(typeResolver) ?: VascVoid
         )
-        if (!vascClass.addMethod(method)) {
-            errors.add(VascException("Duplicate method '$className.${method.name}'", ctx))
+        vascClass.addMethod(method)
+    }
+
+    private inline fun tryWithContext(ctx: ParserRuleContext, block: (ParserRuleContext) -> Unit) {
+        try {
+            block(ctx)
+        } catch (e: VascException) {
+            errors.add(VascException(e.message, ctx))
         }
     }
 }
@@ -105,15 +113,21 @@ private class MutableVascClass(name: String) : VascClass(name) {
     override var declaredConstructors: MutableSet<VascConstructor> = mutableSetOf()
     override var declaredMethods: MutableSet<VascMethod> = mutableSetOf()
 
-    fun addField(variable: VascVariable): Boolean {
-        return declaredFields.add(variable)
+    fun addField(variable: VascVariable) {
+        if (!declaredFields.add(variable)) {
+            throw VascException("Duplicate field '$name.${variable.name}'")
+        }
     }
 
-    fun addConstructor(constructor: VascConstructor): Boolean {
-        return declaredConstructors.add(constructor)
+    fun addConstructor(constructor: VascConstructor) {
+        if (!declaredConstructors.add(constructor)) {
+            throw VascException("Duplicate constructor '$name.$constructor'")
+        }
     }
 
-    fun addMethod(method: VascMethod): Boolean {
-        return declaredMethods.add(method)
+    fun addMethod(method: VascMethod) {
+        if (!declaredMethods.add(method)) {
+            throw VascException("Duplicate method '$name.${method.name}'")
+        }
     }
 }
