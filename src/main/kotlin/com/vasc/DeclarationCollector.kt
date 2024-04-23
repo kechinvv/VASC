@@ -126,6 +126,12 @@ private class MutableVascClass(name: String) : VascClass(name) {
     }
 
     fun addMethod(method: VascMethod) {
+        // method is considered overridden if parameter types match exactly
+        parent?.methods?.find { method == it }?.let {
+            if (!it.returnType.isAssignableFrom(method.returnType)) {
+                throw VascException("Return type of '$name.$method' is incompatible with parent")
+            }
+        }
         if (!declaredMethods.add(method)) {
             throw VascException("Duplicate method '$name.${method.name}'")
         }
