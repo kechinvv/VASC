@@ -37,8 +37,16 @@ private class ClassBuilder(
     val errors: MutableList<VascException>,
 ) : VascParserBaseVisitor<Unit>() {
 
+    val className = vascClass.name
+
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        vascClass.parent = ctx.parentName?.accept(typeResolver)
+        ctx.parentName?.accept(typeResolver)?.let { parent ->
+            if (parent.isAssignableFrom(vascClass)) {
+                errors.add(VascException("Cyclic inheritance involving '$className'"))
+            } else {
+                vascClass.parent = parent
+            }
+        }
         ctx.classBody().memberDeclarations.forEach {
             it.accept(this)
         }
@@ -47,7 +55,7 @@ private class ClassBuilder(
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
         val variable = ctx.variableDeclaration().toVascVariable(typeResolver)
         if (!vascClass.addField(variable)) {
-            errors.add(VascException("Duplicate field: ${vascClass.name}.${variable.name}", ctx))
+            errors.add(VascException("Duplicate field '$className.${variable.name}'", ctx))
         }
     }
 
@@ -56,7 +64,7 @@ private class ClassBuilder(
             parameters = ctx.parameters().toUniqueVariables(typeResolver)
         )
         if (!vascClass.addConstructor(constructor)) {
-            errors.add(VascException("Duplicate constructor: ${vascClass.name}.$constructor", ctx))
+            errors.add(VascException("Duplicate constructor '$className.$constructor'", ctx))
         }
     }
 
@@ -67,7 +75,7 @@ private class ClassBuilder(
             returnType = ctx.returnType?.accept(typeResolver) ?: VascVoid
         )
         if (!vascClass.addMethod(method)) {
-            errors.add(VascException("Duplicate method: ${vascClass.name}.${method.name}", ctx))
+            errors.add(VascException("Duplicate method '$className.${method.name}'", ctx))
         }
     }
 }
