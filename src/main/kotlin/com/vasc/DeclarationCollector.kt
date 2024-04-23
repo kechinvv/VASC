@@ -24,9 +24,18 @@ fun createTypeResolver(ctx: ProgramContext, errors: MutableList<VascException>):
         classMap[it] ?: throw VascException("Unknown type: $it")
     }
 
-    namedDeclarations.forEach { (name, decl) ->
-        decl.accept(ClassBuilder(classMap[name]!!, typeResolver, errors))
+    val classBuilders = mutableMapOf<String, ClassBuilder>()
+    val classVisitor: (VascType) -> Unit = {
+        val decl = namedDeclarations[it.name]!!
+        val builder = classBuilders[it.name]!!
+        decl.accept(builder)
     }
+
+    classMap.mapValuesTo(classBuilders) { (_, vascClass) ->
+        ClassBuilder(vascClass, typeResolver, errors, classVisitor)
+    }
+
+    classMap.values.forEach(classVisitor)
 
     return typeResolver
 }
@@ -35,21 +44,29 @@ private class ClassBuilder(
     val vascClass: MutableVascClass,
     val typeResolver: VascTypeResolver,
     val errors: MutableList<VascException>,
+    val parentTypeVisitor: (VascType) -> Unit
 ) : VascParserBaseVisitor<Unit>() {
 
     val className = vascClass.name
 
+    private var visited = false
+
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
+        if (visited) return
+
         ctx.parentName?.accept(typeResolver)?.let { parent ->
             if (vascClass.isAssignableFrom(parent)) {
-                errors.add(VascException("Cyclic inheritance involving '$className'"))
+                errors.add(VascException("Cyclic inheritance involving '$className'", ctx.parentName))
             } else {
                 vascClass.parent = parent
+                parentTypeVisitor.invoke(parent)
             }
         }
         ctx.classBody().memberDeclarations.forEach {
             it.accept(this)
         }
+
+        visited = true
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
