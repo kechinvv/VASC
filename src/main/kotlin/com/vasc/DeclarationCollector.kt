@@ -101,21 +101,19 @@ private class MutableVascClass(name: String) : VascClass(name) {
 
     override var parent: VascType? = null
 
-    override var declaredFields: MutableList<VascVariable> = mutableListOf()
-    override var declaredConstructors: MutableList<VascConstructor> = mutableListOf()
-    override var declaredMethods: MutableList<VascMethod> = mutableListOf()
+    override var declaredFields: MutableSet<VascVariable> = mutableSetOf()
+    override var declaredConstructors: MutableSet<VascConstructor> = mutableSetOf()
+    override var declaredMethods: MutableSet<VascMethod> = mutableSetOf()
 
     fun addField(variable: VascVariable): Boolean {
-        return getDeclaredField(variable.name) == null && declaredFields.add(variable)
+        return declaredFields.add(variable)
     }
 
     fun addConstructor(constructor: VascConstructor): Boolean {
-        val types = getDeclaredConstructor(constructor.parameterTypes)?.parameterTypes
-        return types != constructor.parameterTypes && declaredConstructors.add(constructor)
+        return declaredConstructors.add(constructor)
     }
 
     fun addMethod(method: VascMethod): Boolean {
-        val types = getDeclaredMethod(method.name, method.parameterTypes)?.parameterTypes
-        return types != method.parameterTypes && declaredMethods.add(method)
+        return declaredMethods.add(method)
     }
 }

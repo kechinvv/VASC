@@ -6,14 +6,14 @@ open class VascClass(override val name: String) : VascType {
 
     override val parent: VascType? = null
 
-    override val declaredFields: List<VascVariable> = emptyList()
-    override val declaredConstructors: List<VascConstructor> = emptyList()
-    override val declaredMethods: List<VascMethod> = emptyList()
+    override val declaredFields: Collection<VascVariable> = emptySet()
+    override val declaredConstructors: Collection<VascConstructor> = emptySet()
+    override val declaredMethods: Collection<VascMethod> = emptySet()
 
-    override val fields: List<VascVariable>
+    override val fields: Collection<VascVariable>
         get() = declaredFields + (parent?.fields ?: emptyList())
 
-    override val methods: List<VascMethod>
+    override val methods: Collection<VascMethod>
         get() = declaredMethods + (parent?.methods ?: emptyList())
 
     override fun getDeclaredField(name: String): VascVariable? {
