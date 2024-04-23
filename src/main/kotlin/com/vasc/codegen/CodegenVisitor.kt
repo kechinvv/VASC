@@ -4,9 +4,7 @@ import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.VascException
-import com.vasc.member.VascConstructor
-import com.vasc.member.VascMethod
-import com.vasc.member.VascVariable
+import com.vasc.member.*
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
@@ -20,6 +18,7 @@ private const val listClass = classPrefix + "List"
 private const val arrayClass = classPrefix + "Array"
 
 private const val defaultParent = "java/lang/Object"
+private const val erasedType = "L$defaultParent;"
 
 private typealias ClassName = String
 private typealias ClassCode = String
@@ -343,8 +342,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${currentClass!!.toJName()}/${method.name}(${arguments.joinToString("") { it.toJType() }})${method.returnType.toJType()}" // TODO: generics should return object
-            appendLine("invokevirtual $call", "call this.$method")
+            callMethod(currentClass!!, method)
             nextCallType = method.returnType
         } else {
             val cls = typeResolver.visit(ctx.className())
@@ -416,13 +414,39 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         val name = ctx.identifier().text
         val arguments = ctx.arguments().expression().map { typeTable[it]!! }
         val cls = nextCallType!!
-        val method = nextCallType!!.getMethod(name, arguments)
+        val method = nextCallType!!.getMethod(name, arguments)!!
         ctx.arguments().expression().forEach {
             it.accept(this)
         }
-        val call = "${cls.toJName()}/$name(${arguments.joinToString("") { it.toJType() }})${method!!.returnType.toJType()}"
-        appendLine("invokevirtual $call", "call $cls.$method")
+        callMethod(cls, method)
         nextCallType = method.returnType
+    }
+
+    private fun callMethod(cls: VascType, method: VascMethod) {
+        val name = method.name
+        val call = when (method) {
+            is VascGenericMethod -> {
+                val arguments = method.maybeGenericParameters.joinToString("") {
+                    when (it) {
+                        is Generic -> erasedType
+                        is Concrete -> it.v.type.toJType()
+                    }
+                }
+                val ret = method.maybeGenericReturnType.let {
+                    when (it) {
+                        is Generic -> erasedType
+                        is Concrete -> it.v.toJType()
+                    }
+                }
+                "${cls.toJName()}/$name($arguments)$ret"
+            }
+            else -> {
+                val arguments = method.parameters.joinToString("") { it.type.toJType() }
+                val ret = method.returnType.toJType()
+                "${cls.toJName()}/$name($arguments)$ret"
+            }
+        }
+        appendLine("invokevirtual $call", "call $cls.$method")
     }
 
 // PRIMARY

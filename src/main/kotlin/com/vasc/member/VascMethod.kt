@@ -3,7 +3,7 @@ package com.vasc.member
 import com.vasc.type.VascType
 import com.vasc.type.VascVoid
 
-class VascMethod(
+open class VascMethod(
     val name: String,
     parameters: List<VascVariable>,
     val returnType: VascType
