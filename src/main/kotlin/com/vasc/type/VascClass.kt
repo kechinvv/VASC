@@ -48,4 +48,15 @@ open class VascClass(override val name: String) : VascType {
     }
 
     override fun toString() = name
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is VascClass) return false
+
+        return name == other.name
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }
