@@ -210,7 +210,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 ctx.elseBody.accept(this)
                 appendLine("$endLabel:")
             } else {
-                appendLine("ifne $endLabel")
+                appendLine("ifeq $endLabel")
                 ctx.thenBody.accept(this)
                 appendLine("$endLabel:")
             }
