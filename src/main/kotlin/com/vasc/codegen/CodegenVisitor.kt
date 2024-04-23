@@ -424,6 +424,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     private fun callMethod(cls: VascType, method: VascMethod) {
         val name = method.name
+        var needCast = false
         val call = when (method) {
             is VascGenericMethod -> {
                 val arguments = method.maybeGenericParameters.joinToString("") {
@@ -434,7 +435,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 }
                 val ret = method.maybeGenericReturnType.let {
                     when (it) {
-                        is Generic -> erasedType
+                        is Generic -> {
+                            needCast = true
+                            erasedType
+                        }
                         is Concrete -> it.v.toJType()
                     }
                 }
@@ -447,6 +451,9 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             }
         }
         appendLine("invokevirtual $call", "call $cls.$method")
+        if (needCast) {
+            appendLine("checkcast ${method.returnType.toJName()}")
+        }
     }
 
 // PRIMARY
