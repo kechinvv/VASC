@@ -5,12 +5,12 @@ import java.util.Arrays;
 public class Array<T> {
     private final T[] value;
 
-    public Array(int length) {
-        this.value = (T[]) new Object[length];
+    public Array(com.vasc.Integer length) {
+        this.value = (T[]) new Object[(int) length.value];
     }
 
-    public com.vasc.List toList() {
-        return new List<>(value);
+    public com.vasc.List<T> toList() {
+        return new List<>(Arrays.asList(value));
     }
 
     public com.vasc.Integer length() {
