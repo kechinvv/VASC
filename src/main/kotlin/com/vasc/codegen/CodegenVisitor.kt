@@ -83,6 +83,21 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitClassBody(ctx: ClassBodyContext) {
+        val indexOfDefault = currentClass!!.declaredConstructors.indexOfFirst {
+            it.parameters.isEmpty()
+        }
+        if (indexOfDefault >= 0) {
+            appendHeader("Main")
+            appendLine(".method public static main([Ljava/lang/String;)V")
+            indent += indentStep
+            val className = currentClass!!.toJName()
+            appendLine("new $className")
+            appendLine("invokespecial $className/<init>()V")
+            appendLine("return")
+            indent -= indentStep
+            appendLine(".end method")
+        }
+
         appendHeader("Fields")
         ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().map {
             currentField = currentClass!!.getDeclaredField(it.variableDeclaration().identifier().text)!!
