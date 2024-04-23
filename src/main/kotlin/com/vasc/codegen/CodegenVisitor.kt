@@ -19,6 +19,8 @@ private const val realClass = classPrefix + "Real"
 private const val listClass = classPrefix + "List"
 private const val arrayClass = classPrefix + "Array"
 
+private const val defaultParent = "java/lang/Object"
+
 private typealias ClassName = String
 private typealias ClassCode = String
 
@@ -71,7 +73,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         currentClass = typeResolver.visit(ctx.name) as VascClass
         appendLine(".class public ${currentClass!!.toJName()}")
         if (currentClass!!.parent == null) {
-            appendLine(".super java/lang/Object")
+            appendLine(".super $defaultParent")
         } else {
             appendLine(".super ${currentClass!!.parent!!.toJName()}")
         }
@@ -119,8 +121,10 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
         appendLine(".limit stack 32") // TODO: calculate limits
         appendLine(".limit locals 32")
+        appendLine()
 
         if (fieldsInitCode.isNotEmpty()) {
+            appendLine()
             appendHeader("Init Fields")
             fieldsInitCode.forEach {
                 it.lines().forEach { line ->
@@ -128,8 +132,13 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                 }
             }
         }
-        appendHeader("Call Super")
-        // TODO: add super call if not in body
+        if (ctx.body().statement() !is SuperExpressionContext) {
+            indent += indentStep
+            instrLoadThis()
+            appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
+            indent -= indentStep
+        }
+        appendLine()
 
         variableStack.clear()
         variableStack.add(VascVariable("this", currentClass!!))
