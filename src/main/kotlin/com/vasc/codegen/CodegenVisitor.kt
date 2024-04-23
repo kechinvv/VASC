@@ -30,17 +30,17 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         return generatedClasses
     }
 
-    private val classCode = StringBuilder()
+    private var code = StringBuilder()
 
     private val indentStep = 2
     private var indent = 0
 
     private fun appendLine() {
-        classCode.appendLine()
+        code.appendLine()
     }
 
     private fun appendLine(line: String) {
-        classCode.appendLine(" ".repeat(indent) + line)
+        code.appendLine(" ".repeat(indent) + line)
     }
 
     private fun appendLine(line: String, comment: String) {
@@ -48,7 +48,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     private fun appendHeader(header: String) {
-        classCode.appendLine("; %%% $header %%%")
+        appendLine("; %%% $header %%%")
     }
 
     private var currentClass: VascClass? = null
@@ -65,7 +65,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 // CLASS
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        classCode.clear()
+        code.clear()
         fieldsInitCode.clear()
 
         currentClass = typeResolver.visit(ctx.name) as VascClass
@@ -77,7 +77,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         }
         appendLine()
         ctx.classBody().accept(this)
-        generatedClasses[ctx.name.text] = classCode.toString()
+        generatedClasses[ctx.name.text] = code.toString()
     }
 
     override fun visitClassBody(ctx: ClassBodyContext) {
@@ -102,7 +102,13 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
         appendLine(".field public ${currentField!!.name} ${currentField!!.type.toJType()}", currentField!!.toString())
-        // TODO: generate field init code
+        ctx.variableDeclaration().expression()?.let {
+            val backupCode = code
+            code = StringBuilder() // TODO: need a better solution
+            it.accept(this)
+            fieldsInitCode.add(code.toString())
+            code = backupCode
+        }
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
@@ -114,7 +120,15 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         appendLine(".limit stack 32") // TODO: calculate limits
         appendLine(".limit locals 32")
 
-        // TODO: add field inits
+        if (fieldsInitCode.isNotEmpty()) {
+            appendHeader("Init Fields")
+            fieldsInitCode.forEach {
+                it.lines().forEach { line ->
+                    appendLine(line)
+                }
+            }
+        }
+        appendHeader("Call Super")
         // TODO: add super call if not in body
 
         variableStack.clear()
