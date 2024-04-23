@@ -83,6 +83,11 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitClassBody(ctx: ClassBodyContext) {
+        appendHeader("Fields")
+        ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().map {
+            currentField = currentClass!!.getDeclaredField(it.variableDeclaration().identifier().text)!!
+            it.accept(this)
+        }
         val indexOfDefault = currentClass!!.declaredConstructors.indexOfFirst {
             it.parameters.isEmpty()
         }
@@ -96,12 +101,6 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             appendLine("return")
             indent -= indentStep
             appendLine(".end method")
-        }
-
-        appendHeader("Fields")
-        ctx.memberDeclarations.filterIsInstance<FieldDeclarationContext>().map {
-            currentField = currentClass!!.getDeclaredField(it.variableDeclaration().identifier().text)!!
-            it.accept(this)
         }
         appendHeader("Constructors")
         ctx.memberDeclarations.filterIsInstance<ConstructorDeclarationContext>().forEach { constructor ->
