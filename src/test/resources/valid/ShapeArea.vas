@@ -57,12 +57,12 @@ class Rectangle extends Square is
     var h : Real
 
     this(_w: Real) is
-        w = _w
+        super(_w)
         h = _w
     end
 
     this(_w: Real, _h: Real) is
-        w = _w
+        super(_w)
         h = _h
     end
 

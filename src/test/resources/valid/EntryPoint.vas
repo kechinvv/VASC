@@ -1,0 +1,21 @@
+class Main is
+    this() is
+        println("no args")
+    end
+
+    this(i: Integer) is
+        println("integer")
+        println("$i")
+    end
+
+    this(r: Real) is
+        println("real")
+        println("$r")
+    end
+
+    this(i: Integer, b: Boolean) is
+        println("integer and boolean")
+        println("$i")
+        println("$b")
+    end
+end

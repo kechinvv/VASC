@@ -1,0 +1,5 @@
+class Main is
+    this() is
+        println("$a")
+    end
+end
