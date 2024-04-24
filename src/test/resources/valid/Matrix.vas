@@ -80,6 +80,7 @@ class Matrix is
             end
             x = x.plus(1)
         end
+        return res
     end
 
     method mulMatrixCell(m : Matrix, x : Integer, y : Integer) : Integer is
