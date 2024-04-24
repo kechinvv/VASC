@@ -52,7 +52,7 @@ open class VascClass(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is VascClass) return false
+        if (other !is VascType) return false
 
         return name == other.name
     }
