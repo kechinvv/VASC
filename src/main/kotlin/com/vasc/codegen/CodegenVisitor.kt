@@ -8,6 +8,8 @@ import com.vasc.member.*
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
+import kotlin.math.max
+import kotlin.math.min
 
 private const val classPrefix = "com/vasc/"
 
@@ -118,50 +120,78 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     private fun generateMain() {
-        appendLine(".method public static main([Ljava/lang/String;)V")
-        val labels = currentClass!!.declaredConstructors.mapIndexed() { i, ctor -> Pair(ctor, "ctor_$i" ) }
+        val labels = currentClass!!.declaredConstructors.mapIndexed { i, ctor -> Pair(ctor, "ctor_$i" ) }
         val endLabel = "end"
+        val constructorMatchers = mutableMapOf<VascConstructor, String>()
+        labels.forEach { (ctor, label) ->
+            constructorMatchers[ctor] = generateConstructorMatcher(ctor, label)
+        }
+        appendLine(".method public static main([Ljava/lang/String;)V")
         withIndent {
             appendLine(".limit stack 32") // TODO: calculate limits
             appendLine(".limit locals 32")
             appendLine()
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
-            allLabels.windowed(3).forEach {
-                appendLine(".catch all from ${it[0]} to ${it[1]} using ${it[2]}")
+            allLabels.windowed(2).forEach {
+                appendLine(".catch all from ${it[0]} to ${it[1]} using ${it[1]}")
             }
             appendLine()
             withIndent {
                 appendLine("aload 0", "load args")
                 appendLine("invokestatic $argumentParseSignature", "parse args")
                 appendLine("astore 1")
-                val className = currentClass!!.toJName()
-                appendLine("new $className")
+                appendLine("aconst_null", "dummy exception")
                 for (i in labels.indices) {
                     val (ctor, label) = labels[i]
                     appendLine("$label:")
                     withIndent {
+                        appendLine("pop", "discard exception or dummy")
+                        appendLine("aconst_null", "dummy exception")
+
                         appendLine("aload 1")
                         appendLine("arraylength")
                         appendLine("ldc ${ctor.parameterTypes.size}", "expected number of args")
                         appendLine("if_icmpne ${if (i+1 < labels.size) labels[i+1].second else endLabel}", "skip if number of args differ")
-                        for (pi in ctor.parameterTypes.indices) {
-                            appendLine("aload 1")
-                            appendLine("ldc $pi")
-                            appendLine("aaload", "load next arg")
-                            appendLine("checkcast ${ctor.parameterTypes[pi].toJName()}")
-                        }
-                        appendLine("invokespecial $className/<init>(${ctor.parameterTypes.joinToString("") { it.toJType() }})V", "call constructor $ctor")
+                        appendLine("pop", "pop dummy")
+
+                        appendLine("aload 1")
+                        appendLine("invokestatic ${currentClass!!.toJName()}/${constructorMatchers[ctor]!!}", "may throw exception")
+
                         appendLine("return")
                     }
                 }
                 appendLine("$endLabel:", "no constructor matched")
-                appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
-                appendLine("ldc \"error: no constructors matched arguments\"")
-                appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V")
+                withIndent {
+                    appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
+                    appendLine("ldc \"error: no constructors matched arguments\"")
+                    appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V")
+                    appendLine("return")
+                }
+            }
+        }
+        appendLine(".end method")
+    }
+
+    private fun generateConstructorMatcher(ctor: VascConstructor, name: String): String {
+        val fullName = "main_$name([Ljava/lang/Object;)V"
+        appendLine(".method public static $fullName")
+        withIndent {
+            appendLine(".limit stack 32") // TODO: calculate limits
+            withIndent {
+                val className = currentClass!!.toJName()
+                appendLine("new $className")
+                for (pi in ctor.parameterTypes.indices) {
+                    appendLine("aload 0")
+                    appendLine("ldc $pi")
+                    appendLine("aaload", "load next arg")
+                    appendLine("checkcast ${ctor.parameterTypes[pi].toJName()}")
+                }
+                appendLine("invokespecial $className/<init>(${ctor.parameterTypes.joinToString("") { it.toJType() }})V", "call constructor $ctor")
                 appendLine("return")
             }
         }
         appendLine(".end method")
+        return fullName
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
