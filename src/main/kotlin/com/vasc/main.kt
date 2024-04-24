@@ -3,7 +3,7 @@ package com.vasc
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.codegen.CodegenVisitor
-import com.vasc.codegen.JasminCompiler
+import com.vasc.codegen.Compiler
 import com.vasc.error.VascException
 import com.vasc.error.toPrettyString
 import com.vasc.exhaustiveness.ExhaustivenessCheck
@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
 
 fun main() {
-    val src = "src/test/resources/valid/FourBitAdder.vas"
+    val src = "src/test/resources/valid/InsertSort.vas"
     val chars = CharStreams.fromFileName(src)
     val lexer = VascLexer(chars)
     val tokens = CommonTokenStream(lexer)
@@ -34,7 +34,7 @@ fun main() {
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
-    val compiler = JasminCompiler(generator.getGeneratedClasses())
-    val classFiles = compiler.compile()
-    compiler.runCompiled(classFiles)
+    val compiler = Compiler(generator.getGeneratedClasses())
+    val vascProgram = compiler.compile()
+    vascProgram.run()
 }
