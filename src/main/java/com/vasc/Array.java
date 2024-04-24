@@ -5,6 +5,7 @@ import java.util.Arrays;
 public class Array<T> {
     private final T[] value;
 
+    @SuppressWarnings("unchecked")
     public Array(com.vasc.Integer length) {
         this.value = (T[]) new Object[(int) length.value];
     }
