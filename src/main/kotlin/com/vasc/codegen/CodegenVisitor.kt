@@ -15,6 +15,8 @@ private const val booleanClass = classPrefix + "Boolean"
 private const val integerClass = classPrefix + "Integer"
 private const val realClass = classPrefix + "Real"
 
+private const val argumentParseSignature = classPrefix + "ArgumentParser/parse([Ljava/lang/String;)[Ljava/lang/Object;"
+
 private const val defaultParent = "java/lang/Object"
 private const val erasedType = "L$defaultParent;"
 
@@ -91,20 +93,8 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             currentField = currentClass!!.getDeclaredField(it.variableDeclaration().identifier().text)!!
             it.accept(this)
         }
-        val indexOfDefault = currentClass!!.declaredConstructors.indexOfFirst {
-            it.parameters.isEmpty()
-        }
-        if (indexOfDefault >= 0) { // TODO: pass main arguments to specific constructor
-            appendHeader("Main")
-            appendLine(".method public static main([Ljava/lang/String;)V")
-            withIndent {
-                val className = currentClass!!.toJName()
-                appendLine("new $className")
-                appendLine("invokespecial $className/<init>()V")
-                appendLine("return")
-            }
-            appendLine(".end method")
-        }
+        appendHeader("Main")
+        generateMain()
         appendHeader("Constructors")
         ctx.memberDeclarations.filterIsInstance<ConstructorDeclarationContext>().forEach { constructor ->
             currentConstructor =  currentClass!!.getDeclaredConstructor(constructor.parameters().toUniqueVariables(typeResolver).map { it.type })!!
@@ -125,6 +115,53 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             method.accept(this)
         }
         appendLine()
+    }
+
+    private fun generateMain() {
+        appendLine(".method public static main([Ljava/lang/String;)V")
+        val labels = currentClass!!.declaredConstructors.mapIndexed() { i, ctor -> Pair(ctor, "ctor_$i" ) }
+        val endLabel = "end"
+        withIndent {
+            appendLine(".limit stack 32") // TODO: calculate limits
+            appendLine(".limit locals 32")
+            appendLine()
+            val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
+            allLabels.windowed(3).forEach {
+                appendLine(".catch all from ${it[0]} to ${it[1]} using ${it[2]}")
+            }
+            appendLine()
+            withIndent {
+                appendLine("aload 0", "load args")
+                appendLine("invokestatic $argumentParseSignature", "parse args")
+                appendLine("astore 1")
+                val className = currentClass!!.toJName()
+                appendLine("new $className")
+                for (i in labels.indices) {
+                    val (ctor, label) = labels[i]
+                    appendLine("$label:")
+                    withIndent {
+                        appendLine("aload 1")
+                        appendLine("arraylength")
+                        appendLine("ldc ${ctor.parameterTypes.size}", "expected number of args")
+                        appendLine("if_icmpne ${if (i+1 < labels.size) labels[i+1].second else endLabel}", "skip if number of args differ")
+                        for (pi in ctor.parameterTypes.indices) {
+                            appendLine("aload 1")
+                            appendLine("ldc $pi")
+                            appendLine("aaload", "load next arg")
+                            appendLine("checkcast ${ctor.parameterTypes[pi].toJName()}")
+                        }
+                        appendLine("invokespecial $className/<init>(${ctor.parameterTypes.joinToString("") { it.toJType() }})V", "call constructor $ctor")
+                        appendLine("return")
+                    }
+                }
+                appendLine("$endLabel:", "no constructor matched")
+                appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
+                appendLine("ldc \"error: no constructors matched arguments\"")
+                appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V")
+                appendLine("return")
+            }
+        }
+        appendLine(".end method")
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
