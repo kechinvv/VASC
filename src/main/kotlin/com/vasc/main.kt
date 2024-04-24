@@ -5,7 +5,7 @@ import com.vasc.antlr.VascParser
 import com.vasc.checks.constructor.ConstructorCheck
 import com.vasc.checks.exhaustiveness.ExhaustivenessCheck
 import com.vasc.codegen.CodegenVisitor
-import com.vasc.codegen.Compiler
+import com.vasc.codegen.VascCompiler
 import com.vasc.error.VascException
 import com.vasc.error.toPrettyString
 import com.vasc.type.VascType
@@ -36,7 +36,6 @@ fun main() {
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
-    val compiler = Compiler()
-    val vascProgram = compiler.compile(generator.getGeneratedClasses())
+    val vascProgram = VascCompiler.compile(generator.getGeneratedClasses())
     vascProgram.run()
 }
