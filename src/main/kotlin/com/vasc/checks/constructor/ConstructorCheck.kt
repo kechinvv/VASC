@@ -1,30 +1,28 @@
-package com.vasc.exhaustiveness
+package com.vasc.checks.constructor
 
 import com.vasc.VascTypeResolver
 import com.vasc.antlr.VascParser.*
 import com.vasc.antlr.VascParserBaseVisitor
+import com.vasc.checks.*
 import com.vasc.check.Check
 import com.vasc.error.VascException
 import com.vasc.member.VascConstructor
 import com.vasc.type.VascType
 import org.antlr.v4.runtime.ParserRuleContext
 
-class ExhaustivenessCheck(
+class ConstructorCheck(
     private val typeResolver: VascTypeResolver,
     private val typeTable: MutableMap<ParserRuleContext, VascType>,
-    private val errors: MutableList<VascException>,
-) : VascParserBaseVisitor<ExhaustivenessCheck.StatementType>(), Check {
+    private val errors: MutableList<VascException>
+) : VascParserBaseVisitor<StatementType>(), Check {
 
-    override fun check(program: ProgramContext) {
-        visitProgram(program)
-    }
-
-    private var waitReturn = true
     private var currentConstructor: VascConstructor? = null
     private lateinit var currentClass: VascType
     private var constructorCalls: MutableMap<VascConstructor, VascConstructor> = mutableMapOf()
 
-    private val completeIf = 2
+    override fun check(program: ProgramContext) {
+        visitProgram(program)
+    }
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext): StatementType {
         currentClass = ctx.name.accept(typeResolver)
@@ -35,11 +33,6 @@ class ExhaustivenessCheck(
 
         constructorCalls = mutableMapOf()
         return super.visitClassDeclaration(ctx)
-    }
-
-    override fun visitMethodDeclaration(ctx: MethodDeclarationContext): StatementType {
-        waitReturn = ctx.returnType != null
-        return super.visitMethodDeclaration(ctx)
     }
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext): StatementType {
@@ -58,16 +51,11 @@ class ExhaustivenessCheck(
         val statements = ctx.statement().toList()
         val n: Int = statements.size
 
-        val parentIsMethod = ctx.parent is MethodDeclarationContext
+        ctx.parent is MethodDeclarationContext
 
         for (i in 0 until n) {
             statementType = statements[i].accept(this)
             when (statementType) {
-                StatementType.EXHAUSTIVE_RETURN ->
-                    if (i != n - 1) {
-                        errors.add(UnreachableCodeException(statements[i + 1]))
-                    }
-                    else if (parentIsMethod) waitReturn = false
 
                 StatementType.THIS_CONSTRUCTOR -> {
                     if (currentConstructor == null || i != 0) {
@@ -87,9 +75,6 @@ class ExhaustivenessCheck(
             }
         }
 
-        if (parentIsMethod && waitReturn) {
-            errors.add(NonExhaustiveReturnException(ctx))
-        }
         if (currentConstructor != null && !wasSuperOrThisCall && !currentClass.parentHasDefaultConstructor()) {
             errors.add(DefaultConstructorNotExistsException(ctx))
         }
@@ -106,30 +91,13 @@ class ExhaustivenessCheck(
         return StatementType.THIS_CONSTRUCTOR
     }
 
-    override fun visitIfStatement(ctx: IfStatementContext): StatementType {
-        var returnCount = 0
-        ctx.children.forEach {
-            val childResult = it.accept(this)
-            if (childResult == StatementType.EXHAUSTIVE_RETURN) returnCount++
-        }
-
-        return if (returnCount == completeIf) StatementType.EXHAUSTIVE_RETURN
-        else StatementType.NOT_EXHAUSTIVE_RETURN
-    }
-
-
-    override fun visitReturnStatement(ctx: ReturnStatementContext): StatementType {
-        super.visitReturnStatement(ctx)
-        return StatementType.EXHAUSTIVE_RETURN
-    }
-
     override fun visitSuperExpression(ctx: SuperExpressionContext?): StatementType {
         super.visitSuperExpression(ctx)
         return StatementType.SUPER
     }
 
-    override fun defaultResult(): StatementType {
-        return StatementType.OTHER
+    private fun VascType.parentHasDefaultConstructor(): Boolean {
+        return parent == null || parent!!.getDeclaredConstructor(emptyList()) != null || parent!!.declaredConstructors.isEmpty()
     }
 
     private fun getConstructorByArgs(ctx: ThisExpressionContext): VascConstructor? {
@@ -153,12 +121,7 @@ class ExhaustivenessCheck(
         }
     }
 
-    private fun VascType.parentHasDefaultConstructor(): Boolean {
-        return parent == null || parent!!.getDeclaredConstructor(emptyList()) != null || parent!!.declaredConstructors.isEmpty()
-    }
-
-    enum class StatementType {
-        EXHAUSTIVE_RETURN, NOT_EXHAUSTIVE_RETURN, THIS_CONSTRUCTOR, THIS_CALL, SUPER, OTHER
+    override fun defaultResult(): StatementType {
+        return StatementType.OTHER
     }
 }
-

@@ -15,7 +15,7 @@ object VascReal : VascClass("Real") {
     override val declaredMethods: List<VascMethod> = listOf(
         VascMethod("toInteger", emptyList(), VascInteger),
 
-        VascMethod("unaryMinus", emptyList(), VascInteger),
+        VascMethod("unaryMinus", emptyList(), VascReal),
         VascMethod("sqrt", emptyList(), VascReal),
 
         VascMethod("plus", listOf("p" colon VascReal), VascReal),
