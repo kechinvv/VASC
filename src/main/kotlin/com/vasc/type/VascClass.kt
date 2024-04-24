@@ -1,5 +1,6 @@
 package com.vasc.type
 
+import com.vasc.error.VascException
 import com.vasc.member.*
 
 open class VascClass(
@@ -22,11 +23,11 @@ open class VascClass(
     }
 
     final override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
-        return declaredConstructors.find { it.isApplicableTo(parameterTypes) }
+        return getMostSpecific(parameterTypes, declaredConstructors)
     }
 
     final override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return declaredMethods.find { it.name == name && it.isApplicableTo(parameterTypes) }
+        return getMostSpecific(parameterTypes, declaredMethods)
     }
 
     final override fun getField(name: String): VascVariable? {
@@ -34,18 +35,53 @@ open class VascClass(
     }
 
     final override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return getDeclaredMethod(name, parameterTypes) ?: parent?.getMethod(name, parameterTypes)
+        return getMostSpecific(parameterTypes, methods)
     }
 
     final override fun isAssignableFrom(subtype: VascType): Boolean {
-        if (subtype is VascNull) return true
+        return subtype.inheritanceDistanceTo(this) >= 0
+    }
 
-        var current: VascType? = subtype
-        while (current != null) {
-            if (this.name == current.name) return true
-            current = current.parent
+    private fun <P : VascParametrized> getMostSpecific(params: List<VascType>, all: Collection<P>): P? {
+        val applicable = all.filter { it.isApplicableTo(params) }
+        if (applicable.isEmpty()) return null
+
+        class RankingResult(val parametrized: P, val score: Int)
+
+        val candidates = applicable.map {
+            val score = params.indices.fold(0) { score, i ->
+                score + params[i].inheritanceDistanceTo(it.parameterTypes[i])
+            }
+            RankingResult(it, score)
         }
-        return false
+        val bestScore = candidates.minOf { it.score }
+        val finalists = candidates.mapNotNull { res ->
+            res.parametrized.takeIf { res.score == bestScore }
+        }
+
+        if (finalists.size > 1) {
+            throw VascException(
+                "Ambiguous call. There are ${finalists.size} matches for $name:\n\t${finalists.joinToString("\n\t")}"
+            )
+        }
+
+        return finalists.first()
+    }
+
+    /**
+     * Called on child
+     */
+    private fun VascType.inheritanceDistanceTo(other: VascType): Int {
+        if (this is VascNull) return 0
+
+        var distance = 0
+        var current: VascType? = this
+        while (current != null) {
+            if (current == other) return distance
+            current = current.parent
+            distance++
+        }
+        return -1
     }
 
     override fun toString() = name
