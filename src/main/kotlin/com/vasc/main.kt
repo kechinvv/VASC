@@ -3,6 +3,7 @@ package com.vasc
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.codegen.CodegenVisitor
+import com.vasc.codegen.JasminCompiler
 import com.vasc.error.VascException
 import com.vasc.error.toPrettyString
 import com.vasc.exhaustiveness.ExhaustivenessCheck
@@ -33,5 +34,7 @@ fun main() {
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
-    println(generator.getGeneratedClasses().values.joinToString("\n\n"))
+    val compiler = JasminCompiler(generator.getGeneratedClasses())
+    val classFiles = compiler.compile()
+    compiler.runCompiled(classFiles)
 }
