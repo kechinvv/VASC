@@ -6,7 +6,7 @@ class VascErrorListener : BaseErrorListener() {
 
     val errors = mutableListOf<String>()
 
-    fun attachTo(parser: Parser, removeListeners: Boolean = true) {
+    fun attachTo(parser: Parser, removeListeners: kotlin.Boolean = true) {
         if (removeListeners) parser.removeErrorListeners()
         parser.addErrorListener(this)
     }

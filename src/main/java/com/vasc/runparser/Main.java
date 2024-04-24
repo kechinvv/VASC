@@ -1,4 +1,4 @@
-package com.vasc;
+package com.vasc.runparser;
 
 import com.vasc.antlr.*;
 import org.antlr.v4.runtime.*;

@@ -27,7 +27,7 @@ class MethodNotFoundException(className: String, methodName: String, args: List<
 class MethodReturnsNoValueException(className: String, methodName: String, ctx: ParserRuleContext) :
     TypeCheckException("method '$className.$methodName' does not return a value", ctx)
 
-class UnknownVariableException(name: String, ctx: IdentifierContext) : // TODO: move from type check?
+class UnknownVariableException(name: String, ctx: ParserRuleContext) : // TODO: move from type check?
     TypeCheckException("unknown variable '$name'", ctx)
 
 class UnexpectedNullException(ctx: NullLiteralContext) :

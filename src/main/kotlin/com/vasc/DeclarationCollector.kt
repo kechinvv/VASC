@@ -7,6 +7,7 @@ import com.vasc.member.*
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import com.vasc.util.toVascVariable
+import kotlin.Boolean
 
 fun createTypeResolver(ctx: ProgramContext, errors: MutableList<VascException>): VascTypeResolver {
     val namedDeclarations = mutableMapOf<String, ClassDeclarationContext>()
