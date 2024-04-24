@@ -192,7 +192,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
     }
 
     override fun visitFieldDeclaration(ctx: FieldDeclarationContext) {
-        appendLine(".field public ${currentField!!.name} ${currentField!!.type.toJType()}", currentField!!.toString())
+        appendLine(".field public \"${currentField!!.name}\" ${currentField!!.type.toJType()}", currentField!!.toString())
         ctx.variableDeclaration().expression()?.let {
             val backupCode = code
             code = StringBuilder() // TODO: need a better solution
