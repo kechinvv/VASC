@@ -22,8 +22,8 @@ private const val argumentParseSignature = classPrefix + "ArgumentParser/parse([
 private const val defaultParent = "java/lang/Object"
 private const val erasedType = "L$defaultParent;"
 
-private typealias ClassName = String
-private typealias ClassCode = String
+typealias ClassName = String
+typealias ClassCode = String
 
 class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typeTable: MutableMap<ParserRuleContext, VascType>, private val errors: MutableList<VascException>) : VascParserBaseVisitor<Unit>() {
 
