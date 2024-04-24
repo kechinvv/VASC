@@ -27,7 +27,7 @@ open class VascClass(
     }
 
     final override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return getMostSpecific(parameterTypes, declaredMethods)
+        return getMostSpecific(parameterTypes, declaredMethods.filter { it.name == name })
     }
 
     final override fun getField(name: String): VascVariable? {
@@ -35,7 +35,7 @@ open class VascClass(
     }
 
     final override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return getMostSpecific(parameterTypes, methods)
+        return getMostSpecific(parameterTypes, methods.filter { it.name == name })
     }
 
     final override fun isAssignableFrom(subtype: VascType): Boolean {
@@ -45,6 +45,7 @@ open class VascClass(
     private fun <P : VascParametrized> getMostSpecific(params: List<VascType>, all: Collection<P>): P? {
         val applicable = all.filter { it.isApplicableTo(params) }
         if (applicable.isEmpty()) return null
+        if (applicable.size == 1) return applicable.first()
 
         class RankingResult(val parametrized: P, val score: Int)
 
