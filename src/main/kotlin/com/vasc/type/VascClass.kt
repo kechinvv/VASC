@@ -1,51 +1,99 @@
 package com.vasc.type
 
+import com.vasc.error.VascException
 import com.vasc.member.*
 
-open class VascClass(override val name: String) : VascType {
-
+open class VascClass(
+    final override val name: String,
     override val parent: VascType? = null
+) : VascType {
 
-    override val declaredFields: List<VascVariable> = emptyList()
-    override val declaredConstructors: List<VascConstructor> = emptyList()
-    override val declaredMethods: List<VascMethod> = emptyList()
+    override val declaredFields: Collection<VascVariable> = emptySet()
+    override val declaredConstructors: Collection<VascConstructor> = emptySet()
+    override val declaredMethods: Collection<VascMethod> = emptySet()
 
-    override val fields: List<VascVariable>
-        get() = declaredFields + (parent?.fields ?: emptyList())
+    final override val fields: Collection<VascVariable>
+        get() = declaredFields.toSet() + (parent?.fields ?: emptySet())
 
-    override val methods: List<VascMethod>
-        get() = declaredMethods + (parent?.methods ?: emptyList())
+    final override val methods: Collection<VascMethod>
+        get() = declaredMethods.toSet() + (parent?.methods ?: emptySet())
 
-    override fun getDeclaredField(name: String): VascVariable? {
+    final override fun getDeclaredField(name: String): VascVariable? {
         return declaredFields.find { it.name == name }
     }
 
-    override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
-        return declaredConstructors.find { it.isApplicableTo(parameterTypes) }
+    final override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
+        return getMostSpecific(parameterTypes, declaredConstructors)
     }
 
-    override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return declaredMethods.find { it.name == name && it.isApplicableTo(parameterTypes) }
+    final override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
+        return getMostSpecific(parameterTypes, declaredMethods)
     }
 
-    override fun getField(name: String): VascVariable? {
+    final override fun getField(name: String): VascVariable? {
         return getDeclaredField(name) ?: parent?.getField(name)
     }
 
-    override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
-        return getDeclaredMethod(name, parameterTypes) ?: parent?.getMethod(name, parameterTypes)
+    final override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
+        return getMostSpecific(parameterTypes, methods)
     }
 
-    override fun isAssignableFrom(subtype: VascType): Boolean {
-        if (subtype is VascNull) return true
+    final override fun isAssignableFrom(subtype: VascType): Boolean {
+        return subtype.inheritanceDistanceTo(this) >= 0
+    }
 
-        var current: VascType? = subtype
-        while (current != null) {
-            if (this.name == current.name) return true
-            current = current.parent
+    private fun <P : VascParametrized> getMostSpecific(params: List<VascType>, all: Collection<P>): P? {
+        val applicable = all.filter { it.isApplicableTo(params) }
+        if (applicable.isEmpty()) return null
+
+        class RankingResult(val parametrized: P, val score: Int)
+
+        val candidates = applicable.map {
+            val score = params.indices.fold(0) { score, i ->
+                score + params[i].inheritanceDistanceTo(it.parameterTypes[i])
+            }
+            RankingResult(it, score)
         }
-        return false
+        val bestScore = candidates.minOf { it.score }
+        val finalists = candidates.mapNotNull { res ->
+            res.parametrized.takeIf { res.score == bestScore }
+        }
+
+        if (finalists.size > 1) {
+            throw VascException(
+                "Ambiguous call. There are ${finalists.size} matches for $name:\n\t${finalists.joinToString("\n\t")}"
+            )
+        }
+
+        return finalists.first()
+    }
+
+    /**
+     * Called on child
+     */
+    private fun VascType.inheritanceDistanceTo(other: VascType): Int {
+        if (this is VascNull) return 0
+
+        var distance = 0
+        var current: VascType? = this
+        while (current != null) {
+            if (current == other) return distance
+            current = current.parent
+            distance++
+        }
+        return -1
     }
 
     override fun toString() = name
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is VascType) return false
+
+        return name == other.name
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }

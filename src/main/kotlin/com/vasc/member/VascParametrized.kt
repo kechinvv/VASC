@@ -2,6 +2,7 @@ package com.vasc.member
 
 import com.vasc.type.VascType
 
+// `parameters` and `parameterTypes` are mandatory to be `List`, because order matters
 sealed class VascParametrized(
     val parameters: List<VascVariable>
 ) {

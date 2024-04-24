@@ -4,17 +4,11 @@ import jasmin.Main
 import java.io.*
 import javax.tools.ToolProvider
 
-
-class Compiler() {
+object VascCompiler {
 
     fun compile(classes: Map<ClassName, ClassCode>, outputPath: String = "./vascbuild"): VascProgram {
-        val jasminDir = File("$outputPath/jasmin")
-        val classesDir = File("$outputPath/classes")
-
-        jasminDir.deleteRecursively()
-        classesDir.deleteRecursively()
-        jasminDir.mkdirs()
-        classesDir.mkdirs()
+        val jasminDir = newDir("$outputPath/jasmin")
+        val classesDir = newDir("$outputPath/classes")
 
         classes.forEach { (name, code) ->
             val file = File("${jasminDir.absolutePath}/$name")
@@ -30,4 +24,8 @@ class Compiler() {
         return VascProgram("com.vasc.Main", classesDir)
     }
 
+    private fun newDir(name: String) = File(name).apply {
+        deleteRecursively()
+        mkdirs()
+    }
 }

@@ -6,12 +6,12 @@ interface VascType {
     val name: String
     val parent: VascType?
 
-    val declaredFields: List<VascVariable>
-    val declaredConstructors: List<VascConstructor>
-    val declaredMethods: List<VascMethod>
+    val declaredFields: Collection<VascVariable>
+    val declaredConstructors: Collection<VascConstructor>
+    val declaredMethods: Collection<VascMethod>
 
-    val fields: List<VascVariable>
-    val methods: List<VascMethod>
+    val fields: Collection<VascVariable>
+    val methods: Collection<VascMethod>
 
     fun getDeclaredField(name: String): VascVariable?
     fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor?
