@@ -34,7 +34,7 @@ fun main() {
     if (errors.isNotEmpty()) {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
-    val compiler = Compiler(generator.getGeneratedClasses())
-    val vascProgram = compiler.compile()
+    val compiler = Compiler()
+    val vascProgram = compiler.compile(generator.getGeneratedClasses())
     vascProgram.run()
 }

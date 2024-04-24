@@ -5,10 +5,9 @@ import java.io.*
 import javax.tools.ToolProvider
 
 
-class Compiler(private val classes: Map<String, String>) {
+class Compiler() {
 
-
-    fun compile(outputPath: String = "./vascbuild"): VascProgram {
+    fun compile(classes: Map<ClassName, ClassCode>, outputPath: String = "./vascbuild"): VascProgram {
         val jasminDir = File("$outputPath/jasmin")
         val classesDir = File("$outputPath/classes")
 
@@ -30,6 +29,5 @@ class Compiler(private val classes: Map<String, String>) {
         }
         return VascProgram("com.vasc.Main", classesDir)
     }
-
 
 }
