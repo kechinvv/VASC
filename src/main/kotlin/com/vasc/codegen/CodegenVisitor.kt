@@ -145,15 +145,12 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
                     val (ctor, label) = labels[i]
                     appendLine("$label:")
                     withIndent {
-                        appendLine("pop", "discard exception or dummy")
-                        appendLine("aconst_null", "dummy exception")
-
                         appendLine("aload 1")
                         appendLine("arraylength")
                         appendLine("ldc ${ctor.parameterTypes.size}", "expected number of args")
                         appendLine("if_icmpne ${if (i+1 < labels.size) labels[i+1].second else endLabel}", "skip if number of args differ")
-                        appendLine("pop", "pop dummy")
 
+                        appendLine("pop", "pop exception")
                         appendLine("aload 1")
                         appendLine("invokestatic ${currentClass!!.toJName()}/${constructorMatchers[ctor]!!}", "may throw exception")
 
