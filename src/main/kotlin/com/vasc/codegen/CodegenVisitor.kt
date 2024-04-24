@@ -133,7 +133,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
             appendLine()
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
             allLabels.windowed(2).forEach {
-                appendLine(".catch all from ${it[0]} to ${it[1]} using ${it[1]}")
+                appendLine(".catch java/lang/ClassCastException from ${it[0]} to ${it[1]} using ${it[1]}")
             }
             appendLine()
             withIndent {
