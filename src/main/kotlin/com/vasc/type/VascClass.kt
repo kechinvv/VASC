@@ -2,41 +2,42 @@ package com.vasc.type
 
 import com.vasc.member.*
 
-open class VascClass(override val name: String) : VascType {
-
+open class VascClass(
+    final override val name: String,
     override val parent: VascType? = null
+) : VascType {
 
     override val declaredFields: Collection<VascVariable> = emptySet()
     override val declaredConstructors: Collection<VascConstructor> = emptySet()
     override val declaredMethods: Collection<VascMethod> = emptySet()
 
-    override val fields: Collection<VascVariable>
-        get() = declaredFields + (parent?.fields ?: emptyList())
+    final override val fields: Collection<VascVariable>
+        get() = declaredFields.toSet() + (parent?.fields ?: emptySet())
 
-    override val methods: Collection<VascMethod>
-        get() = declaredMethods + (parent?.methods ?: emptyList())
+    final override val methods: Collection<VascMethod>
+        get() = declaredMethods.toSet() + (parent?.methods ?: emptySet())
 
-    override fun getDeclaredField(name: String): VascVariable? {
+    final override fun getDeclaredField(name: String): VascVariable? {
         return declaredFields.find { it.name == name }
     }
 
-    override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
+    final override fun getDeclaredConstructor(parameterTypes: List<VascType>): VascConstructor? {
         return declaredConstructors.find { it.isApplicableTo(parameterTypes) }
     }
 
-    override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
+    final override fun getDeclaredMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
         return declaredMethods.find { it.name == name && it.isApplicableTo(parameterTypes) }
     }
 
-    override fun getField(name: String): VascVariable? {
+    final override fun getField(name: String): VascVariable? {
         return getDeclaredField(name) ?: parent?.getField(name)
     }
 
-    override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
+    final override fun getMethod(name: String, parameterTypes: List<VascType>): VascMethod? {
         return getDeclaredMethod(name, parameterTypes) ?: parent?.getMethod(name, parameterTypes)
     }
 
-    override fun isAssignableFrom(subtype: VascType): Boolean {
+    final override fun isAssignableFrom(subtype: VascType): Boolean {
         if (subtype is VascNull) return true
 
         var current: VascType? = subtype
