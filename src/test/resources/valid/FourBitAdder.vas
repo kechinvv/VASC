@@ -8,27 +8,17 @@ class Main is
              var j : Integer = 0
              var ni : Nybble = Nybble(i)
              var nii : Integer = ni.toInt()
-             println("value")
-             println("$nii")
+             println("i = $nii")
              if i.equal(nii).not() then
-                println("error: expected")
-                println("$ni")
-                println("but got")
-                println("$nii")
+                println("error: expected $ni but got $nii")
                 return
              end
-             println("addition")
              while j.less(max) loop
                 var nj : Nybble = Nybble(j)
                 var added : FourBitAdder = FourBitAdder(ni, nj)
                 var actual : Integer = added.n.toInt()
                 var expected : Integer = i.plus(j)
-                println("")
-                println("$i")
-                println("+")
-                println("$j")
-                println("=")
-                println("$actual")
+                println("$i + $j = $actual")
                 if added.c then
                     if expected.greaterEqual(max).and(expected.rem(max).equal(actual)).not() then
                         println("error")

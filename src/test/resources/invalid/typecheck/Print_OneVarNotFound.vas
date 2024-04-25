@@ -1,0 +1,6 @@
+class Main is
+    this() is
+        var var1 : Boolean = false
+        println("var1 = $var1, var2 = $var2")
+    end
+end

@@ -341,23 +341,28 @@ class CodegenVisitor(
     override fun visitPrintStatement(ctx: PrintStatementContext) {
         withLineInfo(ctx.start.line) {
             appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
-            val text = ctx.STRING().text.removeSurrounding("\"")
-            if (text.startsWith("$")) {
-                val name = text.removePrefix("$")
-                val stackIndex = variableStack.indexOfFirst { it.name == name }
-                if (stackIndex > 0) {
-                    appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
-                    nextCallType = variableStack[stackIndex].type
+            appendLine("ldc \"\"")
+            ctx.STRING().text.removeSurrounding("\"").split(" ").forEach {
+                if (it.startsWith("$")) {
+                    val name = it.removePrefix("$")
+                    val stackIndex = variableStack.indexOfFirst { it.name == name }
+                    if (stackIndex > 0) {
+                        appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
+                        nextCallType = variableStack[stackIndex].type
+                    } else {
+                        val field = currentClass!!.getField(name)!!
+                        instrLoadThis()
+                        instrGetField(currentClass!!, field)
+                    }
+                    appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
                 } else {
-                    val field = currentClass!!.getField(name)!!
-                    instrLoadThis()
-                    instrGetField(currentClass!!, field)
+                    appendLine("ldc \"$it\"")
                 }
-                appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
-            } else {
-                appendLine("ldc \"$text\"")
+                appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
+                appendLine("ldc \" \"")
+                appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
             }
-            appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V", "println \"$text\"")
+            appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V", "next line")
         }
     }
 

@@ -2,5 +2,8 @@ class Main is
     this() is
         var a: Integer = 42
         println("a = $a")
+        println("$a")
+        var b: Integer = 10
+        println("a = $a ; b = $b")
     end
 end
