@@ -21,9 +21,13 @@ class Main is
         var prod3 : Real = prod1.div(prod2)
         var res : Vector3 = rayPoint.minus(rayVector.times(prod3))
 
-        if res.x.equal(0.0).and(res.y.equal(-5.0)).and(res.z.equal(5.0)).not() then // TODO: EPS?
-            // TODO: error
-        end
+        var x : Real = res.x
+        var y : Real = res.y
+        var z : Real = res.z
+
+        println("$x")
+        println("$y")
+        println("$z")
     end
 end
 
@@ -33,7 +37,7 @@ class Vector3 is
     var z : Real = 0.0
 
     this(_x : Real, _y : Real, _z : Real) is
-        x = _x // TODO: use this?
+        x = _x
         y = _y
         z = _z
     end
