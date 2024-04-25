@@ -22,8 +22,8 @@ class Main is
             println("error: found intersection at")
             var x : Real = o.value.x
             var y : Real = o.value.y
-            println("$x") // 5
-            println("$y") // 5
+            println("$x")
+            println("$y")
         else
             println("no intersection")
         end
