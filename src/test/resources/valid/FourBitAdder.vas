@@ -7,28 +7,43 @@ class Main is
          while i.less(max) loop
              var j : Integer = 0
              var ni : Nybble = Nybble(i)
-             if i.equal(ni.toInt()).not() then
-                // TODO: error
+             var nii : Integer = ni.toInt()
+             println("value")
+             println("$nii")
+             if i.equal(nii).not() then
+                println("error: expected")
+                println("$ni")
+                println("but got")
+                println("$nii")
+                return
              end
+             println("addition")
              while j.less(max) loop
                 var nj : Nybble = Nybble(j)
                 var added : FourBitAdder = FourBitAdder(ni, nj)
                 var actual : Integer = added.n.toInt()
                 var expected : Integer = i.plus(j)
+                println("")
+                println("$i")
+                println("+")
+                println("$j")
+                println("=")
+                println("$actual")
                 if added.c then
                     if expected.greaterEqual(max).and(expected.rem(max).equal(actual)).not() then
-                        // TODO: error
+                        println("error")
+                        return
                     end
                 else
                     if expected.equal(added.n.toInt()).not() then
-                        // TODO: error
+                        println("error")
+                        return
                     end
                 end
                 j = j.plus(1)
              end
              i = i.plus(1)
          end
-
     end
 end
 
@@ -45,9 +60,13 @@ class Nybble is
     this(from : Integer) is
         var rem : Integer = from
         var i : Integer = 0
-        while rem.greater(0) loop
+        while rem.greater(0).and(i.less(digits.length())) loop
             digits.set(i, rem.rem(2).equal(1))
             rem = rem.div(2)
+            i = i.plus(1)
+        end
+        while i.less(digits.length()) loop
+            digits.set(i, false)
             i = i.plus(1)
         end
     end
@@ -80,8 +99,8 @@ class HalfAdder extends Adder is
 end
 
 class FullAdder extends Adder is
-    this(a : Boolean, b : Boolean, c : Boolean) is
-        var h1 : HalfAdder = HalfAdder(a, c)
+    this(a : Boolean, b : Boolean, _c : Boolean) is
+        var h1 : HalfAdder = HalfAdder(a, _c)
         var h2 : HalfAdder = HalfAdder(h1.s, b)
         s = h2.s
         c = h1.c.or(h2.c)
