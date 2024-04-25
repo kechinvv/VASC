@@ -313,7 +313,7 @@ class CodegenVisitor(
 
     override fun visitReturnStatement(ctx: ReturnStatementContext) {
         withLineInfo(ctx.start.line) {
-            if (currentMethod!!.returnType == VascVoid) {
+            if ((currentMethod?.returnType ?: VascVoid) == VascVoid) {
                 appendLine("return")
             } else {
                 ctx.expression().accept(this)
