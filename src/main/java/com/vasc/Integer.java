@@ -54,7 +54,7 @@ public class Integer {
     }
 
     public com.vasc.Integer div(com.vasc.Integer other) {
-        return new Integer(value * other.value);
+        return new Integer(value / other.value);
     }
 
     public com.vasc.Integer div(com.vasc.Real other) {
