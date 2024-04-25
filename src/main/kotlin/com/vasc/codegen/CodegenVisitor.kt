@@ -8,8 +8,6 @@ import com.vasc.member.*
 import com.vasc.type.*
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
-import kotlin.math.max
-import kotlin.math.min
 
 private const val classPrefix = "com/vasc/"
 
@@ -25,7 +23,12 @@ private const val erasedType = "L$defaultParent;"
 typealias ClassName = String
 typealias ClassCode = String
 
-class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typeTable: MutableMap<ParserRuleContext, VascType>, private val errors: MutableList<VascException>) : VascParserBaseVisitor<Unit>() {
+class CodegenVisitor(
+    private val typeResolver: VascTypeResolver,
+    private val typeTable: MutableMap<ParserRuleContext, VascType>,
+    private val errors: MutableList<VascException>,
+    private val sourceName: String,
+) : VascParserBaseVisitor<Unit>() {
 
     private val generatedClasses = mutableMapOf<ClassName, ClassCode>()
 
@@ -78,6 +81,7 @@ class CodegenVisitor(private val typeResolver: VascTypeResolver, private val typ
         fieldsInitCode.clear()
 
         currentClass = typeResolver.visit(ctx.name) as VascClass
+        appendLine(".source $sourceName")
         appendLine(".class public ${currentClass!!.toJName()}")
         if (currentClass!!.parent == null) {
             appendLine(".super $defaultParent")
