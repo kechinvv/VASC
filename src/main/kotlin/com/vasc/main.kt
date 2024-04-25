@@ -15,7 +15,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
 
 fun main() {
-    val src = "src/test/resources/valid/InsertSort.vas"
+    val src = "src/test/resources/valid/EntryPoint.vas"
     val chars = CharStreams.fromFileName(src)
     val lexer = VascLexer(chars)
     val tokens = CommonTokenStream(lexer)
@@ -37,5 +37,5 @@ fun main() {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
     val vascProgram = VascCompiler.compile(generator.getGeneratedClasses())
-    vascProgram.run()
+    vascProgram.run("1")
 }
