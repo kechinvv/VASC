@@ -5,15 +5,27 @@ class Main is
         var l1 : Line = Line(Point(4.0, 0.0), Point(6.0, 10.0))
         var l2 : Line = Line(Point(0.0, 3.0), Point(10.0, 7.0))
         var o : Option = l1.findIntersection(l2)
-        if o.ok.and(o.value.x.equal(5).and(o.value.y.equal(5))).not() then // TODO: epsilon?
-            // TODO: error
+
+        if o.ok then
+            var x : Real = o.value.x
+            var y : Real = o.value.y
+            println("$x") // 5
+            println("$y") // 5
+        else
+            println("error: no intersection")
         end
 
         l1 = Line(Point(0.0, 0.0), Point(1.0, 1.0))
         l2 = Line(Point(1.0, 2.0), Point(4.0, 5.0))
         o = l1.findIntersection(l2)
         if o.ok then
-            // TODO: error
+            println("error: found intersection at")
+            var x : Real = o.value.x
+            var y : Real = o.value.y
+            println("$x") // 5
+            println("$y") // 5
+        else
+            println("no intersection")
         end
     end
 end
