@@ -23,9 +23,13 @@ class Main is
         // 786
         // 832
 
-        if r.at(0, 0).equal(740).and(r.at(0, 1).equal(786)).and(r.at(0, 2).equal(832)).not() then
-            // TODO: error
-        end
+        var v1 : Integer = r.at(0, 0)
+        var v2 : Integer = r.at(0, 1)
+        var v3 : Integer = r.at(0, 2)
+
+        println("$v1")
+        println("$v2")
+        println("$v3")
     end
 end
 
@@ -48,23 +52,9 @@ class Matrix is
                 col.set(y, Integer(10).mul(x).plus(y)) // e.g. value of cell (4, 2) is 42
                 y = y.plus(1)
             end
+            data.set(x, col)
             x = x.plus(1)
         end
-    end
-
-    // TODO: test Add?
-    method add(m : Matrix) : Matrix is
-        var res : Matrix = Matrix(w, h)
-        var x : Integer = 0
-        while x.less(w) loop
-            var y : Integer = 0
-            while y.less(h) loop
-                res.update(x, y, this.at(x, y).plus(m.at(x, y)))
-                y = y.plus(1)
-            end
-            x = x.plus(1)
-        end
-        return res
     end
 
     method mul(m : Matrix) : Matrix is
@@ -86,8 +76,13 @@ class Matrix is
     method mulMatrixCell(m : Matrix, x : Integer, y : Integer) : Integer is
         var res : Integer = 0
         var off : Integer = 0
+        var mdata : Array[Array[Integer]] = m.data
         while off.less(w) loop
-            res = res.plus(at(x.plus(off), y).mul(at(x, y.plus(off))))
+            var lx : Integer = off
+            var ly : Integer = y
+            var rx : Integer = x
+            var ry : Integer = off
+            res = res.plus(at(lx, ly).mul(m.at(rx, ry)))
             off = off.plus(1)
         end
         return res
