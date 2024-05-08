@@ -17,13 +17,16 @@ end
 
 class Cat extends Animal is
 
-    var lifes: Integer = 9
 
-    this() is end
+    this() is
+        lifes = 9
+    end
 
     method say() is
         println("Meow meow meow meow")
     end
+
+
 
 end
 
@@ -54,6 +57,7 @@ class Main is
 
     this() is
         println("main called")
+        //main()
     end
 
     method main() is
