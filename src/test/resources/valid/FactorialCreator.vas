@@ -1,0 +1,72 @@
+class FactorialCreator is
+
+    var num: Integer
+    var res: Integer = 1
+
+    this(n: Integer) is
+        if n.less(0) then
+            println("wrong action")
+        else
+            num = n
+            res = calculate(n)
+        end
+    end
+
+    this() is
+        num = 0
+        res = 1
+    end
+
+    method next(): Integer is
+        num = num.plus(1)
+        res = res.mul(num)
+        return res
+    end
+
+    method calculate(x: Integer): Integer is
+        var i: Integer = 2
+        var r: Integer = 1
+        while i.lessEqual(x) loop
+            r = r.mul(i)
+            i = i.plus(1)
+        end
+        return r
+    end
+end
+
+class Main is
+
+    this() is
+    end
+
+    method main() is
+        scenario1()
+        scenario2()
+    end
+
+    method scenario1() is
+        var f: FactorialCreator = FactorialCreator()
+        var res10: Integer = f.calculate(10)
+        var resNext1: Integer = f.next()
+        var resNext2: Integer = f.next()
+        var curNumb: Integer = f.num
+
+        println("$res10")
+        println("$resNext1")
+        println("$resNext2")
+        println("$curNumb")
+    end
+
+    method scenario2() is
+        var f: FactorialCreator = FactorialCreator(7)
+        var res3: Integer =  f.calculate(3)
+        var resNext8: Integer = f.next()
+        var resNext9: Integer = f.next()
+        var curNumb: Integer = f.num
+
+        println("$res3")
+        println("$resNext8")
+        println("$resNext9")
+        println("$curNumb")
+    end
+end
