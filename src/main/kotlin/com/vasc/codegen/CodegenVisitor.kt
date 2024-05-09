@@ -6,8 +6,12 @@ import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.VascException
 import com.vasc.member.*
 import com.vasc.type.*
+import com.vasc.typecheck.PrintString
+import com.vasc.typecheck.PrintVar
+import com.vasc.typecheck.members
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
+import kotlin.math.max
 
 private const val classPrefix = "com/vasc/"
 
@@ -45,6 +49,22 @@ class CodegenVisitor(
         indent += indentStep
         action()
         indent -= indentStep
+    }
+
+    private var localLimit = 0
+
+    private inline fun withLimits(action: () -> Unit) {
+        localLimit = 0
+        withIndent {
+            val backup = code
+            code = StringBuilder()
+            action()
+            val temp = code
+            code = backup
+            appendLine(".limit stack 32") // TODO: calculate limits
+            appendLine(".limit locals $localLimit")
+            code.append(temp)
+        }
     }
 
     private fun appendLine() {
@@ -131,10 +151,8 @@ class CodegenVisitor(
             constructorMatchers[ctor] = generateConstructorMatcher(ctor, label)
         }
         appendLine(".method public static main([Ljava/lang/String;)V")
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
-            appendLine(".limit locals 32")
-            appendLine()
+        withLimits {
+            localLimit = 2
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
             appendLine()
             withIndent {
@@ -172,8 +190,8 @@ class CodegenVisitor(
     private fun generateConstructorMatcher(ctor: VascConstructor, name: String): String {
         val fullName = "main_$name([Ljava/lang/Object;)Z"
         appendLine(".method public static $fullName")
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
+        withLimits {
+            localLimit = 1
             withIndent {
                 val className = currentClass!!.toJName()
                 val entryLabel = "entry"
@@ -217,11 +235,7 @@ class CodegenVisitor(
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public <init>($params)V", currentConstructor!!.toString())
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
-            appendLine(".limit locals 32")
-            appendLine()
-
+        withLimits {
             if (fieldsInitCode.isNotEmpty()) {
                 appendHeader("Init Fields")
                 fieldsInitCode.forEach {
@@ -230,7 +244,8 @@ class CodegenVisitor(
                     }
                 }
             }
-            if (ctx.body().statement() !is SuperExpressionContext) {
+            val statements = ctx.body().statement()
+            if (statements.isEmpty() || !statements[0].let { it is ExpressionStatementContext && it.expression() is SuperExpressionContext }) {
                 withIndent {
                     instrLoadThis()
                     appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
@@ -244,8 +259,6 @@ class CodegenVisitor(
             ctx.body().accept(this)
             appendLine("return") // TODO: add return only if needed
         }
-
-
         appendLine(".end method")
         appendLine()
     }
@@ -254,10 +267,7 @@ class CodegenVisitor(
         val params = currentMethod!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}", currentMethod!!.toString())
 
-        withIndent {
-            appendLine(".limit stack 32")
-            appendLine(".limit locals 32")
-
+        withLimits {
             variableStack.clear()
             variableStack.add(VascVariable("this", currentClass!!))
             variableStack.addAll(currentMethod!!.parameters)
@@ -273,7 +283,10 @@ class CodegenVisitor(
         withIndent {
             val stackSize = variableStack.size
             super.visitBody(ctx)
-            variableStack.dropLast(variableStack.size - stackSize)
+            localLimit = max(localLimit, variableStack.size)
+            repeat(variableStack.size - stackSize) {
+                variableStack.removeLast()
+            }
         }
     }
 
@@ -348,24 +361,24 @@ class CodegenVisitor(
         withLineInfo(ctx.start.line) {
             appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
             appendLine("ldc \"\"")
-            ctx.STRING().text.removeSurrounding("\"").split(" ").forEach {
-                if (it.startsWith("$")) {
-                    val name = it.removePrefix("$")
-                    val stackIndex = variableStack.indexOfFirst { it.name == name }
-                    if (stackIndex > 0) {
-                        appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
-                        nextCallType = variableStack[stackIndex].type
-                    } else {
-                        val field = currentClass!!.getField(name)!!
-                        instrLoadThis()
-                        instrGetField(currentClass!!, field)
+            ctx.members().forEach {  member ->
+                when(member) {
+                    is PrintString -> {
+                        appendLine("ldc \"${member.str}\"")
                     }
-                    appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
-                } else {
-                    appendLine("ldc \"$it\"")
+                    is PrintVar -> {
+                        val stackIndex = variableStack.indexOfFirst { it.name == member.id }
+                        if (stackIndex > 0) {
+                            appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
+                            nextCallType = variableStack[stackIndex].type
+                        } else {
+                            val field = currentClass!!.getField(member.id)!!
+                            instrLoadThis()
+                            instrGetField(currentClass!!, field)
+                        }
+                        appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
+                    }
                 }
-                appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
-                appendLine("ldc \" \"")
                 appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
             }
             appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V", "next line")
@@ -392,6 +405,9 @@ class CodegenVisitor(
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
         withLineInfo(ctx.start.line) {
             ctx.expression().accept(this)
+            if (typeTable[ctx.expression()] != VascVoid) {
+                appendLine("pop", "discard result")
+            }
         }
     }
 
@@ -433,13 +449,13 @@ class CodegenVisitor(
             nextCallType = method.returnType
         } else {
             val cls = typeResolver.visit(ctx.className())
-            val constructor = cls.getDeclaredConstructor(arguments)
+            val constructor = cls.getDeclaredConstructor(arguments)!!
             appendLine("new ${cls.toJName()}")
             appendLine("dup")
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${cls!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "new $cls.$constructor")
             nextCallType = cls
         }
@@ -450,18 +466,19 @@ class CodegenVisitor(
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         if (ctx.arguments() == null) {
+            instrLoadThis()
             nextCallType = currentClass
             ctx.dotCall().forEach {
                 it.accept(this)
             }
         } else {
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
-            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)!!
             instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${currentClass!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${currentClass!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call constructor $currentClass.$constructor")
             nextCallType = VascVoid
         }
@@ -469,19 +486,20 @@ class CodegenVisitor(
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         if (ctx.arguments() == null) {
+            instrLoadThis()
             nextCallType = currentClass!!.parent!! // TODO: use invokespecial for next call
             ctx.dotCall().forEach {
                 it.accept(this)
             }
         } else {
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
-            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)!!
             val cls = currentClass!!.parent!!
             instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${cls.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${cls.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call parent constructor $cls.$constructor")
             nextCallType = VascVoid
         }

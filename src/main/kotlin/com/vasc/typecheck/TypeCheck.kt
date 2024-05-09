@@ -100,14 +100,8 @@ class TypeCheck(
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
-        val text = ctx.STRING().text.removeSurrounding("\"")
-        text.split(" ").forEach {
-            if (it.startsWith("$")) {
-                val varName = it.removePrefix("$")
-                if (scope.find(varName) == null) {
-                    errors.add(UnknownVariableException(varName, ctx))
-                }
-            }
+        ctx.members().filterIsInstance<PrintVar>().forEach {
+            scope.find(it.id) ?: errors.add(UnknownVariableException(it.id, ctx))
         }
     }
 
@@ -185,26 +179,26 @@ class TypeCheck(
             val initT = classT.let {
                 it.parent ?: throw ParentNotFoundException(it.name, ctx)
             }
-            ctx.arguments()?.let { argsCtx ->
+            typeTable[ctx] = ctx.arguments()?.let { argsCtx ->
                 val args = argsCtx.expression().map {
                     it.typeOrThrow()
                 }
                 initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
-            }
-            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+                dotCall(VascVoid, ctx.dotCall())
+            } ?: dotCall(initT, ctx.dotCall())
         }
     }
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         val initT = classT
         tryWithContext(ctx) {
-            ctx.arguments()?.let { argsCtx ->
+            typeTable[ctx] = ctx.arguments()?.let { argsCtx ->
                 val args = argsCtx.expression().map {
                     it.typeOrThrow()
                 }
                 initT.getDeclaredConstructor(args) ?: throw ConstructorNotFoundException(initT.name, args, ctx)
-            }
-            typeTable[ctx] = dotCall(initT, ctx.dotCall())
+                dotCall(VascVoid, ctx.dotCall())
+            } ?: dotCall(initT, ctx.dotCall())
         }
     }
 

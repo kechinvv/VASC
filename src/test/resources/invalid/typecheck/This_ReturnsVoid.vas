@@ -1,0 +1,6 @@
+class Main is
+    var a : Integer = 0
+    this() is
+        this().a
+    end
+end
