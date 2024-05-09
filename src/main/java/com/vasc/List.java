@@ -39,7 +39,8 @@ public class List<T> {
 
     public com.vasc.List<T> tail() {
         var ret = new List<T>();
-        ret.value.addAll(value.subList(1, value.size()));
+        if (value.size() > 1)
+            ret.value.addAll(value.subList(1, value.size()));
         return ret;
     }
 
