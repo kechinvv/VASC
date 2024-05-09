@@ -64,7 +64,7 @@ class ConstructorCheck(
                     wasSuperOrThisCall = true
                 }
 
-                StatementType.SUPER -> {
+                StatementType.SUPER_CONSTRUCTOR -> {
                     if (currentConstructor == null || i != 0) {
                         errors.add(IllegalSuperConstructorCallException(statements[i]))
                     }
@@ -91,9 +91,12 @@ class ConstructorCheck(
         return StatementType.THIS_CONSTRUCTOR
     }
 
-    override fun visitSuperExpression(ctx: SuperExpressionContext?): StatementType {
+    override fun visitSuperExpression(ctx: SuperExpressionContext): StatementType {
         super.visitSuperExpression(ctx)
-        return StatementType.SUPER
+        return if (ctx.arguments() != null)
+            StatementType.SUPER_CONSTRUCTOR
+        else
+            StatementType.OTHER
     }
 
     private fun VascType.parentHasDefaultConstructor(): Boolean {

@@ -1,8 +1,13 @@
 class Animal is
 
     var lifes: Integer = 1
+    var age: Integer = 0
 
     this() is end
+
+    this(_age: Integer) is
+        age = _age
+    end
 
     method say() is
         println("I am a simple small animal")
@@ -17,16 +22,17 @@ end
 
 class Cat extends Animal is
 
-
     this() is
         lifes = 9
+    end
+
+   this(_age: Integer) is
+        super(_age)
     end
 
     method say() is
         println("Meow meow meow meow")
     end
-
-
 
 end
 
@@ -35,10 +41,17 @@ class Dog extends Animal is
 
     this() is end
 
+    this(_age: Integer) is
+        super(_age)
+    end
+
     method say() is
         println("Rrrraw")
     end
 
+    method command(a: Integer) is
+        println("$a")
+    end
 end
 
 
@@ -46,10 +59,33 @@ class AngryCat extends Cat is
 
     this() is end
 
+    this(_age: Integer) is
+        super(_age)
+    end
+
     method say() is
+        super.say()
         println("MYYYAAAW AAAAA shhhhhh")
     end
 
+end
+
+class AngryDog extends Dog is
+
+    this() is end
+
+    this(_age: Integer) is
+        super(_age)
+    end
+
+    method say() is
+        println("RRRAR")
+    end
+
+    method command(a: Integer) is
+        println("rar")
+        super.command(a)
+    end
 end
 
 
@@ -62,18 +98,29 @@ class Main is
 
     method main() is
         var animal: Animal = Animal()
+        var animal2: Animal = Animal(2)
         var cat: Cat = Cat()
         var dog: Dog = Dog()
         var angryCat: AngryCat = AngryCat()
+        var angryDog: AngryDog = AngryDog()
+        var angryDog2: AngryDog = AngryDog(2)
 
         animal.say()
         animal.getLifes()
+        animal2.say()
         cat.say()
         cat.getLifes()
         dog.say()
         dog.getLifes()
+        dog.command(2)
         angryCat.say()
         angryCat.getLifes()
+        angryDog.say()
+        angryDog.getLifes()
+        angryDog.command(2)
+        angryDog2.say()
+        var dog_age: Integer = angryDog2.age
+        println("$dog_age")
     end
 
 end
