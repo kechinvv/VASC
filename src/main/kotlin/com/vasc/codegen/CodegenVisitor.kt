@@ -11,6 +11,7 @@ import com.vasc.typecheck.PrintVar
 import com.vasc.typecheck.members
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
+import kotlin.math.max
 
 private const val classPrefix = "com/vasc/"
 
@@ -50,11 +51,19 @@ class CodegenVisitor(
         indent -= indentStep
     }
 
+    private var localLimit = 0
+
     private inline fun withLimits(action: () -> Unit) {
+        localLimit = 0
         withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
-            appendLine(".limit locals 32")
+            val backup = code
+            code = StringBuilder()
             action()
+            val temp = code
+            code = backup
+            appendLine(".limit stack 32") // TODO: calculate limits
+            appendLine(".limit locals $localLimit")
+            code.append(temp)
         }
     }
 
@@ -143,7 +152,7 @@ class CodegenVisitor(
         }
         appendLine(".method public static main([Ljava/lang/String;)V")
         withLimits {
-            appendLine()
+            localLimit = 2
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
             appendLine()
             withIndent {
@@ -182,6 +191,7 @@ class CodegenVisitor(
         val fullName = "main_$name([Ljava/lang/Object;)Z"
         appendLine(".method public static $fullName")
         withLimits {
+            localLimit = 1
             withIndent {
                 val className = currentClass!!.toJName()
                 val entryLabel = "entry"
@@ -226,8 +236,6 @@ class CodegenVisitor(
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public <init>($params)V", currentConstructor!!.toString())
         withLimits {
-            appendLine()
-
             if (fieldsInitCode.isNotEmpty()) {
                 appendHeader("Init Fields")
                 fieldsInitCode.forEach {
@@ -275,6 +283,7 @@ class CodegenVisitor(
             val stackSize = variableStack.size
             super.visitBody(ctx)
             variableStack.dropLast(variableStack.size - stackSize)
+            localLimit = max(localLimit, variableStack.size)
         }
     }
 
