@@ -1,0 +1,20 @@
+class Main is
+    this() is
+        main()
+    end
+
+    method main() is
+        var res1: Integer = simpleRecursionSum(10)
+        println("$res1")
+    end
+
+    method simpleRecursionSum(el: Integer): Integer is
+        println("$el")
+        if el.equal(1) then
+            return el
+        end
+        var res: Integer = el.plus(simpleRecursionSum(el.minus(1)))
+        return res
+    end
+
+end

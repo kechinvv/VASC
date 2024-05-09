@@ -1,0 +1,79 @@
+class Animal is
+
+    var lifes: Integer = 1
+
+    this() is end
+
+    method say() is
+        println("I am a simple small animal")
+    end
+
+    method getLifes(): Integer is
+        println("$lifes")
+        return lifes
+    end
+
+end
+
+class Cat extends Animal is
+
+
+    this() is
+        lifes = 9
+    end
+
+    method say() is
+        println("Meow meow meow meow")
+    end
+
+
+
+end
+
+
+class Dog extends Animal is
+
+    this() is end
+
+    method say() is
+        println("Rrrraw")
+    end
+
+end
+
+
+class AngryCat extends Cat is
+
+    this() is end
+
+    method say() is
+        println("MYYYAAAW AAAAA shhhhhh")
+    end
+
+end
+
+
+class Main is
+
+    this() is
+        println("main called")
+        main()
+    end
+
+    method main() is
+        var animal: Animal = Animal()
+        var cat: Cat = Cat()
+        var dog: Dog = Dog()
+        var angryCat: AngryCat = AngryCat()
+
+        animal.say()
+        animal.getLifes()
+        cat.say()
+        cat.getLifes()
+        dog.say()
+        dog.getLifes()
+        angryCat.say()
+        angryCat.getLifes()
+    end
+
+end
