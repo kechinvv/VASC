@@ -1,0 +1,45 @@
+class Main is
+
+    this() is
+        main()
+    end
+
+    method main() is
+        var n: Integer = 10
+        var list: List[SomeStruct] = List[SomeStruct]()
+        var el: Integer = 0
+        while el.less(n) loop
+            list.append(SomeStruct(el))
+            el = el.plus(1)
+        end
+    end
+
+    method mapIncr(list: List[SomeStruct]) is
+        list.head().incrA()
+        mapIncr(list.tail())
+    end
+
+    method printSomeStructList(list: List[SomeStruct]) is
+        var a: Integer = list.head().a
+        println("$a")
+        printSomeStructList(list.tail())
+    end
+end
+
+
+class SomeStruct is
+    var a: Integer
+
+    this(_a: Integer) is
+        a = _a
+    end
+
+    method setA(_a: Integer) is
+        a = _a
+    end
+
+    method incrA() is
+        a = a.plus(1)
+    end
+end
+
