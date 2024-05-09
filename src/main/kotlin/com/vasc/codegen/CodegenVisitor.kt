@@ -282,8 +282,10 @@ class CodegenVisitor(
         withIndent {
             val stackSize = variableStack.size
             super.visitBody(ctx)
-            variableStack.dropLast(variableStack.size - stackSize)
             localLimit = max(localLimit, variableStack.size)
+            repeat(variableStack.size - stackSize) {
+                variableStack.removeLast()
+            }
         }
     }
 
