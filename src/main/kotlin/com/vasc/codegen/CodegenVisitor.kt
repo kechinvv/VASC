@@ -136,15 +136,11 @@ class CodegenVisitor(
             appendLine(".limit locals 32")
             appendLine()
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
-            allLabels.windowed(2).forEach {
-                appendLine(".catch java/lang/ClassCastException from ${it[0]} to ${it[1]} using ${it[1]}")
-            }
             appendLine()
             withIndent {
                 appendLine("aload 0", "load args")
                 appendLine("invokestatic $argumentParseSignature", "parse args")
                 appendLine("astore 1")
-                appendLine("aconst_null", "dummy exception")
                 for (i in labels.indices) {
                     val (ctor, label) = labels[i]
                     appendLine("$label:")
@@ -154,10 +150,10 @@ class CodegenVisitor(
                         appendLine("ldc ${ctor.parameterTypes.size}", "expected number of args")
                         appendLine("if_icmpne ${if (i+1 < labels.size) labels[i+1].second else endLabel}", "skip if number of args differ")
 
-                        appendLine("pop", "pop exception")
                         appendLine("aload 1")
-                        appendLine("invokestatic ${currentClass!!.toJName()}/${constructorMatchers[ctor]!!}", "may throw exception")
+                        appendLine("invokestatic ${currentClass!!.toJName()}/${constructorMatchers[ctor]!!}")
 
+                        appendLine("ifeq ${allLabels[i+1]}", "continue if constructor did not match")
                         appendLine("return")
                     }
                 }
@@ -174,12 +170,17 @@ class CodegenVisitor(
     }
 
     private fun generateConstructorMatcher(ctor: VascConstructor, name: String): String {
-        val fullName = "main_$name([Ljava/lang/Object;)V"
+        val fullName = "main_$name([Ljava/lang/Object;)Z"
         appendLine(".method public static $fullName")
         withIndent {
             appendLine(".limit stack 32") // TODO: calculate limits
             withIndent {
                 val className = currentClass!!.toJName()
+                val entryLabel = "entry"
+                val callLabel = "call"
+                val catchLabel = "catch"
+                appendLine(".catch java/lang/ClassCastException from $entryLabel to $callLabel using $catchLabel")
+                appendLine("$entryLabel:")
                 appendLine("new $className")
                 for (pi in ctor.parameterTypes.indices) {
                     appendLine("aload 0")
@@ -187,8 +188,13 @@ class CodegenVisitor(
                     appendLine("aaload", "load next arg")
                     appendLine("checkcast ${ctor.parameterTypes[pi].toJName()}")
                 }
+                appendLine("$callLabel:")
                 appendLine("invokespecial $className/<init>(${ctor.parameterTypes.joinToString("") { it.toJType() }})V", "call constructor $ctor")
-                appendLine("return")
+                appendLine("iconst_1", "ok")
+                appendLine("ireturn")
+                appendLine("$catchLabel:", "error when casting arguments")
+                appendLine("iconst_0")
+                appendLine("ireturn")
             }
         }
         appendLine(".end method")
