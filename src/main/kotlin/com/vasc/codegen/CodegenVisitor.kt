@@ -244,7 +244,8 @@ class CodegenVisitor(
                     }
                 }
             }
-            if (ctx.body().statement() !is SuperExpressionContext) {
+            val statements = ctx.body().statement()
+            if (statements.isEmpty() || !statements[0].let { it is ExpressionStatementContext && it.expression() is SuperExpressionContext }) {
                 withIndent {
                     instrLoadThis()
                     appendLine("invokespecial ${currentClass?.parent?.toJName() ?: defaultParent}/<init>()V", "call default parent constructor")
