@@ -1,0 +1,93 @@
+class Main is
+    this() is
+        main()
+    end
+
+    method main() is
+        TrafficLight().working(30)
+    end
+end
+
+class TrafficLight  is
+    var state: State = Red()
+
+    this() is end
+
+    method working(times_switch: Integer) is
+        while times_switch.equal(0).not() loop
+            state = state.nextState()
+            state.handle()
+            times_switch = times_switch.minus(1)
+        end
+    end
+end
+
+class State is
+    this() is end
+
+    method nextState(): State is
+        return null
+    end
+
+    method handle() is
+        var times: Integer = 31000000
+        while times.equal(0).not() loop
+            times = times.minus(1)
+        end
+    end
+end
+
+class Red extends State is
+    this() is
+        println("Red")
+    end
+
+    method nextState(): State is
+        println("waiting. Don't forget to prepare before start....  turn on launch control...")
+        return YellowWithRed()
+    end
+end
+
+class Green extends State is
+    this() is
+        println("Green")
+    end
+
+    method nextState(): State is
+        println("wowowow, attention, prepare to stop")
+        return BlinkingGreen()
+    end
+end
+
+class BlinkingGreen extends State is
+    this() is
+        println("Blinking Green")
+    end
+
+    method nextState(): State is
+        println("stop pls if you can")
+        return Yellow()
+    end
+end
+
+class Yellow extends State is
+    this() is
+        println("Yellow")
+    end
+
+    method nextState(): State is
+        println("You must stop now")
+        return Red()
+    end
+end
+
+class YellowWithRed extends State is
+    this() is
+        println("Yellow With Red")
+    end
+
+    method nextState(): State is
+        println("3... 2... 1... goooooo")
+        return Green()
+    end
+end

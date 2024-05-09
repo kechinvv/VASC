@@ -4,15 +4,16 @@ class Main is
     end
 
     method main() is
-        simpleRecursion(10)
+        var res1: Integer = simpleRecursionSum(10)
+        println("$res1")
     end
 
-    method simpleRecursion(el: Integer): Integer is
+    method simpleRecursionSum(el: Integer): Integer is
         println("$el")
-        if el.less(0) then
+        if el.equal(1) then
             return el
         end
-        var res: Integer = simpleRecursion(el.minus(1))
+        var res: Integer = el.plus(simpleRecursionSum(el.minus(1)))
         return res
     end
 
