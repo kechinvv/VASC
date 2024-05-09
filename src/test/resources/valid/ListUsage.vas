@@ -9,9 +9,12 @@ class Main is
         var list: List[SomeStruct] = List[SomeStruct]()
         var el: Integer = 0
         while el.less(n) loop
+            println("$el")
             list.append(SomeStruct(el))
             el = el.plus(1)
         end
+        mapIncr(list)
+        printSomeStructList(list)
     end
 
     method mapIncr(list: List[SomeStruct]) is
