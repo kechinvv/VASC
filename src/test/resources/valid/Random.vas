@@ -1,0 +1,39 @@
+class Main is
+    this() is
+        main()
+    end
+
+    method main() is
+        var i: Integer = 0
+        var rand: RandomRandu = RandomRandu()
+        while i.less(15) loop
+            var res: Integer = rand.nextInt()
+            println("$res")
+            i = i.plus(1)
+        end
+    end
+end
+
+class RandomRandu is
+
+    var randMax: Integer = 2147483648
+    var seed: Integer
+    var state: Integer
+
+    this(_seed: Integer) is
+        seed = _seed
+        state = _seed
+    end
+
+    this() is
+        seed = 1
+        state = 1
+    end
+
+    method nextInt(): Integer is
+        state = state.mul(65539)
+        return state.rem(randMax)
+    end
+
+
+end
