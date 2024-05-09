@@ -1,0 +1,180 @@
+class Main is
+    this() is
+        var a : IntArrayList = IntArrayList()
+        a.add(4)
+        a.add(1)
+        a.add(5)
+        a.add(0)
+        a.add(3)
+        a.add(8)
+        a.add(7)
+        a.add(9)
+        a.add(6)
+        a.add(2)
+        a.add(100)
+
+        var array: Array[Integer] = a.value
+        println("array:")
+        println("$array")
+
+        a.removeByElement(0)
+        array = a.value
+        println("after remove 0 value")
+        println("$array")
+        var cap: Integer = a.capacity
+        println("Capacity")
+        println("$cap")
+        var l: Integer = a.length()
+        println("Length:")
+        println("$l")
+        a.trim()
+        println("After trim")
+        cap = a.capacity
+        println("Capacity")
+        println("$cap")
+        l = a.length()
+        println("Length:")
+        println("$l")
+    end
+end
+
+
+class IntArrayList is
+
+    var value: Array[Integer]
+    var capacity: Integer = 10
+    var pointer: Integer = 0
+
+    this() is
+        value = Array[Integer](capacity)
+    end
+
+
+    this(_capacity: Integer) is
+        capacity = _capacity
+        value = Array[Integer](capacity)
+    end
+
+
+    this(array: Array[Integer]) is
+        value = array
+        while pointer.equal(value.length()).not() loop
+            if value.get(pointer).equal(null) then
+                return
+            end
+            pointer = pointer.plus(1)
+        end
+    end
+
+    method get(i: Integer): Integer is
+        return value.get(i)
+    end
+
+
+    method set(i: Integer, el: Integer): Boolean is
+        if i.less(pointer) then
+            value.set(i, el)
+            return true
+        else
+            println("Index out of bound")
+            return false
+        end
+    end
+
+
+    method length(): Integer is
+        return pointer
+    end
+
+
+    method toList(): List[Integer] is
+        return value.toList()
+    end
+
+
+    method add(el: Integer) is
+        if pointer.greaterEqual(capacity) then
+            realloc()
+        end
+        value.set(pointer, el)
+        pointer = pointer.plus(1)
+    end
+
+
+    method add(array: Array[Integer]) is
+        var i: Integer = 0
+        while i.equal(array.length()).not() loop
+            add(array.get(i))
+            i = i.plus(1)
+        end
+    end
+
+
+    method removeByElement(el: Integer) is
+        var i: Integer = 0
+        while i.equal(value.length()).not() loop
+            if value.get(i).equal(el) then
+                _shift_left(i)
+                return
+            end
+            i = i.plus(1)
+        end
+    end
+
+
+    method removeByPos(pos: Integer): Integer is
+        var res: Integer = value.get(pos)
+        _shift_left(pos)
+        return res
+    end
+
+
+    method trim() is
+        var i: Integer = value.length().minus(1)
+        var nulls: Integer = 0
+        while i.equal(-1).not() loop
+            if value.get(i).equal(null).not() then
+                capacity = value.length().minus(nulls)
+                _realloc()
+                return
+            end
+            nulls = nulls.plus(1)
+        end
+        capacity = 0
+        _realloc()
+    end
+
+
+    method realloc() is
+        capacity = capacity.mul(2)
+        _realloc()
+    end
+
+
+    method realloc(delta: Integer) is
+        capacity = capacity.plus(delta)
+        _realloc()
+    end
+
+
+    method _realloc() is
+        var new_value: Array[Integer] = Array[Integer](capacity)
+        var i: Integer = 0
+        while i.less(value.length()) loop
+            new_value.set(i, value.get(i))
+            i = i.plus(1)
+        end
+        pointer = value.length()
+        value = new_value
+    end
+
+
+    method _shift_left(pos: Integer) is
+        while pos.equal(value.length().minus(1)).not() loop
+            value.set(pos, value.get(pos.plus(1)))
+            pos = pos.plus(1)
+        end
+        pointer = pointer.minus(1)
+        value.set(pos, null)
+    end
+end
