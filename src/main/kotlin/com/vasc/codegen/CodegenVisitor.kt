@@ -47,6 +47,14 @@ class CodegenVisitor(
         indent -= indentStep
     }
 
+    private inline fun withLimits(action: () -> Unit) {
+        withIndent {
+            appendLine(".limit stack 32") // TODO: calculate limits
+            appendLine(".limit locals 32")
+            action()
+        }
+    }
+
     private fun appendLine() {
         code.appendLine()
     }
@@ -131,9 +139,7 @@ class CodegenVisitor(
             constructorMatchers[ctor] = generateConstructorMatcher(ctor, label)
         }
         appendLine(".method public static main([Ljava/lang/String;)V")
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
-            appendLine(".limit locals 32")
+        withLimits {
             appendLine()
             val allLabels = listOf(*labels.map { it.second }.toTypedArray(), endLabel)
             appendLine()
@@ -172,8 +178,7 @@ class CodegenVisitor(
     private fun generateConstructorMatcher(ctor: VascConstructor, name: String): String {
         val fullName = "main_$name([Ljava/lang/Object;)Z"
         appendLine(".method public static $fullName")
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
+        withLimits {
             withIndent {
                 val className = currentClass!!.toJName()
                 val entryLabel = "entry"
@@ -217,9 +222,7 @@ class CodegenVisitor(
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         val params = currentConstructor!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public <init>($params)V", currentConstructor!!.toString())
-        withIndent {
-            appendLine(".limit stack 32") // TODO: calculate limits
-            appendLine(".limit locals 32")
+        withLimits {
             appendLine()
 
             if (fieldsInitCode.isNotEmpty()) {
@@ -244,8 +247,6 @@ class CodegenVisitor(
             ctx.body().accept(this)
             appendLine("return") // TODO: add return only if needed
         }
-
-
         appendLine(".end method")
         appendLine()
     }
@@ -254,10 +255,7 @@ class CodegenVisitor(
         val params = currentMethod!!.parameters.joinToString("") { it.type.toJType() }
         appendLine(".method public ${currentMethod!!.name}($params)${currentMethod!!.returnType.toJType()}", currentMethod!!.toString())
 
-        withIndent {
-            appendLine(".limit stack 32")
-            appendLine(".limit locals 32")
-
+        withLimits {
             variableStack.clear()
             variableStack.add(VascVariable("this", currentClass!!))
             variableStack.addAll(currentMethod!!.parameters)
