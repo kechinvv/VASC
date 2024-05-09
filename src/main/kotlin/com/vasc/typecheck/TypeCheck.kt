@@ -100,14 +100,8 @@ class TypeCheck(
     }
 
     override fun visitPrintStatement(ctx: PrintStatementContext) {
-        val text = ctx.STRING().text.removeSurrounding("\"")
-        text.split(" ").forEach {
-            if (it.startsWith("$")) {
-                val varName = it.removePrefix("$")
-                if (scope.find(varName) == null) {
-                    errors.add(UnknownVariableException(varName, ctx))
-                }
-            }
+        ctx.members().filterIsInstance<PrintVar>().forEach {
+            scope.find(it.id) ?: errors.add(UnknownVariableException(it.id, ctx))
         }
     }
 

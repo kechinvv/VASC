@@ -6,6 +6,9 @@ import com.vasc.antlr.VascParserBaseVisitor
 import com.vasc.error.VascException
 import com.vasc.member.*
 import com.vasc.type.*
+import com.vasc.typecheck.PrintString
+import com.vasc.typecheck.PrintVar
+import com.vasc.typecheck.members
 import com.vasc.util.toUniqueVariables
 import org.antlr.v4.runtime.ParserRuleContext
 
@@ -346,24 +349,24 @@ class CodegenVisitor(
         withLineInfo(ctx.start.line) {
             appendLine("getstatic java/lang/System/out Ljava/io/PrintStream;")
             appendLine("ldc \"\"")
-            ctx.STRING().text.removeSurrounding("\"").split(" ").forEach {
-                if (it.startsWith("$")) {
-                    val name = it.removePrefix("$")
-                    val stackIndex = variableStack.indexOfFirst { it.name == name }
-                    if (stackIndex > 0) {
-                        appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
-                        nextCallType = variableStack[stackIndex].type
-                    } else {
-                        val field = currentClass!!.getField(name)!!
-                        instrLoadThis()
-                        instrGetField(currentClass!!, field)
+            ctx.members().forEach {  member ->
+                when(member) {
+                    is PrintString -> {
+                        appendLine("ldc \"${member.str}\"")
                     }
-                    appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
-                } else {
-                    appendLine("ldc \"$it\"")
+                    is PrintVar -> {
+                        val stackIndex = variableStack.indexOfFirst { it.name == member.id }
+                        if (stackIndex > 0) {
+                            appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
+                            nextCallType = variableStack[stackIndex].type
+                        } else {
+                            val field = currentClass!!.getField(member.id)!!
+                            instrLoadThis()
+                            instrGetField(currentClass!!, field)
+                        }
+                        appendLine("invokevirtual java/lang/Object/toString()Ljava/lang/String;")
+                    }
                 }
-                appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
-                appendLine("ldc \" \"")
                 appendLine("invokevirtual java/lang/String/concat(Ljava/lang/String;)Ljava/lang/String;")
             }
             appendLine("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V", "next line")
