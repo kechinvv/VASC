@@ -405,6 +405,9 @@ class CodegenVisitor(
     override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
         withLineInfo(ctx.start.line) {
             ctx.expression().accept(this)
+            if (typeTable[ctx.expression()] != VascVoid) {
+                appendLine("pop", "discard result")
+            }
         }
     }
 

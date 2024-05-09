@@ -1,20 +1,17 @@
 class Main is
     this() is
-        var shapes : List[Shape]
+        var shapes : List[Shape] = List[Shape]()
 
-        shapes.append(Triangle(16.0, 25.0, 39.0)) // 120
-        shapes.append(Square(13.0))               // 169
-        shapes.append(Rectangle(5.0, 16.0))       // 80
-        var expectedArea : Real = 369.0
+        shapes.append(Triangle(16.0, 25.0, 39.0)) // 120.0
+        shapes.append(Square(13.0))               // 169.0
+        shapes.append(Rectangle(5.0, 16.0))       // 80.0
 
         var totalArea : Real = 0.0
         while shapes.isEmpty().not() loop
-            totalArea.plus(shapes.head().Area())
+            totalArea = totalArea.plus(shapes.head().Area())
             shapes = shapes.tail()
         end
-        if totalArea.equal(expectedArea).not() then // TODO: epsilon?
-            // TODO: error
-        end
+        println("$totalArea") // 369.0
     end
 end
 
