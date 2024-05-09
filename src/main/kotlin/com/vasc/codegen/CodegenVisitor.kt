@@ -466,6 +466,7 @@ class CodegenVisitor(
 
     override fun visitThisExpression(ctx: ThisExpressionContext) {
         if (ctx.arguments() == null) {
+            instrLoadThis()
             nextCallType = currentClass
             ctx.dotCall().forEach {
                 it.accept(this)
@@ -485,6 +486,7 @@ class CodegenVisitor(
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         if (ctx.arguments() == null) {
+            instrLoadThis()
             nextCallType = currentClass!!.parent!! // TODO: use invokespecial for next call
             ctx.dotCall().forEach {
                 it.accept(this)
