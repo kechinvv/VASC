@@ -449,13 +449,13 @@ class CodegenVisitor(
             nextCallType = method.returnType
         } else {
             val cls = typeResolver.visit(ctx.className())
-            val constructor = cls.getDeclaredConstructor(arguments)
+            val constructor = cls.getDeclaredConstructor(arguments)!!
             appendLine("new ${cls.toJName()}")
             appendLine("dup")
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${cls!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${cls!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "new $cls.$constructor")
             nextCallType = cls
         }
@@ -472,12 +472,12 @@ class CodegenVisitor(
             }
         } else {
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
-            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)!!
             instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${currentClass!!.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${currentClass!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call constructor $currentClass.$constructor")
             nextCallType = VascVoid
         }
@@ -491,13 +491,13 @@ class CodegenVisitor(
             }
         } else {
             val arguments = ctx.arguments().expression().map { typeTable[it]!! }
-            val constructor = currentClass!!.getDeclaredConstructor(arguments)
+            val constructor = currentClass!!.getDeclaredConstructor(arguments)!!
             val cls = currentClass!!.parent!!
             instrLoadThis()
             ctx.arguments().expression().forEach {
                 it.accept(this)
             }
-            val call = "${cls.toJName()}/<init>(${arguments.joinToString("") { it.toJType() }})V"
+            val call = "${cls.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call parent constructor $cls.$constructor")
             nextCallType = VascVoid
         }
