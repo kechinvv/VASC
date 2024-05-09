@@ -37,6 +37,7 @@ end
 class Main is
 
     this() is
+        main()
     end
 
     method main() is
