@@ -1,0 +1,19 @@
+class Main is
+    this() is
+        main()
+    end
+
+    method main() is
+        simpleRecursion(10)
+    end
+
+    method simpleRecursion(el: Integer): Integer is
+        println("$el")
+        if el.less(0) then
+            return el
+        end
+        var res: Integer = simpleRecursion(el.minus(1))
+        return res
+    end
+
+end

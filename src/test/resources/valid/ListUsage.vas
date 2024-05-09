@@ -15,11 +15,17 @@ class Main is
     end
 
     method mapIncr(list: List[SomeStruct]) is
+        if list.isEmpty() then
+            return
+        end
         list.head().incrA()
         mapIncr(list.tail())
     end
 
     method printSomeStructList(list: List[SomeStruct]) is
+        if list.isEmpty() then
+            return
+        end
         var a: Integer = list.head().a
         println("$a")
         printSomeStructList(list.tail())
