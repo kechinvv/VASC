@@ -7,6 +7,8 @@ import com.vasc.util.VascErrorListener
 import org.antlr.v4.runtime.*
 import org.junit.jupiter.api.fail
 import java.io.File
+import java.nio.file.Files
+import kotlin.Boolean
 
 fun programWithErrorListener(file: File) = programWithErrorListener(CharStreams.fromFileName(file.path))
 
@@ -24,3 +26,22 @@ fun programWithErrorListener(stream: CharStream): ProgramContext {
 }
 
 fun testResource(name: String) = File("src/test/resources/$name")
+
+fun File.contentEquals(other: File): Boolean {
+    Files.newBufferedReader(this.toPath()).use { bf1 ->
+        Files.newBufferedReader(other.toPath()).use { bf2 ->
+            var line = bf1.readLine()?.trim()
+            while (line != null) {
+                val line2 = bf2.readLine().trim()
+                if (line != line2) {
+                    System.err.println("Lines not equal:\n${line}\n${line2}")
+                    return false
+                }
+                line = bf1.readLine()?.trim()
+            }
+            if (bf2.readLine() != null) return false
+        }
+    }
+
+    return true
+}

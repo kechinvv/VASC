@@ -4,7 +4,9 @@ import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.antlr.VascParser.ProgramContext
 import com.vasc.error.VascException
-import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.CharStream
+import org.antlr.v4.runtime.CommonTokenStream
+import java.io.File
 
 class UnexpectedParserError :
     VascException("unexpected parser errors")
@@ -20,5 +22,14 @@ fun programWithErrorListener(stream: CharStream): ProgramContext {
         throw UnexpectedParserError()
     }
     return program
+}
+
+
+fun File.deleteAndCreateNewFile(): File {
+    return this.apply {
+        if (exists()) delete()
+        getParentFile().mkdirs()
+        createNewFile()
+    }
 }
 

@@ -8,9 +8,11 @@ import com.vasc.error.VascException
 import com.vasc.error.toPrettyString
 import com.vasc.type.VascType
 import com.vasc.typecheck.TypeCheck
+import com.vasc.util.deleteAndCreateNewFile
 import com.vasc.util.programWithErrorListener
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.ParserRuleContext
+import java.io.File
 
 fun main() {
     val src = "src/test/resources/valid/EntryPoint.vas"
@@ -31,5 +33,7 @@ fun main() {
         throw IllegalStateException("expected no errors but got:\n" + errors.toPrettyString())
     }
     val vascProgram = VascCompiler.compile(generator.getGeneratedClasses())
-    vascProgram.run()
+
+    val output = File("./vascoutput/example_output.txt").deleteAndCreateNewFile()
+    vascProgram.run(1, false, outputFile = output)
 }
