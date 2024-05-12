@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.misc.Interval
 
 open class VascException(
-    final override val message: String, ctx: ParserRuleContext? = null
+    final override val message: String, val ctx: ParserRuleContext? = null
 ) : RuntimeException(message) {
 
     val fullMessage = message + (ctx?.let { prettyPosition(it) } ?: "")

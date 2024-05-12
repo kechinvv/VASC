@@ -252,13 +252,7 @@ class TypeCheck(
     }
 
     private fun <T : ParserRuleContext> tryWithContext(ctx: T, block: (T) -> Unit) {
-        try {
-            block(ctx)
-        } catch (e: TypeCheckException) {
-            errors.add(e)
-        } catch (e: VascException) {
-            errors.add(VascException(e.message, ctx))
-        }
+        com.vasc.error.tryWithContext(ctx, errors, block)
     }
 
     private fun copy(

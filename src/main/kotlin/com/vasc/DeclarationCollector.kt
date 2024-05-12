@@ -97,11 +97,7 @@ private class ClassBuilder(
     }
 
     private inline fun tryWithContext(ctx: ParserRuleContext, block: (ParserRuleContext) -> Unit) {
-        try {
-            block(ctx)
-        } catch (e: VascException) {
-            errors.add(VascException(e.message, ctx))
-        }
+        com.vasc.error.tryWithContext(ctx, errors, block)
     }
 }
 
