@@ -89,6 +89,7 @@ class CodegenVisitor(
     private var currentMethod: VascMethod? = null
 
     private var nextCallType: VascType? = null
+    private var specialCall: Boolean = false
 
     private val variableStack = mutableListOf<VascVariable>()
 
@@ -426,11 +427,13 @@ class CodegenVisitor(
         if (stackIndex > 0) {
             appendLine("aload $stackIndex", "read local ${variableStack[stackIndex]}")
             nextCallType = variableStack[stackIndex].type
+            specialCall = false
         } else {
             val field = currentClass!!.getField(name)!!
             instrLoadThis()
             instrGetField(currentClass!!, field)
             nextCallType = field.type
+            specialCall = false
         }
         ctx.dotCall().forEach {
             it.accept(this)
@@ -447,6 +450,7 @@ class CodegenVisitor(
             }
             callMethod(currentClass!!, method)
             nextCallType = method.returnType
+            specialCall = false
         } else {
             val cls = typeResolver.visit(ctx.className())
             val constructor = cls.getDeclaredConstructor(arguments)!!
@@ -458,6 +462,7 @@ class CodegenVisitor(
             val call = "${cls!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "new $cls.$constructor")
             nextCallType = cls
+            specialCall = false
         }
         ctx.dotCall().forEach {
             it.accept(this)
@@ -468,6 +473,7 @@ class CodegenVisitor(
         if (ctx.arguments() == null) {
             instrLoadThis()
             nextCallType = currentClass
+            specialCall = false
             ctx.dotCall().forEach {
                 it.accept(this)
             }
@@ -481,13 +487,15 @@ class CodegenVisitor(
             val call = "${currentClass!!.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call constructor $currentClass.$constructor")
             nextCallType = VascVoid
+            specialCall = false
         }
     }
 
     override fun visitSuperExpression(ctx: SuperExpressionContext) {
         if (ctx.arguments() == null) {
             instrLoadThis()
-            nextCallType = currentClass!!.parent!! // TODO: use invokespecial for next call
+            nextCallType = currentClass!!.parent!!
+            specialCall = true
             ctx.dotCall().forEach {
                 it.accept(this)
             }
@@ -502,6 +510,7 @@ class CodegenVisitor(
             val call = "${cls.toJName()}/<init>(${constructor.parameterTypes.joinToString("") { it.toJType() }})V"
             appendLine("invokespecial $call", "call parent constructor $cls.$constructor")
             nextCallType = VascVoid
+            specialCall = false
         }
     }
 
@@ -513,6 +522,7 @@ class CodegenVisitor(
         val field = nextCallType!!.getField(ctx.identifier().text)
         instrGetField(nextCallType as VascClass, field!!)
         nextCallType = field.type
+        specialCall = false
     }
 
     override fun visitMethodCall(ctx: MethodCallContext) {
@@ -520,11 +530,14 @@ class CodegenVisitor(
         val arguments = ctx.arguments().expression().map { typeTable[it]!! }
         val cls = nextCallType!!
         val method = nextCallType!!.getMethod(name, arguments)!!
+        val specialCallTemp = specialCall // TODO: this is awkward
         ctx.arguments().expression().forEach {
             it.accept(this)
         }
+        specialCall = specialCallTemp
         callMethod(cls, method)
         nextCallType = method.returnType
+        specialCall = false
     }
 
     private fun callMethod(cls: VascType, method: VascMethod) {
@@ -555,7 +568,11 @@ class CodegenVisitor(
                 "${cls.toJName()}/$name($arguments)$ret"
             }
         }
-        appendLine("invokevirtual $call", "call $cls.$method")
+        if (specialCall) {
+            appendLine("invokespecial $call", "call special $cls.$method")
+        } else {
+            appendLine("invokevirtual $call", "call $cls.$method")
+        }
         if (needCast) {
             appendLine("checkcast ${method.returnType.toJName()}")
         }
