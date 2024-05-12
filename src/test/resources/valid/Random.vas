@@ -6,7 +6,7 @@ class Main is
     method main() is
         var i: Integer = 0
         var rand: RandomRandu = RandomRandu()
-        while i.less(15) loop
+        while i.less(20) loop
             var res: Integer = rand.nextInt()
             println("$res")
             i = i.plus(1)
@@ -26,13 +26,13 @@ class RandomRandu is
     end
 
     this() is
-        seed = 1
+        seed = 0
         state = 1
     end
 
     method nextInt(): Integer is
-        state = state.mul(65539)
-        return state.rem(randMax)
+        state = state.mul(65539).plus(seed).rem(randMax)
+        return state
     end
 
 

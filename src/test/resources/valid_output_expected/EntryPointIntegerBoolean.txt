@@ -1,0 +1,3 @@
+integer and boolean
+1
+true

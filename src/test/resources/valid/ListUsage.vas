@@ -8,12 +8,14 @@ class Main is
         var n: Integer = 10
         var list: List[SomeStruct] = List[SomeStruct]()
         var el: Integer = 0
+        println("Original list:")
         while el.less(n) loop
             println("$el")
             list.append(SomeStruct(el))
             el = el.plus(1)
         end
         mapIncr(list)
+        println("Changed list:")
         printSomeStructList(list)
     end
 

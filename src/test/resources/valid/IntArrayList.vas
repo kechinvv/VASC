@@ -19,10 +19,10 @@ class Main is
 
         a.removeByElement(0)
         array = a.value
-        println("after remove 0 value")
+        println("after remove 0 value:")
         println("$array")
         var cap: Integer = a.capacity
-        println("Capacity")
+        println("Capacity:")
         println("$cap")
         var l: Integer = a.length()
         println("Length:")
@@ -30,7 +30,7 @@ class Main is
         a.trim()
         println("After trim")
         cap = a.capacity
-        println("Capacity")
+        println("Capacity:")
         println("$cap")
         l = a.length()
         println("Length:")
