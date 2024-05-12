@@ -1,0 +1,33 @@
+main called
+Animal say:
+I am a simple small animal
+Animal lives:
+1
+Animal2 say:
+I am a simple small animal
+Cat say:
+Meow meow meow meow
+Cat lives:
+9
+Dog say:
+Rrrraw
+Dog lives:
+1
+Dog command:
+2
+Angry cat say:
+Meow meow meow meow
+MYYYAAAW AAAAA shhhhhh
+Angry cat lives:
+9
+AngryDog say:
+RRRAR
+AngryDog lives:
+1
+AngryDog command:
+rar
+2
+AngryDog2 say:
+RRRAR
+AngryDog2 age:
+2

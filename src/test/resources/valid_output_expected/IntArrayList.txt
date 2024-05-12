@@ -1,0 +1,13 @@
+array:
+[4, 1, 5, 0, 3, 8, 7, 9, 6, 2, 100, null, null, null, null, null, null, null, null, null]
+after remove 0 value:
+[4, 1, 5, 3, 8, 7, 9, 6, 2, 100, null,  null, null, null, null, null, null, null, null, null]
+Capacity:
+20
+Length:
+10
+After trim
+Capacity:
+10
+Length:
+10
