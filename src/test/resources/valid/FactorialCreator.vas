@@ -51,11 +51,10 @@ class Main is
         var resNext1: Integer = f.next()
         var resNext2: Integer = f.next()
         var curNumb: Integer = f.num
-
-        println("$res10")
-        println("$resNext1")
-        println("$resNext2")
-        println("$curNumb")
+        println("Factorial 10 = $res10")
+        println("Factorial 1 = $resNext1")
+        println("Factorial 2 = $resNext2")
+        println("Current arg for caluclate factorial = $curNumb")
     end
 
     method scenario2() is
@@ -65,9 +64,9 @@ class Main is
         var resNext9: Integer = f.next()
         var curNumb: Integer = f.num
 
-        println("$res3")
-        println("$resNext8")
-        println("$resNext9")
-        println("$curNumb")
+        println("Factorial 3 = $res3")
+        println("Factorial 8 = $resNext8")
+        println("Factorial 9 = $resNext9")
+        println("Current arg for caluclate factorial = $curNumb")
     end
 end
