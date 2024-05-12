@@ -1,6 +1,6 @@
 class Main is
     this() is
-        var E : Node
+        var E : Node = Node()
         var tree : PlusNode =
             PlusNode(1,
                 PlusNode(2,
@@ -21,12 +21,10 @@ class Main is
         //    -3  4 7
         //         \
         //          5
-        var expectedRes : Integer = 10
-        var v : Visitor
-        v.visit(tree)
-        if v.res.equal(expectedRes).not() then
-            // TODO: error
-        end
+        var v : Visitor = Visitor()
+        tree.accept(v)
+        var res : Integer = v.res
+        println("$res") // 10
     end
 end
 
@@ -41,19 +39,22 @@ class Visitor is
 
     method visit(node : PlusNode) is
         res = res.plus(node.value)
-        this.visit(node.left)
-        this.visit(node.right)
+        node.left.accept(this)
+        node.right.accept(this)
     end
 
     method visit(node : MinusNode) is
         res = res.minus(node.value)
-        this.visit(node.left)
-        this.visit(node.right)
+        node.left.accept(this)
+        node.right.accept(this)
     end
 end
 
 class Node is // empty node
     this() is
+    end
+
+    method accept(v : Visitor) is
     end
 end
 
@@ -67,10 +68,18 @@ class PlusNode extends Node is
         left  = _left
         right = _right
     end
+
+    method accept(v : Visitor) is
+        v.visit(this)
+    end
 end
 
 class MinusNode extends PlusNode is
     this(_value : Integer, _left : Node, _right : Node) is
         super(_value, _left, _right)
+    end
+
+    method accept(v : Visitor) is
+        v.visit(this)
     end
 end
