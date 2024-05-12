@@ -1,14 +1,13 @@
-package com.vasc
+package com.vasc.util
 
 import com.vasc.antlr.VascLexer
 import com.vasc.antlr.VascParser
 import com.vasc.antlr.VascParser.ProgramContext
-import com.vasc.util.VascErrorListener
+import com.vasc.error.VascException
 import org.antlr.v4.runtime.*
-import org.junit.jupiter.api.fail
-import java.io.File
 
-fun programWithErrorListener(file: File) = programWithErrorListener(CharStreams.fromFileName(file.path))
+class UnexpectedParserError :
+    VascException("unexpected parser errors")
 
 fun programWithErrorListener(stream: CharStream): ProgramContext {
     val lexer = VascLexer(stream)
@@ -18,9 +17,8 @@ fun programWithErrorListener(stream: CharStream): ProgramContext {
     val program = parser.program()
     if (errorListener.errors.isNotEmpty()) {
         System.err.println(errorListener.errors.joinToString("\n\n"))
-        fail("unexpected parser errors")
+        throw UnexpectedParserError()
     }
     return program
 }
 
-fun testResource(name: String) = File("src/test/resources/$name")

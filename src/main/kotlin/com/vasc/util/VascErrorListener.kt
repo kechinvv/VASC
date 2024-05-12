@@ -1,4 +1,4 @@
-package com.vasc
+package com.vasc.util
 
 import org.antlr.v4.runtime.*
 
