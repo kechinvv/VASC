@@ -8,8 +8,8 @@ class VascProgram(
     private val sourcePath: File,
 ) {
 
-    fun run(vararg args: String) {
-        ProcessBuilder("java", "-cp", sourcePath.absolutePath, target, *args).start().apply {
+    fun run(vararg args: Any) {
+        ProcessBuilder("java", "-cp", sourcePath.absolutePath, target, *(args.map(Any::toString).toTypedArray())).start().apply {
             inputStream.printLines()
             errorStream.printLines()
         }
