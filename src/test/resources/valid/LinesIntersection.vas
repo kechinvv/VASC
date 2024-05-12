@@ -9,8 +9,8 @@ class Main is
         if o.ok then
             var x : Real = o.value.x
             var y : Real = o.value.y
-            println("$x") // 5
-            println("$y") // 5
+            println("$x") // 5.0
+            println("$y") // 5.0
         else
             println("error: no intersection")
         end
@@ -60,9 +60,9 @@ class Line is
     end
 
     method findIntersection(other : Line) : Option is
-        var a1 : Real = e.y.minus(other.s.y)
-        var b1 : Real = s.x.minus(other.e.x)
-        var c1 : Real = a1.mul(s.x).plus(b1.mul(other.s.y))
+        var a1 : Real = e.y.minus(s.y)
+        var b1 : Real = s.x.minus(e.x)
+        var c1 : Real = a1.mul(s.x).plus(b1.mul(s.y))
 
         var a2 : Real = other.e.y.minus(other.s.y)
         var b2 : Real = other.s.x.minus(other.e.x)
