@@ -21,7 +21,7 @@ class ConstructorNotFound(ctx: ThisExpressionContext) :
 class CyclicConstructorException(ctx: ThisExpressionContext) :
     VascException("Cyclic constructor usage", ctx)
 
-class DefaultConstructorNotExistsException(ctx: BodyContext) :
+class DefaultConstructorNotExistsException(ctx: ConstructorDeclarationContext) :
     VascException("Default constructor not exists. Use super call.", ctx)
 
 class ConstructorsMatchSuperNotExists(ctx: ClassDeclarationContext) :

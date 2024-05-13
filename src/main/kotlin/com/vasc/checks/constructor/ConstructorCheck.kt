@@ -76,7 +76,7 @@ class ConstructorCheck(
         }
 
         if (currentConstructor != null && !wasSuperOrThisCall && !currentClass.parentHasDefaultConstructor()) {
-            errors.add(DefaultConstructorNotExistsException(ctx))
+            errors.add(DefaultConstructorNotExistsException(ctx.parent as ConstructorDeclarationContext))
         }
         return statementType
     }
