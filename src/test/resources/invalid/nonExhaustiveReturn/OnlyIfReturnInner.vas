@@ -5,9 +5,9 @@ class Main is
         var a : Integer = 0
         var b : Integer = 0
         var c : Integer = 1
-        if true then
+        if a.equal(b) then
             a = 2
-            if true then
+            if a.less(b) then
                 return a
             end
         else
