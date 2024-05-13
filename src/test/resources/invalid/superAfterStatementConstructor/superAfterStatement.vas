@@ -1,0 +1,14 @@
+class Main is
+    this(a: Integer) is
+    end
+end
+
+class A extends Main is
+
+    var b: Integer
+
+    this(a: Integer) is
+        b = a
+        super(a)
+    end
+end

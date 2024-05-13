@@ -1,10 +1,7 @@
 package com.vasc
 
 import com.vasc.antlr.VascParser
-import com.vasc.checks.CyclicConstructorException
-import com.vasc.checks.DefaultConstructorNotExistsException
-import com.vasc.checks.NonExhaustiveReturnException
-import com.vasc.checks.UnreachableCodeException
+import com.vasc.checks.*
 import com.vasc.checks.constructor.ConstructorCheck
 import com.vasc.checks.exhaustiveness.ExhaustivenessCheck
 import com.vasc.error.VascException
@@ -29,7 +26,7 @@ class TestInvalidChecks {
     fun `Test ExhaustivenessCheck for invalid code`(): Collection<DynamicNode> {
         val dirs = mapOf(
             testResource("invalid/nonExhaustiveReturn") to NonExhaustiveReturnException::class,
-            testResource("invalid/unreachableCode") to UnreachableCodeException::class
+            testResource("invalid/unreachableCode") to UnreachableCodeException::class,
         )
         val runChecks: RunnableChecks =
             { typeResolver, _, errors, program -> ExhaustivenessCheck(typeResolver, errors).check(program) }
@@ -44,7 +41,8 @@ class TestInvalidChecks {
     fun `Test ConstructorCheck for invalid code`(): Collection<DynamicNode> {
         val dirs = mapOf(
             testResource("invalid/recursiveConstructor") to CyclicConstructorException::class,
-            testResource("invalid/defaultConstructor") to DefaultConstructorNotExistsException::class
+            testResource("invalid/defaultConstructor") to DefaultConstructorNotExistsException::class,
+            testResource("invalid/superAfterStatementConstructor") to IllegalSuperConstructorCallException::class
         )
         val runChecks: RunnableChecks = { typeResolver, typeTable, errors, program ->
             ConstructorCheck(typeResolver, typeTable, errors).check(program)
