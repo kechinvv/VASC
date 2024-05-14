@@ -138,6 +138,7 @@ class IntArrayList is
                 _realloc()
                 return
             end
+            i = i.minus(1)
             nulls = nulls.plus(1)
         end
         capacity = 0
@@ -160,11 +161,14 @@ class IntArrayList is
     method _realloc() is
         var new_value: Array[Integer] = Array[Integer](capacity)
         var i: Integer = 0
-        while i.less(value.length()) loop
+        pointer = capacity
+        if value.length().less(capacity) then
+            pointer = value.length()
+        end
+        while i.less(pointer) loop
             new_value.set(i, value.get(i))
             i = i.plus(1)
         end
-        pointer = value.length()
         value = new_value
     end
 

@@ -528,6 +528,11 @@ class CodegenVisitor(
         appendLine("$ifNullLabel:")
         newTrue()
         appendLine("$endLabel:")
+        nextCallType = VascBoolean
+        specialCall = false
+        ctx.dotCall().forEach {
+            it.accept(this)
+        }
     }
 
     override fun visitFieldAccess(ctx: FieldAccessContext) {
