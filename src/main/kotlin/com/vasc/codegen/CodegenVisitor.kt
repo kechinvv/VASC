@@ -518,6 +518,18 @@ class CodegenVisitor(
         ctx.primary().accept(this)
     }
 
+    override fun visitIsNullExpression(ctx: IsNullExpressionContext) {
+        ctx.expression().accept(this)
+        val endLabel = "IfNull_Merge_${ctx.pos()}"
+        val ifNullLabel = "IfNull_${ctx.pos()}"
+        appendLine("ifnull $ifNullLabel")
+        newFalse()
+        appendLine("goto $endLabel")
+        appendLine("$ifNullLabel:")
+        newTrue()
+        appendLine("$endLabel:")
+    }
+
     override fun visitFieldAccess(ctx: FieldAccessContext) {
         val field = nextCallType!!.getField(ctx.identifier().text)
         instrGetField(nextCallType as VascClass, field!!)
@@ -594,14 +606,17 @@ class CodegenVisitor(
         appendLine("invokespecial $integerClass/<init>(J)V")
     }
 
-    override fun visitFalseLiteral(ctx: FalseLiteralContext) {
+    override fun visitFalseLiteral(ctx: FalseLiteralContext) = newFalse()
+    override fun visitTrueLiteral(ctx: TrueLiteralContext) = newTrue()
+
+    private fun newFalse() {
         appendLine("new $booleanClass")
         appendLine("dup")
         appendLine("iconst_0")
         appendLine("invokespecial $booleanClass/<init>(Z)V")
     }
 
-    override fun visitTrueLiteral(ctx: TrueLiteralContext) {
+    private fun newTrue() {
         appendLine("new $booleanClass")
         appendLine("dup")
         appendLine("iconst_1")

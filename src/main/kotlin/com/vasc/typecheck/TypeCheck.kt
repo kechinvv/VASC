@@ -220,6 +220,13 @@ class TypeCheck(
         }
     }
 
+    override fun visitIsNullExpression(ctx: IsNullExpressionContext) {
+        tryWithContext(ctx) {
+            it.expression().accept(this)
+            typeTable[ctx] = dotCall(VascBoolean, ctx.dotCall())
+        }
+    }
+
     private fun dotCall(initT: VascType, calls: List<DotCallContext>): VascType {
         var nextT: VascType = initT
         for (nextCall in calls) {

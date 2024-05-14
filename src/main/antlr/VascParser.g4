@@ -54,11 +54,12 @@ statement
     ;
 
 expression
-    : THIS arguments? dotCall*          # ThisExpression
-    | SUPER arguments? dotCall*         # SuperExpression
-    | identifier dotCall*               # VariableExpression
-    | className arguments dotCall*      # CallableExpression
-    | primary                           # PrimaryExpression
+    : THIS arguments? dotCall*                                  # ThisExpression
+    | SUPER arguments? dotCall*                                 # SuperExpression
+    | identifier dotCall*                                       # VariableExpression
+    | className arguments dotCall*                              # CallableExpression
+    | primary                                                   # PrimaryExpression
+    | ISNULL L_BRACKET NL* expression NL* R_BRACKET dotCall*    # IsNullExpression
     ;
 
 dotCall

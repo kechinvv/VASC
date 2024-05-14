@@ -59,7 +59,7 @@ class IntArrayList is
     this(array: Array[Integer]) is
         value = array
         while pointer.equal(value.length()).not() loop
-            if value.get(pointer).equal(null) then
+            if isnull(value.get(pointer)) then
                 return
             end
             pointer = pointer.plus(1)
@@ -133,7 +133,7 @@ class IntArrayList is
         var i: Integer = value.length().minus(1)
         var nulls: Integer = 0
         while i.equal(-1).not() loop
-            if value.get(i).equal(null).not() then
+            if isnull(value.get(i)).not() then
                 capacity = value.length().minus(nulls)
                 _realloc()
                 return

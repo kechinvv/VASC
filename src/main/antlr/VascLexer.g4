@@ -110,6 +110,10 @@ PRINT
     : 'println'
     ;
 
+ISNULL
+    : 'isnull'
+    ;
+
 fragment ESCAPED_QUOTE
    : '\\"'
    ;
