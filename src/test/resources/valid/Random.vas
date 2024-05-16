@@ -18,16 +18,14 @@ class RandomRandu is
 
     var randMax: Integer = 2147483648
     var seed: Integer
-    var state: Integer
+    var state: Integer = 1
 
     this(_seed: Integer) is
         seed = _seed
-        state = _seed
     end
 
     this() is
         seed = 0
-        state = 1
     end
 
     method nextInt(): Integer is
