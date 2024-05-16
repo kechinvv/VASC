@@ -21,7 +21,7 @@ object VascCompiler {
         File("src/main/java/com/vasc").listFiles()?.forEach {
             javaCompiler.run(null, null, null, it.path, "-d", classesDir.path)
         }
-        return VascProgram("com.vasc.Main", classesDir)
+        return VascProgram(classesDir)
     }
 
     private fun newDir(name: String) = File(name).apply {
