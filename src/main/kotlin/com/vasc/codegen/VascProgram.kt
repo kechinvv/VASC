@@ -18,6 +18,10 @@ class VascProgram(
 ) {
 
     companion object {
+        fun getProgramFromSource(src: File): VascProgram {
+            return getProgramFromSource(src.path)
+        }
+
         fun getProgramFromSource(src: String): VascProgram {
             val chars = CharStreams.fromFileName(src)
             val program = programWithErrorListener(chars)

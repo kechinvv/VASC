@@ -1,4 +1,4 @@
-class Entry is
+class EntryPoint is
     this() is
         println("no args")
     end
@@ -20,7 +20,7 @@ class Entry is
     end
 end
 
-class RandomUsage is
+class Random is
     this() is
         run_rand()
     end
